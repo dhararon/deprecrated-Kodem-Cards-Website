@@ -1,0 +1,16 @@
+[install]
+# Usar el caché de Bun para instalaciones más rápidas
+cache = true
+
+[test]
+# Configuración para pruebas
+preload = "./test/setup.ts"
+
+[run]
+# Configuración para ejecutar el proyecto
+bundle = true
+hot = true
+
+[debug]
+# Configuración de depuración
+sourcemap = true 

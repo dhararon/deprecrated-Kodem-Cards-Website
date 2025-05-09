@@ -1,0 +1,92 @@
+
+
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+      "artists": {
+        "type": "array",
+        "items": [
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "cardEnergy": {
+        "type": "string"
+      },
+      "cardNumber": {
+        "type": "integer"
+      },
+      "cardType": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "fullId": {
+        "type": "string"
+      },
+      "imageUrl": {
+        "type": "string"
+      },
+      "legalities": {
+        "type": "object",
+        "properties": {
+          "standard": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "standard"
+        ]
+      },
+      "name": {
+        "type": "string"
+      },
+      "parentCardId": {
+        "type": "string"
+      },
+      "power": {
+        "type": "integer"
+      },
+      "promoEvent": {
+        "type": "object"
+      },
+      "rarity": {
+        "type": "string"
+      },
+      "rules": {
+        "type": "array",
+        "items": [
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "setName": {
+        "type": "string"
+      },
+      "sleep": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "artists",
+      "cardEnergy",
+      "cardNumber",
+      "cardType",
+      "description",
+      "fullId",
+      "imageUrl",
+      "legalities",
+      "name",
+      "parentCardId",
+      "power",
+      "promoEvent",
+      "rarity",
+      "rules",
+      "setName",
+      "sleep"
+    ]
+  }  

@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-04-19T14:49:12.513Z",
+  "testsPassed": true,
+  "errors": [],
+  "tests": [
+    {
+      "name": "DeckList Component",
+      "passed": true
+    },
+    {
+      "name": "CardModal Component",
+      "passed": true
+    },
+    {
+      "name": "LoginForm Component",
+      "passed": true
+    },
+    {
+      "name": "RegisterForm Component",
+      "passed": true
+    }
+  ]
+}

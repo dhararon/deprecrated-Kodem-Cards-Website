@@ -1,0 +1,84 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Generated schema for Root",
+    "type": "object",
+    "properties": {
+        "createdAt": {
+            "type": "object",
+            "properties": {
+                "__time__": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "__time__"
+            ]
+        },
+        "updatedAt": {
+            "type": "object",
+            "properties": {
+                "__time__": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "__time__"
+            ]
+        },
+        "userId": {
+            "type": "string"
+        },
+        "setCardId": {
+            "type": "string"
+        },
+        "cards": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "quantity": {
+                        "type": "number"
+                    },
+                    "cardId": {
+                        "type": "string"
+                    },
+                    "addedAt": {
+                        "type": "object",
+                        "properties": {
+                            "__time__": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "__time__"
+                        ]
+                    },
+                    "updatedAt": {
+                        "type": "object",
+                        "properties": {
+                            "__time__": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "__time__"
+                        ]
+                    }
+                },
+                "required": [
+                    "quantity",
+                    "cardId",
+                    "addedAt",
+                    "updatedAt"
+                ]
+            }
+        }
+    },
+    "required": [
+        "createdAt",
+        "updatedAt",
+        "userId",
+        "setCardId",
+        "cards"
+    ]
+}

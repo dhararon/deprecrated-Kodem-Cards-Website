@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+/* Configuración global de la página */
+:root {
+  color-scheme: light;
+
+  /* Colores Primarios */
+  --color-primary-50: #EEF1F7;
+  --color-primary-100: #D4DCF0;
+  --color-primary-200: #A9B9E0;
+  --color-primary-300: #7E96D1;
+  --color-primary-400: #5373C1;
+  --color-primary-500: #335096;
+  --color-primary-600: #2A4078;
+  --color-primary-700: #20305A;
+  --color-primary-800: #15203C;
+  --color-primary-900: #0B101E;
+
+  /* Colores Secundarios */
+  --color-neutral-50: #F7F8FA;
+  --color-neutral-100: #E8EBF0;
+  --color-neutral-200: #D1D6E0;
+  --color-neutral-300: #B9C1D1;
+  --color-neutral-400: #A2ACC1;
+  --color-neutral-500: #8B96B2;
+  --color-neutral-600: #6F7A96;
+  --color-neutral-700: #535D78;
+  --color-neutral-800: #37405A;
+  --color-neutral-900: #1B203C;
+
+  /* Colores de Acento */
+  --color-accent-gold-50: #FFF9E6;
+  --color-accent-gold-100: #FFE9B3;
+  --color-accent-gold-200: #FFD980;
+  --color-accent-gold-300: #FFC94D;
+  --color-accent-gold-400: #FFB91A;
+  --color-accent-gold-500: #E6A300;
+  --color-accent-gold-600: #B38000;
+  --color-accent-gold-700: #805C00;
+  --color-accent-gold-800: #4D3700;
+  --color-accent-gold-900: #1A1300;
+
+  /* Colores de Estado */
+  --color-success-50: #E8F5E9;
+  --color-success-500: #4CAF50;
+  --color-success-700: #388E3C;
+
+  --color-error-50: #FEE8E7;
+  --color-error-500: #F44336;
+  --color-error-700: #D32F2F;
+
+  --color-warning-50: #FFF3E0;
+  --color-warning-500: #FF9800;
+  --color-warning-700: #F57C00;
+
+  --color-info-50: #E3F2FD;
+  --color-info-500: #2196F3;
+  --color-info-700: #1976D2;
+
+  /* Variables de tema */
+  --background: #FFFFFF;
+  --foreground: #0A0A0A;
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0A0A0A;
+  --primary: #335096;
+  --primary-foreground: #FAFAFA;
+  --secondary: #F5F5F5;
+  --secondary-foreground: #171717;
+  --muted: #F5F5F5;
+  --muted-foreground: #737373;
+  --accent: #F5F5F5;
+  --accent-foreground: #171717;
+  --destructive: #EF4444;
+  --destructive-foreground: #FAFAFA;
+  --border-color: #E5E5E5;
+  --input: #E5E5E5;
+  --ring: #0A0A0A;
+  --chart-1: #F97066;
+  --chart-2: #1A9C88;
+  --chart-3: #0E3E5C;
+  --chart-4: #FAC858;
+  --chart-5: #F9804D;
+  --radius: 0.5rem;
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* Estilos base para todo el documento */
+* {
+  border-color: var(--border-color);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+/* Estilos específicos para el sidebar */
+.sidebar-icon {
+  color: var(--color-primary-500);
+}
+
+/* Estilos específicos para textos */
+.text-primary {
+  color: var(--color-primary-500);
+}
+
+.bg-primary {
+  background-color: var(--color-primary-500);
+}
+
+/* Estilos para scrollbars y modales en dispositivos móviles */
+@media (max-width: 640px) {
+  /* Mejorar scrolls en dispositivos móviles */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.03);
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.15);
+    border-radius: 10px;
+  }
+  
+  /* Asegurar que los modales no excedan la altura de la pantalla */
+  .modal-mobile-height {
+    max-height: 90vh !important;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Ajustes para contenido de imágenes en modales */
+  .modal-image-container {
+    max-height: 40vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

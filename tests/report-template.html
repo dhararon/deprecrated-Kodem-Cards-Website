@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Pruebas Tailwind</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2563eb;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        .timestamp {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .test-header {
+            background-color: #f3f4f6;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-content {
+            padding: 15px;
+        }
+
+        .success {
+            color: #10b981;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+
+        .warning {
+            color: #f59e0b;
+        }
+
+        .screenshot {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .results-table th,
+        .results-table td {
+            border: 1px solid #e5e7eb;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .results-table th {
+            background-color: #f9fafb;
+        }
+
+        .results-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .component-name {
+            font-weight: 600;
+        }
+
+        pre {
+            background-color: #f1f5f9;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Informe de Pruebas de Estilos Tailwind</h1>
+        <div class="timestamp" id="timestamp"></div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-header">
+            <h2>Resumen</h2>
+            <div class="status" id="overall-status"></div>
+        </div>
+        <div class="test-content">
+            <p>Total de pruebas: <span id="total-tests">0</span></p>
+            <p>Pruebas exitosas: <span class="success" id="passed-tests">0</span></p>
+            <p>Pruebas fallidas: <span class="error" id="failed-tests">0</span></p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-header">
+            <h2>Resultados detallados</h2>
+        </div>
+        <div class="test-content">
+            <div id="test-results"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-header">
+            <h2>Captura de pantalla</h2>
+        </div>
+        <div class="test-content">
+            <div id="screenshot-container"></div>
+        </div>
+    </div>
+
+    <div class="test-section" id="error-section" style="display: none;">
+        <div class="test-header">
+            <h2>Errores</h2>
+        </div>
+        <div class="test-content">
+            <pre id="error-details"></pre>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Esta información será reemplazada por los datos reales de la prueba
+            const testData = JSON.parse("{{TEST_DATA}}");
+
+            // Actualizar fecha y hora
+            document.getElementById('timestamp').textContent = testData.timestamp;
+
+            // Actualizar estadísticas
+            const passedTests = testData.results.filter(r => r.passed).length;
+            const failedTests = testData.results.filter(r => !r.passed).length;
+            const totalTests = testData.results.length;
+
+            document.getElementById('total-tests').textContent = totalTests;
+            document.getElementById('passed-tests').textContent = passedTests;
+            document.getElementById('failed-tests').textContent = failedTests;
+
+            // Mostrar estado general
+            const overallStatus = document.getElementById('overall-status');
+            if (failedTests === 0) {
+                overallStatus.textContent = 'ÉXITO';
+                overallStatus.className = 'status success';
+            } else {
+                overallStatus.textContent = 'FALLOS';
+                overallStatus.className = 'status error';
+            }
+
+            // Generar tabla de resultados
+            const resultsContainer = document.getElementById('test-results');
+            if (testData.results.length > 0) {
+                const table = document.createElement('table');
+                table.className = 'results-table';
+
+                // Encabezado
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                ['Componente', 'Selector', 'Propiedad', 'Valor esperado', 'Valor actual', 'Estado'].forEach(text => {
+                    const th = document.createElement('th');
+                    th.textContent = text;
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // Cuerpo
+                const tbody = document.createElement('tbody');
+                let currentComponent = '';
+
+                testData.results.forEach(result => {
+                    const tr = document.createElement('tr');
+
+                    // Componente
+                    const tdComponent = document.createElement('td');
+                    if (result.component !== currentComponent) {
+                        tdComponent.textContent = result.component;
+                        tdComponent.className = 'component-name';
+                        currentComponent = result.component;
+                    }
+                    tr.appendChild(tdComponent);
+
+                    // Selector
+                    const tdSelector = document.createElement('td');
+                    tdSelector.textContent = result.selector;
+                    tr.appendChild(tdSelector);
+
+                    // Propiedad
+                    const tdProperty = document.createElement('td');
+                    tdProperty.textContent = result.property;
+                    tr.appendChild(tdProperty);
+
+                    // Valor esperado
+                    const tdExpected = document.createElement('td');
+                    tdExpected.textContent = result.expectedValue;
+                    tr.appendChild(tdExpected);
+
+                    // Valor actual
+                    const tdActual = document.createElement('td');
+                    tdActual.textContent = result.actualValue;
+                    tr.appendChild(tdActual);
+
+                    // Estado
+                    const tdStatus = document.createElement('td');
+                    if (result.passed) {
+                        tdStatus.textContent = '✓';
+                        tdStatus.className = 'success';
+                    } else {
+                        tdStatus.textContent = '✗';
+                        tdStatus.className = 'error';
+                    }
+                    tr.appendChild(tdStatus);
+
+                    tbody.appendChild(tr);
+                });
+
+                table.appendChild(tbody);
+                resultsContainer.appendChild(table);
+            } else {
+                resultsContainer.innerHTML = '<p class="warning">No hay resultados disponibles.</p>';
+            }
+
+            // Mostrar captura de pantalla
+            const screenshotContainer = document.getElementById('screenshot-container');
+            if (testData.screenshot) {
+                const img = document.createElement('img');
+                img.src = testData.screenshot;
+                img.alt = 'Captura de pantalla de la aplicación';
+                img.className = 'screenshot';
+                screenshotContainer.appendChild(img);
+            } else {
+                screenshotContainer.innerHTML = '<p class="warning">No hay captura de pantalla disponible.</p>';
+            }
+
+            // Mostrar errores si los hay
+            if (testData.error) {
+                document.getElementById('error-section').style.display = 'block';
+                document.getElementById('error-details').textContent = testData.error;
+            }
+        });
+    </script>
+</body>
+
+</html>
