@@ -1,0 +1,26 @@
+# use the official Bun image
+# see all versions at https://hub.docker.com/r/oven/bun/tags
+FROM oven/bun:latest
+
+WORKDIR /app
+
+# Instalar dependencias
+COPY package.json .
+RUN bun install
+
+# Copiar archivos de configuración
+COPY tsconfig.json .
+COPY vite.config.ts .
+COPY tailwind.config.cjs .
+COPY index.html .
+
+# Los archivos de código fuente se montarán como volumen
+# No es necesario copiarlos aquí
+
+# Crear un script de inicio que establezca permisos
+RUN echo '#!/bin/bash\n\
+bun run dev --host 0.0.0.0\n\
+' > /entrypoint.sh && chmod +x /entrypoint.sh
+
+EXPOSE 5173/tcp
+ENTRYPOINT ["bun", "run", "dev"]
