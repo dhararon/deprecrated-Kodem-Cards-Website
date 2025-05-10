@@ -112,3 +112,78 @@ Las contribuciones son bienvenidas. Por favor, lee la [guía de contribución](.
 ## Contacto
 
 Para preguntas o soporte, por favor contacta a: dhargames@gmail.com
+
+## Sistema de versionado y releases
+
+Este proyecto utiliza un sistema automatizado de versionado semántico basado en los mensajes de commit.
+
+### Requisitos previos
+
+Para utilizar la funcionalidad de releases, necesitas configurar un token de GitHub con los permisos adecuados:
+
+1. Crea un [token de acceso personal en GitHub](https://github.com/settings/tokens) con el permiso `repo`
+2. Configura el token de una de estas formas:
+   - Establece la variable de entorno `GITHUB_TOKEN`
+   - Crea un archivo `~/.github_token` con tu token
+
+### Comandos disponibles
+
+| Comando | Descripción |
+|---------|-------------|
+| `bun run tag` | Analiza los commits y sugiere una nueva versión |
+| `bun run tag:create` | Crea un tag local con la versión sugerida |
+| `bun run tag:push` | Crea un tag y lo sube al repositorio remoto |
+| `bun run tag:push:force` | Crea y sube un tag, incluso si hay errores con tags pendientes |
+| `bun run release` | Crea un tag, lo sube y genera un release en GitHub |
+| `bun run release:pre` | Crea un tag, lo sube y genera un release de pre-lanzamiento |
+| `bun run release:last` | Genera un release para el último tag existente si no tiene uno |
+| `bun run release:last:pre` | Genera un release de pre-lanzamiento para el último tag existente |
+
+### Cómo funciona el versionado semántico
+
+El script analiza los mensajes de commit desde el último tag y determina el tipo de cambio:
+
+- **MAJOR** (incremento en el primer número): Si algún commit contiene `BREAKING CHANGE` o `!:`
+- **MINOR** (incremento en el segundo número): Si algún commit comienza con `feat:`
+- **PATCH** (incremento en el tercer número): Si algún commit comienza con `fix:`
+
+### Ejemplos de flujo de trabajo
+
+#### Publicar una nueva versión
+
+```bash
+# Hacer commits con el formato adecuado
+git commit -m "feat: nueva funcionalidad"
+git commit -m "fix: solución de bug"
+
+# Generar una nueva versión y release
+bun run release
+```
+
+#### Crear una pre-release
+
+```bash
+# Hacer commits normalmente
+git commit -m "feat: funcionalidad experimental"
+
+# Generar una pre-release
+bun run release:pre
+```
+
+#### Crear un release para un tag existente
+
+Si ya has creado un tag manualmente pero quieres generar un release en GitHub:
+
+```bash
+# Crear un release para el último tag existente
+bun run release:last
+```
+
+#### Verificar y generar releases faltantes
+
+Si quieres asegurarte de que el último tag tiene un release:
+
+```bash
+# Verificar si el último tag tiene release y crearlo si no existe
+bun run release:last
+```
