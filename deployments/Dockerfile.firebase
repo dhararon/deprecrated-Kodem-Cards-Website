@@ -18,7 +18,7 @@ COPY ../../.firebaserc .
 COPY ../../firebase ./firebase
 
 # Exponer los puertos de Firebase
-EXPOSE 9099 9199 8080 4000
+EXPOSE 9099 9199 8080 4000 4400 4500 9150
 
 # Configurar comando por defecto
 CMD ["firebase", "emulators:start", "--project", "kodemcards"] 
