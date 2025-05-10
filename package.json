@@ -17,7 +17,8 @@
     "lint:check": "bun eslint 'src/**/*.{ts,tsx}' --max-warnings=1000",
     "clean:unused": "node scripts/fix-lint-issues.js",
     "clean:hooks": "node scripts/fix-react-hooks.js",
-    "clean:code": "node scripts/clean-code.js"
+    "clean:code": "node scripts/clean-code.js",
+    "download-cards": "bun run scripts/download-cards.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -49,6 +50,7 @@
     "clsx": "^2.1.1",
     "cross-env": "^7.0.3",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.5.0",
     "firebase": "^11.7.1",
     "firebase-admin": "^13.3.0",
     "framer-motion": "^12.10.1",
