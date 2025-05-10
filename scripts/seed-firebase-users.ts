@@ -117,14 +117,28 @@ const testUsers: TestUser[] = [
     {
         email: 'admin@kodemcards.xyz',
         password: 'admin123',
-        displayName: 'Admin Usuario',
+        displayName: 'Admin User',
         role: 'admin',
         photoURL: 'https://api.dicebear.com/7.x/initials/svg?seed=AU'
     },
     {
+        email: 'staff@kodemcards.xyz',
+        password: 'staff123',
+        displayName: 'Staff User',
+        role: 'staff',
+        photoURL: 'https://api.dicebear.com/7.x/initials/svg?seed=UR'
+    },
+    {
+        email: 'moderator@kodemcards.xyz',
+        password: 'moderator123',
+        displayName: 'Moderator User',
+        role: 'moderator',
+        photoURL: 'https://api.dicebear.com/7.x/initials/svg?seed=UR'
+    },
+    {
         email: 'user@kodemcards.xyz',
         password: 'user123',
-        displayName: 'Usuario Regular',
+        displayName: 'User',
         role: 'user',
         photoURL: 'https://api.dicebear.com/7.x/initials/svg?seed=UR'
     }
