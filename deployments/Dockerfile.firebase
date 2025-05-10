@@ -20,6 +20,8 @@ COPY ../../firebase.json .
 COPY ../../.firebaserc .
 COPY ../../firebase ./firebase
 COPY ../../scripts/seed-firebase-users.ts ./scripts/seed-firebase-users.ts
+COPY ../../scripts/seed-firebase-cards.ts ./scripts/seed-firebase-cards.ts
+COPY ../../fixtures/cards-latest.json ./fixtures/cards-latest.json
 COPY ../../package.json .
 COPY ../../tsconfig.json .
 

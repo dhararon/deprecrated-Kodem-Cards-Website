@@ -65,23 +65,45 @@ curl -s "http://$EMULATOR_HOST:9099/identitytoolkit.googleapis.com/v1/projects/$
 curl -s "http://$EMULATOR_HOST:8080/v1/projects/$PROJECT_ID/databases/(default)/documents" || echo "Error en Firestore API"
 echo "✅ Prueba de conectividad completada"
 
-# Ejecutar el script de seeding
-echo "🌱 Ejecutando script de seeding..."
+# Configurar el PATH para acceder a bun
 export PATH=$PATH:~/.bun/bin
+
+# Ejecutar el script de seeding de usuarios
+echo "🌱 Ejecutando script de seeding de usuarios..."
 bun run scripts/seed-firebase-users.ts
 
-# Si el script de seeding se ejecutó correctamente
+# Si el script de seeding de usuarios se ejecutó correctamente
 if [ $? -eq 0 ]; then
-    echo "✅ Script de seeding ejecutado con éxito"
+    echo "✅ Script de seeding de usuarios ejecutado con éxito"
 else
-    echo "❌ Error al ejecutar el script de seeding"
+    echo "❌ Error al ejecutar el script de seeding de usuarios"
     # Intentar ejecutar nuevamente después de un tiempo
-    echo "🔄 Intentando ejecutar el script nuevamente después de 10 segundos..."
+    echo "🔄 Intentando ejecutar el script de usuarios nuevamente después de 10 segundos..."
     sleep 10
-    echo "🌱 Segundo intento de ejecución del script de seeding..."
+    echo "🌱 Segundo intento de ejecución del script de seeding de usuarios..."
     bun run scripts/seed-firebase-users.ts
 fi
 
+# Esperar un momento antes de continuar con el siguiente script
+sleep 5
+
+# Ejecutar el script de seeding de cartas
+echo "🌱 Ejecutando script de seeding de cartas..."
+bun run scripts/seed-firebase-cards.ts
+
+# Si el script de seeding de cartas se ejecutó correctamente
+if [ $? -eq 0 ]; then
+    echo "✅ Script de seeding de cartas ejecutado con éxito"
+else
+    echo "❌ Error al ejecutar el script de seeding de cartas"
+    # Intentar ejecutar nuevamente después de un tiempo
+    echo "🔄 Intentando ejecutar el script de cartas nuevamente después de 10 segundos..."
+    sleep 10
+    echo "🌱 Segundo intento de ejecución del script de seeding de cartas..."
+    bun run scripts/seed-firebase-cards.ts
+fi
+
 # Mantener los emuladores en ejecución (no finalizar el script)
+echo "✅ Seeding completo. Emuladores listos con datos iniciales."
 echo "🔄 Emuladores en ejecución. Presiona Ctrl+C para detener."
 wait $EMULATOR_PID 
