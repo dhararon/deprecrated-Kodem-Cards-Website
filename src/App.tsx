@@ -33,7 +33,7 @@ const DeckDetail = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/De
 const DecksFeed = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/DecksFeed'));
 
 // Páginas de listas de deseos
-const Wishlists = lazy(() => import(/* webpackChunkName: "wishlists" */ '@/pages/Wishlists'));
+const Wishlists = lazy(() => import(/* webpackChunkName: "wishlists" */ '@/pages/wishlist'));
 const WishlistDetail = lazy(() => import(/* webpackChunkName: "wishlists" */ '@/pages/wishlist/[id]'));
 
 // Páginas de administración
