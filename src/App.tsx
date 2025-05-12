@@ -27,9 +27,9 @@ const Settings = lazy(() => import(/* webpackChunkName: "user" */ '@/pages/Setti
 const Collection = lazy(() => import(/* webpackChunkName: "collection" */ '@/pages/collections'));
 
 // Página de mazos
-const Decks = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/Decks'));
-const DeckEditor = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/DeckEditor'));
-const DeckDetail = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/DeckDetail'));
+const Decks = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks'));
+const DeckEditor = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks/editor'));
+const DeckDetail = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks/[id]'));
 const DecksFeed = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/DecksFeed'));
 
 // Páginas de listas de deseos
