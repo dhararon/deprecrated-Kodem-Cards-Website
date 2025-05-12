@@ -30,7 +30,7 @@ const Collection = lazy(() => import(/* webpackChunkName: "collection" */ '@/pag
 const Decks = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks'));
 const DeckEditor = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks/editor'));
 const DeckDetail = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks/[id]'));
-const DecksFeed = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/DecksFeed'));
+const DecksFeed = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks/feed'));
 
 // Páginas de listas de deseos
 const Wishlists = lazy(() => import(/* webpackChunkName: "wishlists" */ '@/pages/wishlist'));
