@@ -146,30 +146,31 @@ export default function DeckEditor() {
     
     // Organizar las cartas por tipo
     const protectors = deckCardDetails.filter(card => card.cardType === CardType.PROTECTOR);
-    const adendeis = deckCardDetails.filter(card => card.cardType === CardType.ADENDEI || 
-                                                   card.cardType === CardType.ADENDEI_TITAN || 
-                                                   card.cardType === CardType.ADENDEI_GUARDIAN || 
-                                                   card.cardType === CardType.ADENDEI_CATRIN || 
-                                                   card.cardType === CardType.ADENDEI_KOSMICO || 
-                                                   card.cardType === CardType.ADENDEI_EQUINO || 
-                                                   card.cardType === CardType.ADENDEI_ABISMAL || 
-                                                   card.cardType === CardType.ADENDEI_INFECTADO);
+    const adendeis = deckCardDetails.filter(card => 
+      card.cardType === CardType.ADENDEI || 
+      card.cardType === CardType.ADENDEI_TITAN || 
+      card.cardType === CardType.ADENDEI_GUARDIAN || 
+      card.cardType === CardType.ADENDEI_CATRIN || 
+      card.cardType === CardType.ADENDEI_KOSMICO || 
+      card.cardType === CardType.ADENDEI_EQUINO || 
+      card.cardType === CardType.ADENDEI_ABISMAL || 
+      card.cardType === CardType.ADENDEI_INFECTADO ||
+      card.cardType === CardType.RAVA  // Tratar Rava como Adendei
+    );
     const rotCards = deckCardDetails.filter(card => card.cardType === CardType.ROT);
     const iximCards = deckCardDetails.filter(card => card.cardType === CardType.IXIM);
     const bioCards = deckCardDetails.filter(card => card.cardType === CardType.BIO);
-    const ravaCards = deckCardDetails.filter(card => card.cardType === CardType.RAVA);
     
-    // Organizarlas según la estructura requerida
+    // Organizarlas según la estructura requerida - simplemente usar adendeis (que ya incluye ravas)
     setOrganizedDeck({
       protector1: protectors.length > 0 ? protectors[0] : undefined,
-      mainAdendeis: adendeis.slice(0, 3), // Los primeros 3 adendeis para cols 2-4 de fila 1
+      mainAdendeis: adendeis.slice(0, 3), // Los primeros 3 adendeis/ravas
       protector2: protectors.length > 1 ? protectors[1] : undefined,
       bio: bioCards.length > 0 ? bioCards[0] : undefined,
       rotCards: rotCards.slice(0, 4), // Hasta 4 cartas rot para fila 3
       iximCards: iximCards.slice(0, 4), // Hasta 4 cartas ixim para fila 4
       otherCards: [
-        ...adendeis.slice(3), // Adendeis restantes
-        ...ravaCards,
+        ...adendeis.slice(3), // Adendeis/Ravas restantes
         ...protectors.slice(2), // Protectores adicionales
         ...bioCards.slice(1), // Bios adicionales
         ...rotCards.slice(4), // Rot adicionales
@@ -184,10 +185,10 @@ export default function DeckEditor() {
             card.cardType === CardType.ADENDEI_EQUINO || 
             card.cardType === CardType.ADENDEI_ABISMAL || 
             card.cardType === CardType.ADENDEI_INFECTADO || 
+            card.cardType === CardType.RAVA ||  // Incluir Rava en la lista de exclusión
             card.cardType === CardType.ROT || 
             card.cardType === CardType.IXIM || 
-            card.cardType === CardType.BIO || 
-            card.cardType === CardType.RAVA)
+            card.cardType === CardType.BIO)
         )
       ]
     });
@@ -299,19 +300,54 @@ export default function DeckEditor() {
                     ...prev.otherCards.slice(0, activeIndex),
                     ...prev.otherCards.slice(activeIndex + 1)
                   ];
+                  
                   // Agregar la carta del slot destino a other
                   newDeck.otherCards.push(targetCard);
+                  
                   // Colocar la carta activa en el slot destino
                   newDeck.mainAdendeis[overIndex] = cardToMove;
                 }
-              } else if (overIndex >= newDeck.mainAdendeis.length) {
-                // Si el slot está vacío, simplemente agregar
+              } else {
+                // Si el slot está vacío o es un nuevo slot
                 // Eliminar de other cards
                 newDeck.otherCards = [
                   ...prev.otherCards.slice(0, activeIndex),
                   ...prev.otherCards.slice(activeIndex + 1)
                 ];
-                // Agregar al final de mainAdendeis
+                
+                // Simplemente agregar al final si hay espacio
+                if (newDeck.mainAdendeis.length < 3) {
+                  newDeck.mainAdendeis.push(cardToMove);
+                }
+              }
+            }
+          }
+          
+          // Agregar un nuevo caso para cuando se suelta una carta en un área vacía de mainAdendei
+          else if (activeSection === 'other' && !overSection) {
+            // Intentar agregar la carta al final de mainAdendeis
+            const cardToMove = prev.otherCards[activeIndex];
+            
+            // Solo permitir agregar si es un adendei o rava compatible
+            if (cardToMove && (
+                cardToMove.cardType === CardType.ADENDEI || 
+                cardToMove.cardType === CardType.ADENDEI_TITAN || 
+                cardToMove.cardType === CardType.ADENDEI_GUARDIAN || 
+                cardToMove.cardType === CardType.ADENDEI_CATRIN || 
+                cardToMove.cardType === CardType.ADENDEI_KOSMICO || 
+                cardToMove.cardType === CardType.ADENDEI_EQUINO || 
+                cardToMove.cardType === CardType.ADENDEI_ABISMAL || 
+                cardToMove.cardType === CardType.ADENDEI_INFECTADO ||
+                cardToMove.cardType === CardType.RAVA)) {
+              
+              // Eliminar de other cards
+              newDeck.otherCards = [
+                ...prev.otherCards.slice(0, activeIndex),
+                ...prev.otherCards.slice(activeIndex + 1)
+              ];
+              
+              // Simplemente agregar al final si hay espacio
+              if (newDeck.mainAdendeis.length < 3) {
                 newDeck.mainAdendeis.push(cardToMove);
               }
             }
@@ -385,13 +421,13 @@ export default function DeckEditor() {
               </div>
               
               <SortableContext 
-                items={organizedDeck.mainAdendeis.map((_, i) => `mainAdendei-${i}`)} 
+                items={Array(6).fill(null).map((_, i) => `mainAdendei-${i}`)} 
                 strategy={horizontalListSortingStrategy}
               >
                 {Array(3).fill(null).map((_, idx) => (
                   <div key={`main-adendei-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container" 
                        data-droppable-id={`mainAdendei-${idx}`}>
-                    {organizedDeck.mainAdendeis[idx] ? (
+                    {idx < organizedDeck.mainAdendeis.length ? (
                       <SortableCard 
                         card={organizedDeck.mainAdendeis[idx]} 
                         id={`mainAdendei-${idx}`} 
@@ -1142,40 +1178,6 @@ export default function DeckEditor() {
                   {energyOptions.map((energy) => (
                     <SelectItem key={energy} value={energy}>
                       {energy}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={selectedRarity}
-                onValueChange={(value) => {
-                  setSelectedRarity(value);
-                }}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Rareza" />
-                </SelectTrigger>
-                <SelectContent>
-                  {rarityOptions.map((rarity) => (
-                    <SelectItem key={rarity} value={rarity}>
-                      {rarity}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={selectedSet}
-                onValueChange={(value) => {
-                  setSelectedSet(value);
-                }}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Set" />
-                </SelectTrigger>
-                <SelectContent>
-                  {setOptions.map((set) => (
-                    <SelectItem key={set} value={set}>
-                      {set}
                     </SelectItem>
                   ))}
                 </SelectContent>
