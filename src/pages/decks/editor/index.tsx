@@ -279,6 +279,20 @@ export default function DeckEditor() {
             // Mover de other a mainAdendei
             const cardToMove = prev.otherCards[activeIndex];
             
+            // Verificar si es un Rava y si ya existe un Rava en el mazo principal
+            if (cardToMove.cardType === CardType.RAVA) {
+              // Buscar si ya hay un Rava en mainAdendeis
+              const hasRavaAlready = newDeck.mainAdendeis.some(card => 
+                card.cardType === CardType.RAVA
+              );
+              
+              if (hasRavaAlready) {
+                // Ya existe un Rava, no permitir agregar otro
+                toast.error('Solo puede existir 1 carta Rava por mazo');
+                return prev; // Retornar el estado previo sin cambios
+              }
+            }
+            
             // Solo permitir mover si es un adendei o rava compatible
             if (cardToMove && (
                 cardToMove.cardType === CardType.ADENDEI || 
@@ -327,6 +341,20 @@ export default function DeckEditor() {
           else if (activeSection === 'other' && !overSection) {
             // Intentar agregar la carta al final de mainAdendeis
             const cardToMove = prev.otherCards[activeIndex];
+            
+            // Verificar si es un Rava y si ya existe un Rava en el mazo principal
+            if (cardToMove.cardType === CardType.RAVA) {
+              // Buscar si ya hay un Rava en mainAdendeis
+              const hasRavaAlready = newDeck.mainAdendeis.some(card => 
+                card.cardType === CardType.RAVA
+              );
+              
+              if (hasRavaAlready) {
+                // Ya existe un Rava, no permitir agregar otro
+                toast.error('Solo puede existir 1 carta Rava por mazo');
+                return prev; // Retornar el estado previo sin cambios
+              }
+            }
             
             // Solo permitir agregar si es un adendei o rava compatible
             if (cardToMove && (
@@ -830,6 +858,22 @@ export default function DeckEditor() {
 
   // Agregar carta al mazo
   const handleAddCard = (card: CardDetails) => {
+    // Si la carta es un Rava, verificar si ya existe un Rava en el mazo
+    if (card.cardType === CardType.RAVA) {
+      // Buscar si ya hay un Rava en el mazo
+      const hasRavaAlready = Object.keys(deckCards).some(cardId => {
+        const existingCard = allCards.find(c => c.id === cardId);
+        return existingCard && existingCard.cardType === CardType.RAVA;
+      });
+      
+      if (hasRavaAlready) {
+        // Ya existe un Rava, mostrar mensaje y no permitir agregar otro
+        toast.error('Solo puede existir 1 carta Rava por mazo');
+        return;
+      }
+    }
+    
+    // Si no es Rava o es el primer Rava, proceder normalmente
     setDeckCards(prev => {
       const currentQty = prev[card.id] || 0;
       return {
