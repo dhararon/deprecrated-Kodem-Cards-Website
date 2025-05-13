@@ -369,7 +369,7 @@ export default function DeckEditor() {
           <div>
             <h3 className="font-medium text-sm mb-2">Protector y Adendeis Principales</h3>
             <div className="grid grid-cols-4 gap-3">
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center">
+              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[220px] flex items-center justify-center">
                 {organizedDeck.protector1 ? (
                   renderDeckCard(organizedDeck.protector1)
                 ) : (
@@ -387,7 +387,7 @@ export default function DeckEditor() {
                 strategy={horizontalListSortingStrategy}
               >
                 {Array(3).fill(null).map((_, idx) => (
-                  <div key={`main-adendei-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center" 
+                  <div key={`main-adendei-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[220px] flex items-center justify-center" 
                        data-droppable-id={`mainAdendei-${idx}`}>
                     {organizedDeck.mainAdendeis[idx] ? (
                       <SortableCard 
@@ -412,7 +412,7 @@ export default function DeckEditor() {
           <div>
             <h3 className="font-medium text-sm mb-2">Protector Secundario y Bio</h3>
             <div className="grid grid-cols-4 gap-3">
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center">
+              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[220px] flex items-center justify-center">
                 {organizedDeck.protector2 ? (
                   renderDeckCard(organizedDeck.protector2)
                 ) : (
@@ -425,7 +425,7 @@ export default function DeckEditor() {
                 )}
               </div>
               
-              <div className="col-span-3 border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center">
+              <div className="col-span-3 border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[220px] flex items-center justify-center">
                 {organizedDeck.bio ? (
                   renderDeckCard(organizedDeck.bio)
                 ) : (
@@ -446,7 +446,7 @@ export default function DeckEditor() {
             <div className="grid grid-cols-4 gap-3">
               <SortableContext items={organizedDeck.rotCards.map((_, i) => `rot-${i}`)} strategy={horizontalListSortingStrategy}>
                 {Array(4).fill(null).map((_, idx) => (
-                  <div key={`rot-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center"
+                  <div key={`rot-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[220px] flex items-center justify-center"
                        data-droppable-id={`rot-${idx}`}>
                     {organizedDeck.rotCards[idx] ? (
                       <SortableCard 
@@ -473,7 +473,7 @@ export default function DeckEditor() {
             <div className="grid grid-cols-4 gap-3">
               <SortableContext items={organizedDeck.iximCards.map((_, i) => `ixim-${i}`)} strategy={horizontalListSortingStrategy}>
                 {Array(4).fill(null).map((_, idx) => (
-                  <div key={`ixim-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center"
+                  <div key={`ixim-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[220px] flex items-center justify-center"
                        data-droppable-id={`ixim-${idx}`}>
                     {organizedDeck.iximCards[idx] ? (
                       <SortableCard 
@@ -501,7 +501,7 @@ export default function DeckEditor() {
               {organizedDeck.otherCards.length > 0 ? (
                 <SortableContext items={organizedDeck.otherCards.map((_, i) => `other-${i}`)} strategy={horizontalListSortingStrategy}>
                   {organizedDeck.otherCards.map((card, idx) => (
-                    <div key={`other-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center"
+                    <div key={`other-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[220px] flex items-center justify-center"
                          data-droppable-id={`other-${idx}`}>
                       <SortableCard 
                         card={card} 
@@ -513,7 +513,7 @@ export default function DeckEditor() {
               ) : (
                 // Mostrar al menos una fila vacía para adendeis y rava adicionales
                 Array(3).fill(null).map((_, idx) => (
-                  <div key={`other-empty-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center">
+                  <div key={`other-empty-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[220px] flex items-center justify-center">
                     <div className="text-center text-sm text-muted-foreground">
                       <div className="mb-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
@@ -611,7 +611,7 @@ export default function DeckEditor() {
 
   // Renderizar una carta en el organizador
   const renderDeckCard = (card: CardDetails) => (
-    <div className="border rounded-md overflow-hidden hover:shadow-md transition-shadow bg-white h-full">
+    <div className="border rounded-md overflow-hidden hover:shadow-md transition-shadow bg-white h-full aspect-[2.5/3.5]">
       <div className="relative h-full w-full">
         <Image
           src={card.imageUrl}
