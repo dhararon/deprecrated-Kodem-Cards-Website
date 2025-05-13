@@ -234,13 +234,92 @@ export default function DeckEditor() {
       const [activeSection, activeIndexStr] = activeId.split('-');
       const [overSection, overIndexStr] = overId.split('-');
       
+      const activeIndex = parseInt(activeIndexStr);
+      const overIndex = parseInt(overIndexStr);
+      
+      console.log(`Moving from ${activeSection} ${activeIndex} to ${overSection} ${overIndex}`);
+      
+      // Manejar el intercambio entre Adendeis principales y otras cartas
+      if ((activeSection === 'mainAdendei' && overSection === 'other') || 
+          (activeSection === 'other' && overSection === 'mainAdendei')) {
+        
+        setOrganizedDeck(prev => {
+          const newDeck = { ...prev };
+          
+          if (activeSection === 'mainAdendei' && overSection === 'other') {
+            // Mover de mainAdendei a other
+            const cardToMove = prev.mainAdendeis[activeIndex];
+            const targetCard = prev.otherCards[overIndex];
+            
+            // Reemplazar la carta en la posición activa
+            if (activeIndex < newDeck.mainAdendeis.length) {
+              // Solo reemplazar si targetCard es un adendei compatible
+              if (targetCard && (
+                  targetCard.cardType === CardType.ADENDEI || 
+                  targetCard.cardType === CardType.ADENDEI_TITAN || 
+                  targetCard.cardType === CardType.ADENDEI_GUARDIAN || 
+                  targetCard.cardType === CardType.ADENDEI_CATRIN || 
+                  targetCard.cardType === CardType.ADENDEI_KOSMICO || 
+                  targetCard.cardType === CardType.ADENDEI_EQUINO || 
+                  targetCard.cardType === CardType.ADENDEI_ABISMAL || 
+                  targetCard.cardType === CardType.ADENDEI_INFECTADO)) {
+                newDeck.mainAdendeis[activeIndex] = targetCard;
+                // Eliminar de other cards
+                newDeck.otherCards = [
+                  ...prev.otherCards.slice(0, overIndex),
+                  ...prev.otherCards.slice(overIndex + 1)
+                ];
+                // Agregar la carta activa a other
+                newDeck.otherCards.push(cardToMove);
+              }
+            }
+          } else if (activeSection === 'other' && overSection === 'mainAdendei') {
+            // Mover de other a mainAdendei
+            const cardToMove = prev.otherCards[activeIndex];
+            
+            // Solo permitir mover si es un adendei compatible
+            if (cardToMove && (
+                cardToMove.cardType === CardType.ADENDEI || 
+                cardToMove.cardType === CardType.ADENDEI_TITAN || 
+                cardToMove.cardType === CardType.ADENDEI_GUARDIAN || 
+                cardToMove.cardType === CardType.ADENDEI_CATRIN || 
+                cardToMove.cardType === CardType.ADENDEI_KOSMICO || 
+                cardToMove.cardType === CardType.ADENDEI_EQUINO || 
+                cardToMove.cardType === CardType.ADENDEI_ABISMAL || 
+                cardToMove.cardType === CardType.ADENDEI_INFECTADO)) {
+              
+              // Si hay una carta en el slot destino, intercambiarla
+              if (overIndex < newDeck.mainAdendeis.length) {
+                const targetCard = prev.mainAdendeis[overIndex];
+                if (targetCard) {
+                  // Eliminar de other cards
+                  newDeck.otherCards = [
+                    ...prev.otherCards.slice(0, activeIndex),
+                    ...prev.otherCards.slice(activeIndex + 1)
+                  ];
+                  // Agregar la carta del slot destino a other
+                  newDeck.otherCards.push(targetCard);
+                  // Colocar la carta activa en el slot destino
+                  newDeck.mainAdendeis[overIndex] = cardToMove;
+                }
+              } else if (overIndex >= newDeck.mainAdendeis.length) {
+                // Si el slot está vacío, simplemente agregar
+                // Eliminar de other cards
+                newDeck.otherCards = [
+                  ...prev.otherCards.slice(0, activeIndex),
+                  ...prev.otherCards.slice(activeIndex + 1)
+                ];
+                // Agregar al final de mainAdendeis
+                newDeck.mainAdendeis.push(cardToMove);
+              }
+            }
+          }
+          
+          return newDeck;
+        });
+      } 
       // Solo permitir reordenar dentro de la misma sección
-      if (activeSection === overSection) {
-        const activeIndex = parseInt(activeIndexStr);
-        const overIndex = parseInt(overIndexStr);
-        
-        console.log(`Moving from ${activeSection} index ${activeIndex} to index ${overIndex}`);
-        
+      else if (activeSection === overSection) {
         setOrganizedDeck(prev => {
           const newDeck = { ...prev };
           
