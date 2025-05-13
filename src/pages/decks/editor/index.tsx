@@ -612,44 +612,13 @@ export default function DeckEditor() {
   // Renderizar una carta en el organizador
   const renderDeckCard = (card: CardDetails) => (
     <div className="border rounded-md overflow-hidden hover:shadow-md transition-shadow bg-white h-full">
-      <div className="relative h-32 w-full">
+      <div className="relative h-full w-full">
         <Image
           src={card.imageUrl}
           alt={card.name}
           className="object-cover"
           style={{ width: '100%', height: '100%', position: 'absolute' }}
         />
-      </div>
-      <div className="p-2">
-        <h3 className="font-semibold text-sm truncate">{card.name}</h3>
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{card.cardType}</span>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemoveCard(card.id);
-              }}
-            >
-              <Minus size={12} />
-            </Button>
-            <span className="text-xs">{deckCards[card.id] || 1}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddCard(card);
-              }}
-            >
-              <Plus size={12} />
-            </Button>
-          </div>
-        </div>
       </div>
     </div>
   );
