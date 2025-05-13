@@ -253,7 +253,7 @@ export default function DeckEditor() {
             
             // Reemplazar la carta en la posición activa
             if (activeIndex < newDeck.mainAdendeis.length) {
-              // Solo reemplazar si targetCard es un adendei compatible
+              // Solo reemplazar si targetCard es un adendei o rava compatible
               if (targetCard && (
                   targetCard.cardType === CardType.ADENDEI || 
                   targetCard.cardType === CardType.ADENDEI_TITAN || 
@@ -262,7 +262,8 @@ export default function DeckEditor() {
                   targetCard.cardType === CardType.ADENDEI_KOSMICO || 
                   targetCard.cardType === CardType.ADENDEI_EQUINO || 
                   targetCard.cardType === CardType.ADENDEI_ABISMAL || 
-                  targetCard.cardType === CardType.ADENDEI_INFECTADO)) {
+                  targetCard.cardType === CardType.ADENDEI_INFECTADO ||
+                  targetCard.cardType === CardType.RAVA)) {
                 newDeck.mainAdendeis[activeIndex] = targetCard;
                 // Eliminar de other cards
                 newDeck.otherCards = [
@@ -277,7 +278,7 @@ export default function DeckEditor() {
             // Mover de other a mainAdendei
             const cardToMove = prev.otherCards[activeIndex];
             
-            // Solo permitir mover si es un adendei compatible
+            // Solo permitir mover si es un adendei o rava compatible
             if (cardToMove && (
                 cardToMove.cardType === CardType.ADENDEI || 
                 cardToMove.cardType === CardType.ADENDEI_TITAN || 
@@ -286,7 +287,8 @@ export default function DeckEditor() {
                 cardToMove.cardType === CardType.ADENDEI_KOSMICO || 
                 cardToMove.cardType === CardType.ADENDEI_EQUINO || 
                 cardToMove.cardType === CardType.ADENDEI_ABISMAL || 
-                cardToMove.cardType === CardType.ADENDEI_INFECTADO)) {
+                cardToMove.cardType === CardType.ADENDEI_INFECTADO ||
+                cardToMove.cardType === CardType.RAVA)) {
               
               // Si hay una carta en el slot destino, intercambiarla
               if (overIndex < newDeck.mainAdendeis.length) {
