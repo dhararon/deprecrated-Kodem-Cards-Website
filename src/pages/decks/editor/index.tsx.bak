@@ -37,10 +37,6 @@ import {
 import { Search, Plus, Minus, Save, ArrowLeft, Trash2 } from 'lucide-react';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/atoms/Dialog';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, pointerWithin, rectIntersection } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy, rectSortingStrategy } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { restrictToParentElement } from '@dnd-kit/modifiers';
 
 /**
  * Editor de Mazos - Componente para crear y editar mazos
@@ -71,21 +67,6 @@ export default function DeckEditor() {
   const [allCards, setAllCards] = useState<CardDetails[]>([]);
   const [filteredCards, setFilteredCards] = useState<CardDetails[]>([]);
   const [deckCards, setDeckCards] = useState<Record<string, number>>({});
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [organizedDeck, setOrganizedDeck] = useState<{
-    protector1?: CardDetails;
-    mainAdendeis: CardDetails[];
-    protector2?: CardDetails;
-    bio?: CardDetails;
-    rotCards: CardDetails[];
-    iximCards: CardDetails[];
-    otherCards: CardDetails[];
-  }>({
-    mainAdendeis: [],
-    rotCards: [],
-    iximCards: [],
-    otherCards: []
-  });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all_types');
   const [selectedEnergy, setSelectedEnergy] = useState<string>('all_energies');
@@ -135,445 +116,6 @@ export default function DeckEditor() {
     
     loadCards();
   }, [user]);
-
-  // Categorizar cartas por tipo para el organizador
-  useEffect(() => {
-    if (allCards.length === 0) return;
-    
-    // Obtener las cartas que están en el mazo
-    const deckCardIds = Object.keys(deckCards);
-    const deckCardDetails = allCards.filter(card => deckCardIds.includes(card.id));
-    
-    // Organizar las cartas por tipo
-    const protectors = deckCardDetails.filter(card => card.cardType === CardType.PROTECTOR);
-    const adendeis = deckCardDetails.filter(card => card.cardType === CardType.ADENDEI || 
-                                                   card.cardType === CardType.ADENDEI_TITAN || 
-                                                   card.cardType === CardType.ADENDEI_GUARDIAN || 
-                                                   card.cardType === CardType.ADENDEI_CATRIN || 
-                                                   card.cardType === CardType.ADENDEI_KOSMICO || 
-                                                   card.cardType === CardType.ADENDEI_EQUINO || 
-                                                   card.cardType === CardType.ADENDEI_ABISMAL || 
-                                                   card.cardType === CardType.ADENDEI_INFECTADO);
-    const rotCards = deckCardDetails.filter(card => card.cardType === CardType.ROT);
-    const iximCards = deckCardDetails.filter(card => card.cardType === CardType.IXIM);
-    const bioCards = deckCardDetails.filter(card => card.cardType === CardType.BIO);
-    const ravaCards = deckCardDetails.filter(card => card.cardType === CardType.RAVA);
-    
-    // Organizarlas según la estructura requerida
-    setOrganizedDeck({
-      protector1: protectors.length > 0 ? protectors[0] : undefined,
-      mainAdendeis: adendeis.slice(0, 3), // Los primeros 3 adendeis para cols 2-4 de fila 1
-      protector2: protectors.length > 1 ? protectors[1] : undefined,
-      bio: bioCards.length > 0 ? bioCards[0] : undefined,
-      rotCards: rotCards.slice(0, 4), // Hasta 4 cartas rot para fila 3
-      iximCards: iximCards.slice(0, 4), // Hasta 4 cartas ixim para fila 4
-      otherCards: [
-        ...adendeis.slice(3), // Adendeis restantes
-        ...ravaCards,
-        ...protectors.slice(2), // Protectores adicionales
-        ...bioCards.slice(1), // Bios adicionales
-        ...rotCards.slice(4), // Rot adicionales
-        ...iximCards.slice(4), // Ixim adicionales
-        ...deckCardDetails.filter(card => 
-          !(card.cardType === CardType.PROTECTOR || 
-            card.cardType === CardType.ADENDEI || 
-            card.cardType === CardType.ADENDEI_TITAN || 
-            card.cardType === CardType.ADENDEI_GUARDIAN || 
-            card.cardType === CardType.ADENDEI_CATRIN || 
-            card.cardType === CardType.ADENDEI_KOSMICO || 
-            card.cardType === CardType.ADENDEI_EQUINO || 
-            card.cardType === CardType.ADENDEI_ABISMAL || 
-            card.cardType === CardType.ADENDEI_INFECTADO || 
-            card.cardType === CardType.ROT || 
-            card.cardType === CardType.IXIM || 
-            card.cardType === CardType.BIO || 
-            card.cardType === CardType.RAVA)
-        )
-      ]
-    });
-  }, [allCards, deckCards]);
-
-  // Lógica de Drag and Drop
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5, // Reducir distancia para activación
-        tolerance: 5, // Añadir tolerancia
-        delay: 0, // Sin retraso en la activación
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveId(active.id.toString());
-    console.log('Drag start:', active.id);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    // Reset activeId
-    setActiveId(null);
-    
-    if (!over) {
-      console.log('No over target');
-      return;
-    }
-    
-    if (active.id !== over.id) {
-      console.log('Drag end:', active.id, 'over', over.id);
-      
-      // Extraer la sección y el índice
-      const activeId = String(active.id);
-      const overId = String(over.id);
-      
-      const [activeSection, activeIndexStr] = activeId.split('-');
-      const [overSection, overIndexStr] = overId.split('-');
-      
-      // Solo permitir reordenar dentro de la misma sección
-      if (activeSection === overSection) {
-        const activeIndex = parseInt(activeIndexStr);
-        const overIndex = parseInt(overIndexStr);
-        
-        console.log(`Moving from ${activeSection} index ${activeIndex} to index ${overIndex}`);
-        
-        setOrganizedDeck(prev => {
-          const newDeck = { ...prev };
-          
-          switch (activeSection) {
-            case 'mainAdendei':
-              if (newDeck.mainAdendeis.length > 0) {
-                newDeck.mainAdendeis = arrayMove(prev.mainAdendeis, activeIndex, overIndex);
-              }
-              break;
-            case 'rot':
-              if (newDeck.rotCards.length > 0) {
-                newDeck.rotCards = arrayMove(prev.rotCards, activeIndex, overIndex);
-              }
-              break;
-            case 'ixim':
-              if (newDeck.iximCards.length > 0) {
-                newDeck.iximCards = arrayMove(prev.iximCards, activeIndex, overIndex);
-              }
-              break;
-            case 'other':
-              if (newDeck.otherCards.length > 0) {
-                newDeck.otherCards = arrayMove(prev.otherCards, activeIndex, overIndex);
-              }
-              break;
-          }
-          
-          return newDeck;
-        });
-      } else {
-        console.log('Cannot move between different sections');
-      }
-    }
-  };
-
-  // Renderizar el organizador
-  const renderDeckOrganizer = () => {
-    // Siempre mostrar la estructura, incluso si no hay cartas
-    return (
-      <DndContext 
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="space-y-6">
-          {/* Fila 1: Protector y adendeis principales */}
-          <div>
-            <h3 className="font-medium text-sm mb-2">Protector y Adendeis Principales</h3>
-            <div className="grid grid-cols-4 gap-3">
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center">
-                {organizedDeck.protector1 ? (
-                  renderDeckCard(organizedDeck.protector1)
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground">
-                    <div className="mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                    </div>
-                    Protector 1
-                  </div>
-                )}
-              </div>
-              
-              <SortableContext 
-                items={organizedDeck.mainAdendeis.map((_, i) => `mainAdendei-${i}`)} 
-                strategy={horizontalListSortingStrategy}
-              >
-                {Array(3).fill(null).map((_, idx) => (
-                  <div key={`main-adendei-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center" 
-                       data-droppable-id={`mainAdendei-${idx}`}>
-                    {organizedDeck.mainAdendeis[idx] ? (
-                      <SortableCard 
-                        card={organizedDeck.mainAdendeis[idx]} 
-                        id={`mainAdendei-${idx}`} 
-                      />
-                    ) : (
-                      <div className="text-center text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                        </div>
-                        Adendei Principal {idx + 1}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </SortableContext>
-            </div>
-          </div>
-          
-          {/* Fila 2: Segundo protector y Bio */}
-          <div>
-            <h3 className="font-medium text-sm mb-2">Protector Secundario y Bio</h3>
-            <div className="grid grid-cols-4 gap-3">
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center">
-                {organizedDeck.protector2 ? (
-                  renderDeckCard(organizedDeck.protector2)
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground">
-                    <div className="mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                    </div>
-                    Protector 2
-                  </div>
-                )}
-              </div>
-              
-              <div className="col-span-3 border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center">
-                {organizedDeck.bio ? (
-                  renderDeckCard(organizedDeck.bio)
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground">
-                    <div className="mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                    </div>
-                    Bio
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          {/* Fila 3: Cartas Rot */}
-          <div>
-            <h3 className="font-medium text-sm mb-2">Cartas Rot</h3>
-            <div className="grid grid-cols-4 gap-3">
-              <SortableContext items={organizedDeck.rotCards.map((_, i) => `rot-${i}`)} strategy={horizontalListSortingStrategy}>
-                {Array(4).fill(null).map((_, idx) => (
-                  <div key={`rot-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center"
-                       data-droppable-id={`rot-${idx}`}>
-                    {organizedDeck.rotCards[idx] ? (
-                      <SortableCard 
-                        card={organizedDeck.rotCards[idx]} 
-                        id={`rot-${idx}`} 
-                      />
-                    ) : (
-                      <div className="text-center text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                        </div>
-                        Rot {idx + 1}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </SortableContext>
-            </div>
-          </div>
-          
-          {/* Fila 4: Cartas Ixim */}
-          <div>
-            <h3 className="font-medium text-sm mb-2">Cartas Ixim</h3>
-            <div className="grid grid-cols-4 gap-3">
-              <SortableContext items={organizedDeck.iximCards.map((_, i) => `ixim-${i}`)} strategy={horizontalListSortingStrategy}>
-                {Array(4).fill(null).map((_, idx) => (
-                  <div key={`ixim-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center"
-                       data-droppable-id={`ixim-${idx}`}>
-                    {organizedDeck.iximCards[idx] ? (
-                      <SortableCard 
-                        card={organizedDeck.iximCards[idx]} 
-                        id={`ixim-${idx}`} 
-                      />
-                    ) : (
-                      <div className="text-center text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                        </div>
-                        Ixim {idx + 1}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </SortableContext>
-            </div>
-          </div>
-          
-          {/* Fila 5+: Otras cartas (3 columnas) - Siempre mostrar al menos una fila vacía */}
-          <div>
-            <h3 className="font-medium text-sm mb-2">Adendeis y Rava adicionales</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {organizedDeck.otherCards.length > 0 ? (
-                <SortableContext items={organizedDeck.otherCards.map((_, i) => `other-${i}`)} strategy={horizontalListSortingStrategy}>
-                  {organizedDeck.otherCards.map((card, idx) => (
-                    <div key={`other-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center"
-                         data-droppable-id={`other-${idx}`}>
-                      <SortableCard 
-                        card={card} 
-                        id={`other-${idx}`} 
-                      />
-                    </div>
-                  ))}
-                </SortableContext>
-              ) : (
-                // Mostrar al menos una fila vacía para adendeis y rava adicionales
-                Array(3).fill(null).map((_, idx) => (
-                  <div key={`other-empty-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 min-h-[160px] flex items-center justify-center">
-                    <div className="text-center text-sm text-muted-foreground">
-                      <div className="mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                      </div>
-                      Adendei/Rava Adicional
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-        
-        {/* Overlay para el elemento arrastrado */}
-        <DragOverlay adjustScale={true} zIndex={1000}>
-          {activeId ? (() => {
-            // Buscar la carta activa según el ID
-            const [section, index] = activeId.split('-');
-            let activeCard: CardDetails | undefined;
-            
-            switch (section) {
-              case 'mainAdendei':
-                activeCard = organizedDeck.mainAdendeis[parseInt(index)];
-                break;
-              case 'rot':
-                activeCard = organizedDeck.rotCards[parseInt(index)];
-                break;
-              case 'ixim':
-                activeCard = organizedDeck.iximCards[parseInt(index)];
-                break;
-              case 'other':
-                activeCard = organizedDeck.otherCards[parseInt(index)];
-                break;
-              case 'protector1':
-                activeCard = organizedDeck.protector1;
-                break;
-              case 'protector2':
-                activeCard = organizedDeck.protector2;
-                break;
-              case 'bio':
-                activeCard = organizedDeck.bio;
-                break;
-            }
-            
-            return activeCard ? (
-              <div className="w-full h-full opacity-80 transform scale-105 pointer-events-none">
-                {renderDeckCard(activeCard)}
-              </div>
-            ) : null;
-          })() : null}
-        </DragOverlay>
-      </DndContext>
-    );
-  };
-
-  // Componente Sortable Card con mejor manejo de eventos
-  const SortableCard = ({ card, id }: { card: CardDetails, id: string }) => {
-    const { 
-      attributes, 
-      listeners, 
-      setNodeRef, 
-      transform, 
-      transition,
-      isDragging 
-    } = useSortable({ 
-      id,
-      data: { card },
-    });
-    
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      opacity: isDragging ? 0.6 : 1,
-      zIndex: isDragging ? 999 : 1,
-      boxShadow: isDragging ? '0 8px 20px rgba(0, 0, 0, 0.2)' : 'none',
-      touchAction: 'none', // Importante para dispositivos táctiles
-      width: '100%',
-      height: '100%',
-    };
-    
-    return (
-      <div 
-        ref={setNodeRef} 
-        style={style} 
-        {...attributes} 
-        {...listeners}
-        className={`cursor-grab active:cursor-grabbing touch-manipulation ${isDragging ? 'scale-105' : ''}`}
-        data-id={id}
-        data-state={isDragging ? 'dragging' : 'idle'}
-      >
-        {renderDeckCard(card)}
-      </div>
-    );
-  };
-
-  // Renderizar una carta en el organizador
-  const renderDeckCard = (card: CardDetails) => (
-    <div className="border rounded-md overflow-hidden hover:shadow-md transition-shadow bg-white h-full">
-      <div className="relative h-32 w-full">
-        <Image
-          src={card.imageUrl}
-          alt={card.name}
-          className="object-cover"
-          style={{ width: '100%', height: '100%', position: 'absolute' }}
-        />
-      </div>
-      <div className="p-2">
-        <h3 className="font-semibold text-sm truncate">{card.name}</h3>
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{card.cardType}</span>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemoveCard(card.id);
-              }}
-            >
-              <Minus size={12} />
-            </Button>
-            <span className="text-xs">{deckCards[card.id] || 1}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddCard(card);
-              }}
-            >
-              <Plus size={12} />
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   // Guardar el mazo
   const handleSaveDeck = async () => {
@@ -1010,7 +552,7 @@ export default function DeckEditor() {
                     </div>
                   )}
                   {selectedCard.description && (
-    <div>
+                    <div>
                       <p className="text-sm font-medium text-muted-foreground mb-1">Descripción</p>
                       <p className="text-sm whitespace-pre-wrap">{selectedCard.description}</p>
                     </div>
@@ -1031,101 +573,122 @@ export default function DeckEditor() {
                 <div className="bg-muted/30 rounded-full p-6 mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                     <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><path d="m9 16 3-3 3 3"/></svg>
+                  </div>
+                  <h3 className="font-semibold text-lg">Selecciona una carta</h3>
+                  <p className="text-sm text-muted-foreground mt-2">Haz clic en una carta para ver sus detalles</p>
                 </div>
-                <h3 className="font-semibold text-lg">Selecciona una carta</h3>
-                <p className="text-sm text-muted-foreground mt-2">Haz clic en una carta para ver sus detalles</p>
               </div>
             )}
           </div>
         </div>
-        {/* Columna 2: Organizador de mazos */}
-        <div className="flex-1 overflow-y-auto">
+
+        {/* Columna 2: Lista de cartas del mazo */}
+        <div className="w-96 border-r overflow-y-auto">
           <div className="p-4">
-            {renderDeckOrganizer()}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Mi Mazo <span className="text-sm font-normal text-muted-foreground">{totalCards} cartas</span></h2>
+              <div className="flex">
+                <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 7h.01"/><path d="M16 7h.01"/><path d="M8 12h.01"/><path d="M16 12h.01"/><path d="M8 17h.01"/><path d="M16 17h.01"/></svg>
+                </Button>
+                <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+                </Button>
+              </div>
+            </div>
+            
+            {Object.keys(deckCards).length === 0 ? (
+              <div className="border border-dashed rounded-lg p-6 text-center">
+                <div className="flex justify-center mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                </div>
+                <h3 className="font-semibold">Mazo vacío</h3>
+                <p className="text-sm text-muted-foreground mt-1">Agrega cartas desde el buscador para construir tu mazo</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {allCards
+                  .filter(card => Object.keys(deckCards).includes(card.id))
+                  .map(card => renderCardForDeck(card, deckCards[card.id]))}
+              </div>
+            )}
           </div>
         </div>
+
         {/* Columna 3: Catálogo de cartas */}
-        <div className="w-96 border-l overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
           <div className="p-4">
             {/* Buscador */}
             <div className="flex mb-6">
-              <Input
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                }}
-                placeholder="Buscar carta"
-                className="w-full"
-              />
+              <div className="relative flex-1 mr-2">
+                <Input
+                  placeholder="Buscar cartas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
+              <Button className="shrink-0">
+                Buscar
+              </Button>
             </div>
 
             {/* Filtros */}
             <div className="flex flex-wrap gap-2 mb-4">
               <Select
                 value={selectedType}
-                onValueChange={(value) => {
-                  setSelectedType(value);
-                }}
+                onValueChange={setSelectedType}
               >
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-full sm:w-[150px]">
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {typeOptions.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
+                  <SelectItem value="all_types">Todos los tipos</SelectItem>
+                  {typeOptions.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Select
                 value={selectedEnergy}
-                onValueChange={(value) => {
-                  setSelectedEnergy(value);
-                }}
+                onValueChange={setSelectedEnergy}
               >
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-full sm:w-[150px]">
                   <SelectValue placeholder="Energía" />
                 </SelectTrigger>
                 <SelectContent>
-                  {energyOptions.map((energy) => (
-                    <SelectItem key={energy} value={energy}>
-                      {energy}
-                    </SelectItem>
+                  <SelectItem value="all_energies">Todas las energías</SelectItem>
+                  {energyOptions.map(energy => (
+                    <SelectItem key={energy} value={energy}>{energy}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Select
                 value={selectedRarity}
-                onValueChange={(value) => {
-                  setSelectedRarity(value);
-                }}
+                onValueChange={setSelectedRarity}
               >
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-full sm:w-[150px]">
                   <SelectValue placeholder="Rareza" />
                 </SelectTrigger>
                 <SelectContent>
-                  {rarityOptions.map((rarity) => (
-                    <SelectItem key={rarity} value={rarity}>
-                      {rarity}
-                    </SelectItem>
+                  <SelectItem value="all_rarities">Todas las rarezas</SelectItem>
+                  {rarityOptions.map(rarity => (
+                    <SelectItem key={rarity} value={rarity}>{rarity}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <Select
                 value={selectedSet}
-                onValueChange={(value) => {
-                  setSelectedSet(value);
-                }}
+                onValueChange={setSelectedSet}
               >
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-full sm:w-[150px]">
                   <SelectValue placeholder="Set" />
                 </SelectTrigger>
                 <SelectContent>
-                  {setOptions.map((set) => (
-                    <SelectItem key={set} value={set}>
-                      {set}
-                    </SelectItem>
+                  <SelectItem value="all_sets">Todos los sets</SelectItem>
+                  {setOptions.map(set => (
+                    <SelectItem key={set} value={set}>{set}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -1145,7 +708,7 @@ export default function DeckEditor() {
                 <p className="text-sm text-muted-foreground mt-1">Introduce un término de búsqueda para encontrar cartas</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {filteredCards.map(card => renderCardForCatalog(card))}
               </div>
             )}
@@ -1155,21 +718,31 @@ export default function DeckEditor() {
       
       {/* Diálogo de confirmación para eliminar */}
       <Dialog open={confirmDeleteDialogOpen} onOpenChange={setConfirmDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>¿Estás seguro de que quieres eliminar este mazo?</DialogTitle>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setConfirmDeleteDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteDeck}>
-                Eliminar
-              </Button>
-            </DialogFooter>
+            <DialogTitle>¿Eliminar este mazo?</DialogTitle>
           </DialogHeader>
+          <p className="py-4">
+            Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este mazo?
+          </p>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setConfirmDeleteDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteDeck}
+              disabled={isLoading}
+            >
+              {isLoading ? <Spinner size="sm" className="mr-2" /> : null}
+              Eliminar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 } 
-
