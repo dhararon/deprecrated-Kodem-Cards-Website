@@ -72,6 +72,7 @@ export default function DeckEditor() {
   const [filteredCards, setFilteredCards] = useState<CardDetails[]>([]);
   const [deckCards, setDeckCards] = useState<Record<string, number>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [organizedDeck, setOrganizedDeck] = useState<{
     protector1?: CardDetails;
     mainAdendeis: CardDetails[];
@@ -211,17 +212,107 @@ export default function DeckEditor() {
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id.toString());
+    setIsDragging(true);
     console.log('Drag start:', active.id);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    // Reset activeId
+    // Reset activeId and dragging state
     setActiveId(null);
+    setIsDragging(false);
     
     if (!over) {
       console.log('No over target');
+      return;
+    }
+    
+    // Verificar si se soltó sobre la zona de eliminación
+    if (over.id === 'trash-zone') {
+      console.log('Dropping card in trash zone');
+      
+      // Obtener la carta que se está eliminando
+      const [section, index] = active.id.toString().split('-');
+      
+      // Eliminar la carta según su sección
+      setOrganizedDeck(prev => {
+        const newDeck = { ...prev };
+        
+        let removedCard: CardDetails | undefined;
+        
+        switch (section) {
+          case 'mainAdendei':
+            if (newDeck.mainAdendeis.length > parseInt(index)) {
+              // Guardar referencia a la carta que se elimina
+              removedCard = newDeck.mainAdendeis[parseInt(index)];
+              // Eliminar del arreglo
+              newDeck.mainAdendeis = [
+                ...newDeck.mainAdendeis.slice(0, parseInt(index)),
+                ...newDeck.mainAdendeis.slice(parseInt(index) + 1)
+              ];
+            }
+            break;
+          case 'rot':
+            if (newDeck.rotCards.length > parseInt(index)) {
+              removedCard = newDeck.rotCards[parseInt(index)];
+              newDeck.rotCards = [
+                ...newDeck.rotCards.slice(0, parseInt(index)),
+                ...newDeck.rotCards.slice(parseInt(index) + 1)
+              ];
+            }
+            break;
+          case 'ixim':
+            if (newDeck.iximCards.length > parseInt(index)) {
+              removedCard = newDeck.iximCards[parseInt(index)];
+              newDeck.iximCards = [
+                ...newDeck.iximCards.slice(0, parseInt(index)),
+                ...newDeck.iximCards.slice(parseInt(index) + 1)
+              ];
+            }
+            break;
+          case 'other':
+            if (newDeck.otherCards.length > parseInt(index)) {
+              removedCard = newDeck.otherCards[parseInt(index)];
+              newDeck.otherCards = [
+                ...newDeck.otherCards.slice(0, parseInt(index)),
+                ...newDeck.otherCards.slice(parseInt(index) + 1)
+              ];
+            }
+            break;
+          case 'protector1':
+            removedCard = newDeck.protector1;
+            newDeck.protector1 = undefined;
+            break;
+          case 'protector2':
+            removedCard = newDeck.protector2;
+            newDeck.protector2 = undefined;
+            break;
+          case 'bio':
+            removedCard = newDeck.bio;
+            newDeck.bio = undefined;
+            break;
+        }
+        
+        // Si se encontró la carta, actualizar el diccionario de cartas
+        if (removedCard) {
+          setDeckCards(prev => {
+            const newDeckCards = { ...prev };
+            if (newDeckCards[removedCard!.id] > 1) {
+              newDeckCards[removedCard!.id]--;
+            } else {
+              delete newDeckCards[removedCard!.id];
+            }
+            return newDeckCards;
+          });
+          
+          // Mostrar mensaje
+          toast.success(`Carta ${removedCard.name} eliminada del mazo`);
+        }
+        
+        return newDeck;
+      });
+      
       return;
     }
     
@@ -431,13 +522,30 @@ export default function DeckEditor() {
         onDragEnd={handleDragEnd}
       >
         <div className="space-y-6">
+          {/* Zona de eliminación (papelera) - visible solo durante arrastre */}
+          {isDragging && (
+            <div 
+              className="fixed bottom-8 right-8 bg-red-500 text-white p-4 rounded-full shadow-lg flex items-center justify-center hover:bg-red-600 transition-colors"
+              style={{ width: '64px', height: '64px', zIndex: 9999 }}
+              data-id="trash-zone"
+              id="trash-zone"
+            >
+              <Trash2 size={32} />
+            </div>
+          )}
+          
           {/* Fila 1: Protector y adendeis principales */}
           <div>
             <h3 className="font-medium text-sm mb-2">Protector y Adendeis Principales</h3>
             <div className="grid grid-cols-4 gap-3">
               <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
                 {organizedDeck.protector1 ? (
-                  renderDeckCard(organizedDeck.protector1)
+                  <div 
+                    data-id="protector1-0"
+                    className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
+                  >
+                    {renderDeckCard(organizedDeck.protector1)}
+                  </div>
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -480,7 +588,12 @@ export default function DeckEditor() {
             <div className="grid grid-cols-4 gap-3">
               <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
                 {organizedDeck.protector2 ? (
-                  renderDeckCard(organizedDeck.protector2)
+                  <div 
+                    data-id="protector2-0"
+                    className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
+                  >
+                    {renderDeckCard(organizedDeck.protector2)}
+                  </div>
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -493,7 +606,12 @@ export default function DeckEditor() {
               
               <div className="col-span-3 border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] flex items-center justify-center card-container">
                 {organizedDeck.bio ? (
-                  renderDeckCard(organizedDeck.bio)
+                  <div 
+                    data-id="bio-0"
+                    className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
+                  >
+                    {renderDeckCard(organizedDeck.bio)}
+                  </div>
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">

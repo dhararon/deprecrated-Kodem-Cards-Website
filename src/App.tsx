@@ -12,6 +12,8 @@ import { CollectionProvider } from '@/context/collection';
 import { WishlistProvider } from '@/context/wishlist';
 import { UserDataProvider } from '@/context/userData';
 import { verifyAuthClaims } from '@/lib/firebase';
+import { GalleryDemo } from './pages/GalleryDemo';
+import { CardGridDemo } from './pages/CardGridDemo';
 
 // Login y Register son críticos, por lo que los precargamos
 import Login from '@/pages/Login';
@@ -193,6 +195,9 @@ function App() {
                     <Collection />
                   </AuthenticatedRoute>
                 </Route>
+
+                <Route path="/gallery-demo" component={GalleryDemo} />
+                <Route path="/card-grid-demo" component={CardGridDemo} />
 
                 {/* Ruta para capturar todas las URLs no definidas (404) y mostrar página no encontrada */}
                 <Route path="/:rest*">
