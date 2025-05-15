@@ -441,11 +441,15 @@ export default function DeckEditor() {
                     </div>
                   )}
                 </div>
-                <div className="col-span-3 border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] flex items-center justify-center card-container">
+                <div className="col-span-3 border-2 border-dashed border-muted-foreground/20 rounded-md p-2 flex items-center justify-center card-container">
                   {organizedDeck.bio ? (
                     <div 
                       data-id="bio-0"
-                      className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
+                      className={
+                        organizedDeck.bio.cardType === CardType.BIO
+                          ? "aspect-[3.5/2.5] w-[300px] mx-auto cursor-grab active:cursor-grabbing touch-manipulation"
+                          : "aspect-[2.5/3.5] w-[220px] mx-auto cursor-grab active:cursor-grabbing touch-manipulation"
+                      }
                     >
                       {renderDeckCard(organizedDeck.bio)}
                     </div>
