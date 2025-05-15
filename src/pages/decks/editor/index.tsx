@@ -1111,13 +1111,13 @@ export default function DeckEditor() {
           </div>
         </div>
         {/* Columna 2: Organizador de mazos */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="w-[805px] overflow-y-auto">
           <div className="p-4">
             {renderDeckOrganizer()}
           </div>
         </div>
         {/* Columna 3: Catálogo de cartas */}
-        <div className="w-96 border-l overflow-y-auto">
+        <div className="w-[700px] border-l overflow-y-auto">
           <div className="p-4">
             {/* Buscador */}
             <div className="flex mb-6">
@@ -1183,7 +1183,7 @@ export default function DeckEditor() {
                 <p className="text-sm text-muted-foreground mt-1">Introduce un término de búsqueda para encontrar cartas</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
                 {filteredCards.map(card => renderCardForCatalog(card))}
               </div>
             )}
