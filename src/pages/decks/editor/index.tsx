@@ -1090,6 +1090,7 @@ export default function DeckEditor() {
                   <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all_types">Tipo</SelectItem>
                   {typeOptions.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
@@ -1107,6 +1108,7 @@ export default function DeckEditor() {
                   <SelectValue placeholder="Energía" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all_energies">Energía</SelectItem>
                   {energyOptions.map((energy) => (
                     <SelectItem key={energy} value={energy}>
                       {energy}
