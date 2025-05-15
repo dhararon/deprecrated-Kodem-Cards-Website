@@ -142,6 +142,58 @@ export default function DeckEditor() {
     loadCards();
   }, [user]);
 
+  // Cargar mazo existente cuando se está editando
+  useEffect(() => {
+    if (!user || isNew || !deckId) return;
+    
+    const loadExistingDeck = async () => {
+      setIsLoading(true);
+      try {
+        const existingDeck = await getDeckById(deckId);
+        if (!existingDeck) {
+          toast.error('No se encontró el mazo solicitado');
+          navigate('/decks');
+          return;
+        }
+        
+        // Verificar que el mazo pertenece al usuario
+        if (existingDeck.userUid !== user.id) {
+          toast.error('No tienes permiso para editar este mazo');
+          navigate('/decks');
+          return;
+        }
+        
+        // Establecer los datos del mazo
+        setDeck(existingDeck);
+        setDeckName(existingDeck.name);
+        setDeckDescription(existingDeck.description || '');
+        setIsPublic(existingDeck.isPublic);
+        
+        // Cargar las cartas del mazo
+        if (existingDeck.cardIds && existingDeck.cardIds.length > 0 && allCards.length > 0) {
+          // Contar ocurrencias de cada ID de carta
+          const cardCounts: Record<string, number> = {};
+          existingDeck.cardIds.forEach(cardId => {
+            cardCounts[cardId] = (cardCounts[cardId] || 0) + 1;
+          });
+          
+          // Establecer deckCards con los conteos
+          setDeckCards(cardCounts);
+        }
+      } catch (err) {
+        console.error('Error al cargar mazo:', err);
+        toast.error('Error al cargar el mazo');
+        navigate('/decks');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (allCards.length > 0) {
+      loadExistingDeck();
+    }
+  }, [user, isNew, deckId, navigate, allCards]);
+
   // Categorizar cartas por tipo para el organizador
   useEffect(() => {
     if (allCards.length === 0) return;

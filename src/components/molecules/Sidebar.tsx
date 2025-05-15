@@ -62,11 +62,11 @@ export function Sidebar({
                                 <span className="flex items-center justify-center w-6 h-6">
                                     {link.icon}
                                 </span>
-                                <span className="ml-3 flex-1">{link.text}</span>
-                                {link.badge && (
-                                    <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5">
-                                        {link.badge}
-                                    </span>
+                                        <span className="ml-3 flex-1">{link.text}</span>
+                                        {link.badge && (
+                                            <span className="ml-auto bg-primary text-primary-foreground text-xs rounded-full px-2 py-0.5">
+                                                {link.badge}
+                                            </span>
                                 )}
                             </Link>
                         </li>
@@ -110,7 +110,7 @@ export function Sidebar({
     return (
         <>
             {/* Sidebar para pantallas grandes */}
-            <aside className={cn(sidebarClasses, "hidden lg:flex")}> 
+            <aside className={cn(sidebarClasses, "hidden lg:flex")}>
                 {renderLogo()}
                 <nav className="flex-1 overflow-y-auto py-4 px-2">
                     {sections.map(renderNavigationLinks)}
