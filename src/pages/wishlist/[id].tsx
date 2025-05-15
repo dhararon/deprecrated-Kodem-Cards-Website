@@ -493,15 +493,18 @@ const CardThumbnail = React.memo(({
                 />
 
                 {/* Botón para eliminar */}
-                <div className="absolute top-1 right-1 z-10">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleRemoveClick}
-                        className="h-6 w-6 rounded-full bg-white/80 text-destructive z-10"
-                    >
-                        <Trash size={12} />
-                    </Button>
+                <div className="absolute top-1 right-1 z-20">
+                    <div className="flex items-center justify-center h-8 w-8 rounded-full bg-red-600 shadow-lg border-2 border-white">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleRemoveClick}
+                            className="h-8 w-8 rounded-full text-white z-20 flex items-center justify-center hover:bg-red-700 transition-colors duration-150"
+                            aria-label="Eliminar carta"
+                        >
+                            <Trash size={20} className="text-white" />
+                        </Button>
+                    </div>
                 </div>
             </div>
 
