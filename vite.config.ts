@@ -51,7 +51,7 @@ export default defineConfig(({ command, mode }) => {
               '@/components/atoms/Badge.tsx',
               '@/components/atoms/Input.tsx'
             ],
-            'collection': ['@/context/CollectionContext'],
+            'collection': ['@/context/collection/CollectionContext'],
             'cards-logic': ['@/lib/firebase/cardsService']
           }
         }
