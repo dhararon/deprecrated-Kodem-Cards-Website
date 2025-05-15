@@ -493,12 +493,12 @@ const CardThumbnail = React.memo(({
                 />
 
                 {/* Botón para eliminar */}
-                <div className="absolute top-1 right-1">
+                <div className="absolute top-1 right-1 z-10">
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={handleRemoveClick}
-                        className="h-6 w-6 rounded-full bg-white/80 text-destructive"
+                        className="h-6 w-6 rounded-full bg-white/80 text-destructive z-10"
                     >
                         <Trash size={12} />
                     </Button>
