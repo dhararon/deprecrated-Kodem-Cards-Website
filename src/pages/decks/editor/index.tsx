@@ -274,7 +274,7 @@ export default function DeckEditor() {
           if (activeSection === 'mainAdendei' && overSection === 'other') {
             const cardToMove = prev.mainAdendeis[activeIndex];
             if (!adendeiTypes.includes(cardToMove.cardType)) {
-              toast.warning('Solo puedes mover Adendeis o Rava entre estas secciones');
+              toast.warning('Solo puedes mover Adendeis o Rava a la sección de Adendeis y Rava adicionales');
               return prev;
             }
             const targetCard = prev.otherCards[overIndex];
@@ -807,6 +807,27 @@ export default function DeckEditor() {
 
   // Agregar carta al mazo
   const handleAddCard = (card: CardDetails) => {
+    // Bloquear agregar tokens
+    if (card.cardType === CardType.TOKEN) {
+      toast.warning('No se pueden agregar cartas de tipo Token al mazo');
+      return;
+    }
+
+    // Solo puede existir 1 carta BIO
+    if (card.cardType === CardType.BIO) {
+      const bioCount = Object.keys(deckCards).reduce((acc, cardId) => {
+        const existingCard = allCards.find(c => c.id === cardId);
+        if (existingCard && existingCard.cardType === CardType.BIO) {
+          return acc + (deckCards[cardId] || 0);
+        }
+        return acc;
+      }, 0);
+      if (bioCount >= 1) {
+        toast.warning('Solo puede existir 1 carta Bio en el mazo');
+        return;
+      }
+    }
+
     // Si la carta es un Rava, verificar si ya existe un Rava en el mazo
     if (card.cardType === CardType.RAVA) {
       const hasRavaAlready = Object.keys(deckCards).some(cardId => {
