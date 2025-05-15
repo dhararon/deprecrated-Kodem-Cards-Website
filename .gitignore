@@ -34,3 +34,6 @@ dist-ssr
 .storybook//
 firebase/firestore-rules/
 .firebaserc
+service_account.json
+serviceAccountKey.json
+serviceAccount.json
