@@ -28,5 +28,17 @@
             "port": 4400,
             "host": "0.0.0.0"
         }
+    },
+    "hosting": {
+        "public": "dist",
+        "ignore": [
+          "firebase.json",
+          "**/.*",
+          "**/node_modules/**"
+        ],
+        "cleanUrls": true,
+        "rewrites": [
+          { "source": "**", "destination": "/index.html" }
+        ]
     }
 }
