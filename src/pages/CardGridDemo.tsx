@@ -75,12 +75,12 @@ export const CardGridDemo: React.FC = () => {
                 primary: {
                     label: 'Ver más',
                     onClick: handlePrimaryAction,
-                    variant: 'primary'
+                    variant: 'primary' as const
                 },
                 secondary: {
                     label: 'Cancelar',
                     onClick: handleSecondaryAction,
-                    variant: 'outline'
+                    variant: 'outline' as const
                 }
             }
         },
@@ -93,7 +93,8 @@ export const CardGridDemo: React.FC = () => {
             actions: {
                 primary: {
                     label: 'Explorar',
-                    onClick: handlePrimaryAction
+                    onClick: handlePrimaryAction,
+                    variant: 'primary' as const
                 }
             }
         }

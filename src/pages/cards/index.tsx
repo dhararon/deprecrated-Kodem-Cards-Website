@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { deleteCard, queryCards } from '@/lib/firebase/services/cardService';
 import { toast } from 'sonner';
-import { Card as CardType, CardEnergy, CardRarity, CardSet } from '@/types/card';
+import { CardType, CardEnergy, CardRarity, CardSet, Card } from '@/types/card';
 import { CardsTemplate } from '@/components/templates/CardsTemplate';
 
 /**
@@ -9,21 +9,21 @@ import { CardsTemplate } from '@/components/templates/CardsTemplate';
  */
 export const CardsManager = () => {
     // Estados para las cartas y filtros
-    const [cards, setCards] = useState<CardType[]>([]);
-    const [filteredCards, setFilteredCards] = useState<CardType[]>([]);
+    const [cards, setCards] = useState<Card[]>([]);
+    const [filteredCards, setFilteredCards] = useState<Card[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     
     // Estados para el componente
     const [showCardModal, setShowCardModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [currentCard, setCurrentCard] = useState<CardType | null>(null);
+    const [currentCard, setCurrentCard] = useState<Card | null>(null);
     const [editMode, setEditMode] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showFilters, setShowFilters] = useState(false);
 
     // Estados para los filtros
-    const [typeFilter, setTypeFilter] = useState<CardType | 'all_types'>('all_types');
+    const [typeFilter, setTypeFilter] = useState<CardType | "all_types">("all_types");
     const [energyFilter, setEnergyFilter] = useState<CardEnergy | 'all_energies'>('all_energies');
     const [rarityFilter, setRarityFilter] = useState<CardRarity | 'all_rarities'>('all_rarities');
     const [artistFilter, setArtistFilter] = useState<string>('all_artists');
@@ -72,7 +72,7 @@ export const CardsManager = () => {
                 const processedCards = filteredData.map(card => ({
                     ...card,
                     id: card.id
-                } as CardType));
+                } as Card));
 
                 console.log('[CardsManager] Datos procesados para el estado:', processedCards); // Log: Datos mapeados
 
@@ -134,14 +134,14 @@ export const CardsManager = () => {
     };
 
     // Función para editar tarjeta
-    const handleEditCard = (card: CardType) => {
+    const handleEditCard = (card: Card) => {
         setCurrentCard(card);
         setEditMode(true);
         setShowCardModal(true);
     };
 
     // Función para mostrar confirmación de eliminar
-    const handleDeletePrompt = (card: CardType) => {
+    const handleDeletePrompt = (card: Card) => {
         setCurrentCard(card);
         setShowDeleteModal(true);
     };
@@ -173,7 +173,7 @@ export const CardsManager = () => {
     };
 
     // Función que se ejecuta cuando se guarda la tarjeta
-    const handleCardSaved = (savedCard: CardType) => {
+    const handleCardSaved = (savedCard: Card) => {
         // Actualizar la lista de tarjetas con la nueva o actualizada
         setCards(prevCards => {
             const existingCardIndex = prevCards.findIndex(c => c.id === savedCard.id);
@@ -218,7 +218,7 @@ export const CardsManager = () => {
                 const processedCards = filteredData.map(card => ({
                     ...card,
                     id: card.id
-                } as CardType));
+                } as Card));
 
                 // Actualizar el estado
                 setFilteredCards(processedCards);
@@ -253,7 +253,7 @@ export const CardsManager = () => {
 
     // Manejar cambios en los filtros
     const handleTypeFilterChange = (value: string) => {
-        setTypeFilter(value as CardType | 'all_types');
+        setTypeFilter(value as CardType | "all_types");
     };
 
     const handleEnergyFilterChange = (value: string) => {
@@ -278,18 +278,18 @@ export const CardsManager = () => {
 
     return (
         <CardsTemplate
-            cards={filteredCards}
-            loading={loading}
+            cards={filteredCards as any[]}
+            isLoading={loading}
             searchTerm={searchTerm}
             onSearchChange={handleSearchChange}
             onNewCard={handleNewCard}
-            onEditCard={handleEditCard}
-            onDeleteCard={handleDeletePrompt}
+            onEditCard={handleEditCard as any}
+            onDeletePrompt={handleDeletePrompt as any}
             showFilters={showFilters}
             onToggleFilters={() => setShowFilters(!showFilters)}
             hasActiveFilters={hasActiveFilters}
             onClearFilters={clearFilters}
-            typeFilter={typeFilter}
+            typeFilter={typeFilter as CardType | "all_types"}
             onTypeFilterChange={handleTypeFilterChange}
             energyFilter={energyFilter}
             onEnergyFilterChange={handleEnergyFilterChange}
@@ -301,15 +301,15 @@ export const CardsManager = () => {
             onSetFilterChange={handleSetFilterChange}
             standardLegalFilter={standardLegalFilter}
             onStandardLegalFilterChange={handleStandardLegalFilterChange}
-            artistOptions={uniqueArtists}
-            currentCard={currentCard}
+            uniqueArtists={uniqueArtists}
+            currentCard={currentCard as any}
             editMode={editMode}
             showCardModal={showCardModal}
             onCardModalChange={handleCardModalChange}
-            onCardSaved={handleCardSaved}
+            onCardSaved={handleCardSaved as any}
             showDeleteModal={showDeleteModal}
             isDeleting={isDeleting}
-            onConfirmDelete={handleDeleteCard}
+            onDeleteCard={handleDeleteCard}
             onCancelDelete={handleCancelDelete}
         />
     );

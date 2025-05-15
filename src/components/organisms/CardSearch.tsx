@@ -430,8 +430,8 @@ export function CardSearch({
                                                 onSelectCard(card);
                                             }}
                                             disabled={reachedLimit}
-                                            size="icon"
-                                            variant="default"
+                                            size="sm"
+                                            variant="primary"
                                             className="absolute bottom-2 right-2 w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                                         >
                                             <PlusIcon className="h-4 w-4" />

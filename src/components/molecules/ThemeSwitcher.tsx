@@ -158,8 +158,8 @@ export function ThemeSwitcher({
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
-                    variant="ghost"
-                    size={compact ? "icon" : "default"}
+                    variant="primary"
+                    size={compact ? "sm" : "md"}
                     className={cn(
                         "gap-2",
                         compact ? "w-9 px-0" : "px-3",

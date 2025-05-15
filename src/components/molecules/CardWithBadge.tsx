@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '../atoms/Card';
+import { CardOriginal } from '../atoms/Card';
 import { CardBadge } from '../atoms/CardBadge';
 
 type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info';
@@ -35,7 +35,7 @@ export const CardWithBadge: React.FC<CardWithBadgeProps> = ({
 }) => {
     return (
         <div className="relative">
-            <Card
+            <CardOriginal
                 title={title}
                 description={description}
                 imageUrl={imageUrl}

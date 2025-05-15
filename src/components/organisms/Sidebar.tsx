@@ -52,8 +52,6 @@ export function Sidebar() {
     return (
         <SidebarComponent
             sections={getSections()}
-            defaultCollapsed={isCollapsed}
-            collapsible={true}
             onSignOut={logout}
             logo={
                 <div className="flex items-center space-x-2">

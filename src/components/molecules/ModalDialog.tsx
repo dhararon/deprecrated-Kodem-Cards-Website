@@ -67,7 +67,7 @@ export function ModalDialog({
                                     <DialogClose asChild>
                                         <Button
                                             variant="ghost"
-                                            size="icon"
+                                            size="sm"
                                             className="absolute right-2 top-2 h-8 w-8 rounded-full p-0"
                                             aria-label="Cerrar"
                                         >

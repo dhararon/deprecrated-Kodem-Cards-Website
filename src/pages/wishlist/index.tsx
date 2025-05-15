@@ -178,7 +178,6 @@ export default function Wishlists() {
                                     <Image
                                         src={list.imageUrl}
                                         alt={list.name}
-                                        fill
                                         className="object-cover"
                                     />
                                 ) : (
@@ -199,7 +198,7 @@ export default function Wishlists() {
                                     <div className="flex space-x-1">
                                         <Button
                                             variant="outline"
-                                            size="icon"
+                                            size="sm"
                                             className="h-8 w-8"
                                             onClick={() => handleOpenEditDialog(list)}
                                         >
@@ -207,15 +206,15 @@ export default function Wishlists() {
                                         </Button>
                                         <Button
                                             variant="outline"
-                                            size="icon"
+                                            size="sm"
                                             className="h-8 w-8 text-destructive hover:text-destructive"
                                             onClick={() => handleDeleteList(list.id)}
                                         >
                                             <Trash2 size={16} />
                                         </Button>
                                         <Button
-                                            variant="default"
-                                            size="icon"
+                                            variant="primary"
+                                            size="sm"
                                             className="h-8 w-8 ml-2"
                                             onClick={() => handleViewList(list)}
                                         >
@@ -270,14 +269,15 @@ export default function Wishlists() {
                         </div>
                         <DialogFooter className="flex justify-end space-x-2 pt-4">
                             <Button
-                                type="button"
                                 variant="outline"
+                                size="sm"
                                 onClick={() => setIsDialogOpen(false)}
                             >
                                 Cancelar
                             </Button>
                             <Button 
-                                type="submit" 
+                                variant="primary"
+                                type="submit"
                                 disabled={isSubmitting || !formData.name.trim()}
                                 className="flex items-center gap-2"
                             >

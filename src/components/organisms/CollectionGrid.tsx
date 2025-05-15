@@ -240,7 +240,7 @@ const RaritySection = memo(({
                     {selectedCardIndex > 0 && (
                         <Button
                             variant="outline"
-                            size="icon"
+                            size="sm"
                             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-12 w-12 rounded-full shadow-lg bg-white border-2 border-primary/30 hover:bg-primary/10 z-[100] opacity-95 hover:opacity-100 hidden sm:flex items-center justify-center"
                             onClick={handlePrevCard}
                             aria-label="Carta anterior"
@@ -265,7 +265,7 @@ const RaritySection = memo(({
                     {selectedCardIndex < sortedCards.length - 1 && (
                         <Button
                             variant="outline"
-                            size="icon"
+                            size="sm"
                             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-12 w-12 rounded-full shadow-lg bg-white border-2 border-primary/30 hover:bg-primary/10 z-[100] opacity-95 hover:opacity-100 hidden sm:flex items-center justify-center"
                             onClick={handleNextCard}
                             aria-label="Carta siguiente"
@@ -476,7 +476,7 @@ const RaritySection = memo(({
                                 <span className="text-xs sm:text-sm text-black">Cantidad:</span>
                                 <div className="flex items-center">
                                     <Button
-                                        size="icon"
+                                        size="sm"
                                         variant="outline"
                                         className="h-8 w-8 rounded-r-none text-black border-black/20"
                                         disabled={updatingCardId === selectedCard.mainCard.id || selectedCard.mainCard.quantity <= 0}
@@ -493,7 +493,7 @@ const RaritySection = memo(({
                                         {selectedCard.mainCard.quantity}
                                     </span>
                                     <Button
-                                        size="icon"
+                                        size="sm"
                                         variant="outline"
                                         className="h-8 w-8 rounded-l-none text-black border-black/20"
                                         disabled={updatingCardId === selectedCard.mainCard.id}
@@ -727,7 +727,7 @@ const CardItem = memo(({
                                 <DropdownMenuTrigger asChild onClick={handleMenuClick}>
                                     <Button
                                         variant="secondary"
-                                        size="icon"
+                                        size="sm"
                                         className="h-9 w-9 rounded-full shadow-md bg-white hover:bg-white hover:text-primary"
                                     >
                                         <Heart

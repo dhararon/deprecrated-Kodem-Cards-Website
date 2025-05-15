@@ -73,7 +73,7 @@ export const SearchInput = ({
             {onSearch && (
                 <Button
                     type="button"
-                    variant="default"
+                    variant="primary"
                     className="ml-2 min-w-[80px]"
                     onClick={handleSearchClick}
                     disabled={loading}

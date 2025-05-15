@@ -138,7 +138,7 @@ const DecksFeed: React.FC = () => {
             <div className="sticky top-0 z-10 bg-card border-b border-border p-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Link href="/decks">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="sm">
                             <ChevronLeft className="h-5 w-5" />
                         </Button>
                     </Link>
@@ -146,7 +146,7 @@ const DecksFeed: React.FC = () => {
                 </div>
                 <Button 
                     variant="ghost" 
-                    size="icon" 
+                    size="sm" 
                     onClick={handleRefresh}
                     disabled={isLoading}
                 >
@@ -166,7 +166,7 @@ const DecksFeed: React.FC = () => {
                 <div className="flex justify-between items-center">
                     <div className="flex gap-2">
                         <Button 
-                            variant={filter === 'recent' ? 'default' : 'outline'} 
+                            variant={filter === 'recent' ? 'primary' : 'outline'}
                             size="sm"
                             onClick={() => handleFilterChange('recent')}
                         >
@@ -174,7 +174,7 @@ const DecksFeed: React.FC = () => {
                             Recientes
                         </Button>
                         <Button 
-                            variant={filter === 'popular' ? 'default' : 'outline'} 
+                            variant={filter === 'popular' ? 'primary' : 'outline'}
                             size="sm"
                             onClick={() => handleFilterChange('popular')}
                         >
@@ -182,7 +182,7 @@ const DecksFeed: React.FC = () => {
                             Populares
                         </Button>
                         <Button 
-                            variant={filter === 'all' ? 'default' : 'outline'} 
+                            variant={filter === 'all' ? 'primary' : 'outline'}
                             size="sm"
                             onClick={() => handleFilterChange('all')}
                         >

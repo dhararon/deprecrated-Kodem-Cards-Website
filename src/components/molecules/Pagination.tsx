@@ -1,7 +1,7 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button, buttonVariants } from "@/components/atoms/Button"
+import { Button } from "@/components/atoms/Button"
 
 export interface PaginationProps extends React.ComponentProps<"nav"> {
     totalItems: number;
@@ -107,18 +107,15 @@ export function Pagination({
 
                     return (
                         <li key={`page-${page}`}>
-                            <button
+                            <Button
                                 aria-current={currentPage === page ? "page" : undefined}
-                                className={cn(
-                                    buttonVariants({
-                                        variant: currentPage === page ? "outline" : "ghost",
-                                        size: "icon",
-                                    })
-                                )}
+                                variant={currentPage === page ? "outline" : "ghost"}
+                                size="sm"
                                 onClick={() => onPageChange(page as number)}
+                                className="h-9 w-9 p-0 flex items-center justify-center"
                             >
                                 {page}
-                            </button>
+                            </Button>
                         </li>
                     );
                 })}

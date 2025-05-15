@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CardGallery } from '../CardGallery';
-import { Card } from '../atoms/Card';
+import { CardOriginal } from '../atoms/Card';
 import { CardWithBadge } from '../molecules/CardWithBadge';
 
 interface CardItem {
@@ -84,7 +84,7 @@ export const CardList: React.FC<CardListProps> = ({
                             onClick={() => onCardClick && onCardClick(card.id)}
                         />
                     ) : (
-                        <Card
+                        <CardOriginal
                             key={card.id}
                             title={card.title}
                             description={card.description}

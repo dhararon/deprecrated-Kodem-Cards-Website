@@ -407,7 +407,6 @@ export function CollectionSetTabs({
             <div className="outline-none">
                 {/* Componente de grid actualizado */}
                 <CollectionGrid
-                    title={validActiveSet === ALL_SETS_ID ? "Todos los sets" : validActiveSet}
                     cards={validActiveSet === ALL_SETS_ID 
                         ? combinedSetData.cards 
                         : collectionBySet[validActiveSet]?.cards || []}

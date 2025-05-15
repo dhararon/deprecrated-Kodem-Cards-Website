@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { createSelectors } from './selectors';
+import { createSelector } from './selectors';
 
 // Tipo de tema
 export type ThemeMode = 'light' | 'dark' | 'system';
@@ -150,8 +150,8 @@ const useUserPreferencesStoreBase = create<UserPreferencesState>()(
     )
 );
 
-// Exportar store con selectores memoizados
-export const useUserPreferencesStore = createSelectors(useUserPreferencesStoreBase);
+// Exportar store base directamente
+export const useUserPreferencesStore = useUserPreferencesStoreBase;
 
 // Selectores derivados y utilidades
 export const useTheme = () => {

@@ -296,7 +296,7 @@ const useCardStoreBase = create<CardState>()(
 );
 
 // Exportar el store con selectores memoizados
-export const useCardStore = createSelector(useCardStoreBase);
+export const useCardStore = useCardStoreBase;
 
 // Selectores derivados
 export const useCardSelectors = {
@@ -332,7 +332,7 @@ export const useCardSelectors = {
 
         if (filters.sets.length > 0) {
             filtered = filtered.filter(card =>
-                card.set && filters.sets.includes(card.set)
+                typeof card.set === 'string' && filters.sets.includes(card.set)
             );
         }
 
@@ -434,8 +434,8 @@ export const useCardSelectors = {
     },
 
     // Comprobar si una carta es favorita
-    isFavorite: (state: CardState, cardId: string) => {
-        return state.favoriteCardIds.includes(cardId);
+    isFavorite: (state: CardState, cardId: string | number) => {
+        return (state.favoriteCardIds as string[]).includes(String(cardId));
     }
 };
 

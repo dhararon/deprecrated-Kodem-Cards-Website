@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '../atoms/Card';
 import { CardWithBadge } from '../molecules/CardWithBadge';
 import { CardWithAction } from '../molecules/CardWithAction';
+import { CardOriginal } from '../atoms/Card';
 
 // Props comunes para todas las tarjetas
 interface BaseCardProps {
@@ -131,7 +132,7 @@ export const CardGrid: React.FC<CardGridProps> = ({
                     case 'simple':
                     default:
                         return (
-                            <Card
+                            <CardOriginal
                                 key={card.id}
                                 title={card.title}
                                 description={card.description}

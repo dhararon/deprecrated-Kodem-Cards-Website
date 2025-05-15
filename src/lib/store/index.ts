@@ -20,4 +20,4 @@ export {
 } from './userPreferencesStore';
 
 // Utilidades para stores
-export { createSelectors } from './selectors'; 
+export { createSelector } from './selectors'; 

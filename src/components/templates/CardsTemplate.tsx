@@ -180,7 +180,7 @@ export const CardsTemplate: React.FC<CardsTemplateProps> = ({
             <Button variant="outline" onClick={onCancelDelete}>
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={onDeleteCard} disabled={isDeleting}>
+            <Button variant="danger" onClick={onDeleteCard} disabled={isDeleting}>
               {isDeleting ? 'Eliminando...' : 'Eliminar'}
             </Button>
           </DialogFooter>

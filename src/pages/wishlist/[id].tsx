@@ -317,9 +317,9 @@ const ShareOptions = React.memo(({
             </Select>
 
             <Button
-                onClick={onCopy}
                 variant="outline"
-                size="icon"
+                size="sm"
+                onClick={onCopy}
                 className="h-10 w-10"
             >
                 {copied ?
@@ -329,9 +329,9 @@ const ShareOptions = React.memo(({
             </Button>
 
             <Button
-                onClick={onPrint}
                 variant="outline"
-                size="icon"
+                size="sm"
+                onClick={onPrint}
                 className="h-10 w-10 print:hidden"
                 title="Imprimir lista"
             >
@@ -489,7 +489,6 @@ const CardThumbnail = React.memo(({
                 <Image
                     src={card.cardDetails.imageUrl || '/placeholder-card.png'}
                     alt={card.cardDetails.name}
-                    fill
                     className="object-cover cursor-pointer"
                 />
 
@@ -497,7 +496,7 @@ const CardThumbnail = React.memo(({
                 <div className="absolute top-1 right-1">
                     <Button
                         variant="ghost"
-                        size="icon"
+                        size="sm"
                         onClick={handleRemoveClick}
                         className="h-6 w-6 rounded-full bg-white/80 text-destructive"
                     >

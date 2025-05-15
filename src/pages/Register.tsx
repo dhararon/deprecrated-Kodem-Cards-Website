@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/auth/useAuth';
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -129,7 +129,7 @@ const Register: React.FC = () => {
                     </form>
                 </CardContent>
                 <CardFooter className="flex justify-center">
-                    <Button variant="link" onClick={() => navigate('/login')} disabled={loading}>
+                    <Button variant="outline" onClick={() => navigate('/login')} disabled={loading}>
                         ¿Ya tienes cuenta? Inicia sesión
                     </Button>
                 </CardFooter>

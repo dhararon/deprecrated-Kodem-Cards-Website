@@ -27,7 +27,7 @@ const QuantityControl: React.FC<QuantityControlProps> = ({
             <div className={cn('flex items-center', className)}>
                 <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     disabled={isUpdating || quantity <= 0}
                     onClick={() => onUpdate(Math.max(0, quantity - 1))}
                     className="h-5 w-5 p-0 text-xs"
@@ -42,7 +42,7 @@ const QuantityControl: React.FC<QuantityControlProps> = ({
                 </span>
                 <Button
                     variant="ghost"
-                    size="icon"
+                    size="sm"
                     disabled={isUpdating}
                     onClick={() => onUpdate(quantity + 1)}
                     className="h-5 w-5 p-0 text-xs"
@@ -57,7 +57,7 @@ const QuantityControl: React.FC<QuantityControlProps> = ({
         <div className={cn('flex items-center', className)}>
             <Button
                 variant="outline"
-                size="icon"
+                size="sm"
                 disabled={isUpdating || quantity <= 0}
                 onClick={() => onUpdate(Math.max(0, quantity - 1))}
                 className="h-6 w-6 rounded-r-none"
@@ -80,7 +80,7 @@ const QuantityControl: React.FC<QuantityControlProps> = ({
             />
             <Button
                 variant="outline"
-                size="icon"
+                size="sm"
                 disabled={isUpdating}
                 onClick={() => onUpdate(quantity + 1)}
                 className="h-6 w-6 rounded-l-none"

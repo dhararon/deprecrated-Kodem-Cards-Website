@@ -163,7 +163,7 @@ export function RegisterForm({
 
             {onLoginClick && (
                 <CardFooter className="flex justify-center">
-                    <Button variant="link" onClick={onLoginClick} disabled={isLoading}>
+                    <Button variant="outline" onClick={onLoginClick} disabled={isLoading}>
                         ¿Ya tienes cuenta? Inicia sesión
                     </Button>
                 </CardFooter>

@@ -1050,7 +1050,7 @@ const DeckDetail: React.FC = () => {
                         <h2 className="text-xl font-bold text-black">Seleccionar fondo</h2>
                         <Button 
                             variant="ghost" 
-                            size="icon" 
+                            size="sm" 
                             onClick={() => setShowBackgroundModal(false)}
                         >
                             <X className="h-5 w-5" />
@@ -1109,15 +1109,13 @@ const DeckDetail: React.FC = () => {
                 <div className="bg-white dark:bg-white rounded-lg shadow-xl max-w-md w-full">
                     <div className="flex justify-between items-center p-4 border-b">
                         <h2 className="text-xl font-bold text-black">Generando imagen</h2>
-                        {generationProgress === 100 && !generationError && (
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                onClick={() => setIsGeneratingImage(false)}
-                            >
-                                <X className="h-5 w-5" />
-                            </Button>
-                        )}
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setIsGeneratingImage(false)}
+                        >
+                            <X className="h-5 w-5" />
+                        </Button>
                     </div>
                     
                     <div className="p-4">
@@ -1127,7 +1125,7 @@ const DeckDetail: React.FC = () => {
                                 <p className="text-red-500 font-medium text-center mb-2">¡Ups! Algo salió mal</p>
                                 <p className="text-sm text-gray-600 text-center mb-4">{generationError}</p>
                                 <Button 
-                                    variant="default" 
+                                    variant="primary" 
                                     size="sm"
                                     onClick={() => setIsGeneratingImage(false)}
                                 >
@@ -1153,7 +1151,7 @@ const DeckDetail: React.FC = () => {
                                 )}
                                 
                                 <Button 
-                                    variant="default" 
+                                    variant="primary" 
                                     size="sm"
                                     onClick={() => setIsGeneratingImage(false)}
                                 >
@@ -1503,7 +1501,7 @@ const DeckDetail: React.FC = () => {
     // Botones de acciones rápidas para móvil
     const actionButtons = (
         <div className="flex justify-between gap-2 mt-4 md:hidden">
-            <Button variant="default" size="sm" className="flex-1" onClick={copyDeckList}>
+            <Button variant="primary" size="sm" className="flex-1" onClick={copyDeckList}>
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar lista
             </Button>
@@ -1530,7 +1528,7 @@ const DeckDetail: React.FC = () => {
             <div className="flex items-center justify-between p-4 border-b border-border bg-card">
                 <div className="flex items-center">
                     <Link href="/decks">
-                        <Button variant="ghost" size="icon" className="mr-2">
+                        <Button variant="ghost" size="sm" className="mr-2">
                             <ChevronLeft className="h-5 w-5" />
                         </Button>
                     </Link>
@@ -1571,9 +1569,9 @@ const DeckDetail: React.FC = () => {
                             </>
                         )}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={copyDeckList}>
+                    <Button variant="primary" size="sm" className="flex-1" onClick={copyDeckList}>
                         <Copy className="h-4 w-4 mr-2" />
-                        Copiar
+                        Copiar lista
                     </Button>
                     <Button variant="outline" size="sm" onClick={handlePrintDeck}>
                         <Printer className="h-4 w-4 mr-2" />

@@ -247,7 +247,7 @@ const Decks: React.FC = () => {
                     <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold">Eliminar mazo</h3>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCloseModal}>
+                            <Button variant="ghost" size="sm" className="h-8 w-8" onClick={handleCloseModal}>
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>
@@ -270,7 +270,7 @@ const Decks: React.FC = () => {
                                 Cancelar
                             </Button>
                             <Button 
-                                variant="destructive" 
+                                variant="danger" 
                                 onClick={handleConfirmDelete}
                                 disabled={isDeleting}
                             >
