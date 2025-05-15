@@ -214,6 +214,18 @@ export default function DeckEditor() {
     })
   );
 
+  const adendeiTypes: CardType[] = [
+    CardType.ADENDEI,
+    CardType.ADENDEI_TITAN,
+    CardType.ADENDEI_GUARDIAN,
+    CardType.ADENDEI_CATRIN,
+    CardType.ADENDEI_KOSMICO,
+    CardType.ADENDEI_EQUINO,
+    CardType.ADENDEI_ABISMAL,
+    CardType.ADENDEI_INFECTADO,
+    CardType.RAVA
+  ];
+
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id.toString());
@@ -227,13 +239,13 @@ export default function DeckEditor() {
     setIsDragging(false);
     if (!over) return;
 
-    // Reordenar dentro de la misma sección
     if (active.id !== over.id) {
       const [activeSection, activeIndexStr] = String(active.id).split('-');
       const [overSection, overIndexStr] = String(over.id).split('-');
       const activeIndex = parseInt(activeIndexStr);
       const overIndex = parseInt(overIndexStr);
 
+      // Reordenar dentro de la misma sección
       if (activeSection === overSection) {
         setOrganizedDeck(prev => {
           const newDeck = { ...prev };
@@ -253,8 +265,93 @@ export default function DeckEditor() {
           }
           return newDeck;
         });
+      } else if (
+        (activeSection === 'mainAdendei' && overSection === 'other') ||
+        (activeSection === 'other' && overSection === 'mainAdendei')
+      ) {
+        setOrganizedDeck(prev => {
+          const newDeck = { ...prev };
+          if (activeSection === 'mainAdendei' && overSection === 'other') {
+            const cardToMove = prev.mainAdendeis[activeIndex];
+            if (!adendeiTypes.includes(cardToMove.cardType)) {
+              toast.warning('Solo puedes mover Adendeis o Rava entre estas secciones');
+              return prev;
+            }
+            const targetCard = prev.otherCards[overIndex];
+            if (targetCard) {
+              if (!adendeiTypes.includes(targetCard.cardType)) {
+                toast.warning('Solo puedes poner Adendeis o Rava en los slots principales');
+                return prev;
+              }
+              // Validar máximo 1 Rava en principales
+              const mainAdendeisAfterSwap = [...prev.mainAdendeis];
+              mainAdendeisAfterSwap[activeIndex] = targetCard;
+              const ravaCount = mainAdendeisAfterSwap.filter(card => card.cardType === CardType.RAVA).length;
+              if (ravaCount > 1) {
+                toast.error('Solo puede existir 1 carta Rava por mazo');
+                return prev;
+              }
+              newDeck.mainAdendeis[activeIndex] = targetCard;
+              newDeck.otherCards = [...prev.otherCards];
+              newDeck.otherCards[overIndex] = cardToMove;
+            } else {
+              // Mover a slot vacío
+              if (newDeck.mainAdendeis.length <= 1) {
+                toast.error('Debes tener al menos 1 adendei principal');
+                return prev;
+              }
+              newDeck.mainAdendeis = [
+                ...prev.mainAdendeis.slice(0, activeIndex),
+                ...prev.mainAdendeis.slice(activeIndex + 1)
+              ];
+              newDeck.otherCards.splice(overIndex, 0, cardToMove);
+            }
+          } else if (activeSection === 'other' && overSection === 'mainAdendei') {
+            const cardToMove = prev.otherCards[activeIndex];
+            if (!adendeiTypes.includes(cardToMove.cardType)) {
+              toast.warning('Solo puedes mover Adendeis o Rava entre estas secciones');
+              return prev;
+            }
+            const targetCard = prev.mainAdendeis[overIndex];
+            if (targetCard) {
+              if (!adendeiTypes.includes(targetCard.cardType)) {
+                toast.warning('Solo puedes poner Adendeis o Rava en los slots principales');
+                return prev;
+              }
+              // Validar máximo 1 Rava en principales
+              const mainAdendeisAfterSwap = [...prev.mainAdendeis];
+              mainAdendeisAfterSwap[overIndex] = cardToMove;
+              const ravaCount = mainAdendeisAfterSwap.filter(card => card.cardType === CardType.RAVA).length;
+              if (ravaCount > 1) {
+                toast.error('Solo puede existir 1 carta Rava por mazo');
+                return prev;
+              }
+              newDeck.otherCards = [...prev.otherCards];
+              newDeck.otherCards[activeIndex] = targetCard;
+              newDeck.mainAdendeis[overIndex] = cardToMove;
+            } else {
+              // Mover a slot vacío
+              if (newDeck.mainAdendeis.length >= 3) {
+                toast.error('Solo puedes tener 3 adendeis principales');
+                return prev;
+              }
+              if (cardToMove.cardType === CardType.RAVA) {
+                const hasRava = newDeck.mainAdendeis.some(card => card.cardType === CardType.RAVA);
+                if (hasRava) {
+                  toast.error('Solo puede existir 1 carta Rava por mazo');
+                  return prev;
+                }
+              }
+              newDeck.otherCards = [
+                ...prev.otherCards.slice(0, activeIndex),
+                ...prev.otherCards.slice(activeIndex + 1)
+              ];
+              newDeck.mainAdendeis.push(cardToMove);
+            }
+          }
+          return newDeck;
+        });
       }
-      // ... (mantén el resto de la lógica para mover entre secciones si aplica)
     }
   };
 
@@ -897,7 +994,7 @@ export default function DeckEditor() {
         <div className="flex items-center space-x-4">
           <Button 
             variant="ghost" 
-            size="icon" 
+            size="md" 
             className="h-8 w-8" 
             onClick={() => navigate('/decks')}
           >
@@ -1113,7 +1210,7 @@ export default function DeckEditor() {
               <Button variant="outline" onClick={() => setConfirmDeleteDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button variant="destructive" onClick={handleDeleteDeck}>
+              <Button variant="danger" onClick={handleDeleteDeck}>
                 Eliminar
               </Button>
             </DialogFooter>
