@@ -675,6 +675,27 @@ export default function WishlistDetail() {
         handleCopyToClipboard(textToCopy);
     };
 
+    // Estado para scroll infinito
+    const [visibleCount, setVisibleCount] = useState(20);
+    const loaderRef = useRef<HTMLDivElement | null>(null);
+
+    // Resetear visibleCount cuando cambian las cartas
+    useEffect(() => {
+        setVisibleCount(20);
+    }, [cards]);
+
+    // Scroll infinito con IntersectionObserver
+    useEffect(() => {
+        if (!loaderRef.current) return;
+        const observer = new window.IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                setVisibleCount((prev) => Math.min(prev + 20, cards.length));
+            }
+        });
+        observer.observe(loaderRef.current);
+        return () => observer.disconnect();
+    }, [cards.length]);
+
     // Si no hay usuario autenticado, mostrar mensaje
     if (!user) {
         return (
@@ -780,27 +801,38 @@ export default function WishlistDetail() {
                 />
             ) : (
                 <>
-                    {/* Vista móvil - Grid con 3 cartas por fila */}
+                    {/* Vista móvil - Grid con 3 cartas por fila y scroll infinito */}
                     <div className="md:hidden">
                         <div className="flex justify-between items-center mb-3">
                             <h2 className="text-lg font-medium">{cards.length} {cards.length === 1 ? 'carta' : 'cartas'}</h2>
                         </div>
 
                         <CardGrid
-                            cards={cards}
+                            cards={cards.slice(0, visibleCount)}
                             onOpenFullscreen={handleOpenFullscreen}
                             onRemoveCard={handleRemoveCard}
                         />
+                        {visibleCount < cards.length && (
+                            <div ref={loaderRef} className="h-8 flex items-center justify-center">
+                                <Spinner size="sm" />
+                                <span className="ml-2 text-xs text-muted-foreground">Cargando más cartas...</span>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Vista desktop - Grid de cartas (máximo 10) */}
+                    {/* Vista desktop - Grid de cartas con scroll infinito */}
                     <div className="hidden md:block">
                         <CardGrid
-                            cards={cards}
-                            limit={10}
+                            cards={cards.slice(0, visibleCount)}
                             onOpenFullscreen={handleOpenFullscreen}
                             onRemoveCard={handleRemoveCard}
                         />
+                        {visibleCount < cards.length && (
+                            <div ref={loaderRef} className="h-8 flex items-center justify-center">
+                                <Spinner size="sm" />
+                                <span className="ml-2 text-xs text-muted-foreground">Cargando más cartas...</span>
+                            </div>
+                        )}
                     </div>
                 </>
             )}
