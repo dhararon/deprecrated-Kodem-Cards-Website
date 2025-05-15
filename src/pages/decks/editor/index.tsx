@@ -34,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/atoms/Select';
-import { Search, Plus, Minus, Save, ArrowLeft, Trash2 } from 'lucide-react';
+import { Search, Plus, Minus, Save, ArrowLeft, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/atoms/Dialog';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, pointerWithin, rectIntersection } from '@dnd-kit/core';
@@ -107,6 +107,11 @@ export default function DeckEditor() {
   const totalCards = useMemo(() => {
     return Object.values(deckCards).reduce((acc, qty) => acc + qty, 0);
   }, [deckCards]);
+
+  // Estados para colapsar secciones
+  const [showProtectorBio, setShowProtectorBio] = useState(true);
+  const [showRot, setShowRot] = useState(true);
+  const [showIxim, setShowIxim] = useState(true);
 
   // Verificar autenticación
   useEffect(() => {
@@ -582,100 +587,129 @@ export default function DeckEditor() {
             </div>
           </div>
           
-          {/* Fila 2: Segundo protector y Bio */}
+          {/* Fila 2: Protector Secundario y Bio */}
           <div>
-            <h3 className="font-medium text-sm mb-2">Protector Secundario y Bio</h3>
-            <div className="grid grid-cols-4 gap-3">
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
-                {organizedDeck.protector2 ? (
-                  <div 
-                    data-id="protector2-0"
-                    className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
-                  >
-                    {renderDeckCard(organizedDeck.protector2)}
-                  </div>
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground">
-                    <div className="mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+            <button
+              type="button"
+              className="flex items-center w-full mb-2 text-sm font-medium focus:outline-none"
+              onClick={() => setShowProtectorBio((v) => !v)}
+              aria-expanded={showProtectorBio}
+            >
+              {showProtectorBio ? <ChevronDown className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 mr-2" />}
+              Protector Secundario y Bio
+            </button>
+            {showProtectorBio && (
+              <div className="grid grid-cols-4 gap-3">
+                <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
+                  {organizedDeck.protector2 ? (
+                    <div 
+                      data-id="protector2-0"
+                      className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
+                    >
+                      {renderDeckCard(organizedDeck.protector2)}
                     </div>
-                    Protector 2
-                  </div>
-                )}
-              </div>
-              
-              <div className="col-span-3 border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] flex items-center justify-center card-container">
-                {organizedDeck.bio ? (
-                  <div 
-                    data-id="bio-0"
-                    className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
-                  >
-                    {renderDeckCard(organizedDeck.bio)}
-                  </div>
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground">
-                    <div className="mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                  ) : (
+                    <div className="text-center text-sm text-muted-foreground">
+                      <div className="mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                      </div>
+                      Protector 2
                     </div>
-                    Bio
-                  </div>
-                )}
+                  )}
+                </div>
+                <div className="col-span-3 border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] flex items-center justify-center card-container">
+                  {organizedDeck.bio ? (
+                    <div 
+                      data-id="bio-0"
+                      className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
+                    >
+                      {renderDeckCard(organizedDeck.bio)}
+                    </div>
+                  ) : (
+                    <div className="text-center text-sm text-muted-foreground">
+                      <div className="mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                      </div>
+                      Bio
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
           
           {/* Fila 3: Cartas Rot */}
           <div>
-            <h3 className="font-medium text-sm mb-2">Cartas Rot</h3>
-            <div className="grid grid-cols-4 gap-3">
-              <SortableContext items={organizedDeck.rotCards.map((_, i) => `rot-${i}`)} strategy={horizontalListSortingStrategy}>
-                {Array(4).fill(null).map((_, idx) => (
-                  <div key={`rot-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
-                       data-droppable-id={`rot-${idx}`}>
-                    {organizedDeck.rotCards[idx] ? (
-                      <SortableCard 
-                        card={organizedDeck.rotCards[idx]} 
-                        id={`rot-${idx}`} 
-                      />
-                    ) : (
-                      <div className="text-center text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+            <button
+              type="button"
+              className="flex items-center w-full mb-2 text-sm font-medium focus:outline-none"
+              onClick={() => setShowRot((v) => !v)}
+              aria-expanded={showRot}
+            >
+              {showRot ? <ChevronDown className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 mr-2" />}
+              Cartas Rot
+            </button>
+            {showRot && (
+              <div className="grid grid-cols-4 gap-3">
+                <SortableContext items={organizedDeck.rotCards.map((_, i) => `rot-${i}`)} strategy={horizontalListSortingStrategy}>
+                  {Array(4).fill(null).map((_, idx) => (
+                    <div key={`rot-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
+                         data-droppable-id={`rot-${idx}`}>
+                      {organizedDeck.rotCards[idx] ? (
+                        <SortableCard 
+                          card={organizedDeck.rotCards[idx]} 
+                          id={`rot-${idx}`} 
+                        />
+                      ) : (
+                        <div className="text-center text-sm text-muted-foreground">
+                          <div className="mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                          </div>
+                          Rot {idx + 1}
                         </div>
-                        Rot {idx + 1}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </SortableContext>
-            </div>
+                      )}
+                    </div>
+                  ))}
+                </SortableContext>
+              </div>
+            )}
           </div>
           
           {/* Fila 4: Cartas Ixim */}
           <div>
-            <h3 className="font-medium text-sm mb-2">Cartas Ixim</h3>
-            <div className="grid grid-cols-4 gap-3">
-              <SortableContext items={organizedDeck.iximCards.map((_, i) => `ixim-${i}`)} strategy={horizontalListSortingStrategy}>
-                {Array(4).fill(null).map((_, idx) => (
-                  <div key={`ixim-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
-                       data-droppable-id={`ixim-${idx}`}>
-                    {organizedDeck.iximCards[idx] ? (
-                      <SortableCard 
-                        card={organizedDeck.iximCards[idx]} 
-                        id={`ixim-${idx}`} 
-                      />
-                    ) : (
-                      <div className="text-center text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+            <button
+              type="button"
+              className="flex items-center w-full mb-2 text-sm font-medium focus:outline-none"
+              onClick={() => setShowIxim((v) => !v)}
+              aria-expanded={showIxim}
+            >
+              {showIxim ? <ChevronDown className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 mr-2" />}
+              Cartas Ixim
+            </button>
+            {showIxim && (
+              <div className="grid grid-cols-4 gap-3">
+                <SortableContext items={organizedDeck.iximCards.map((_, i) => `ixim-${i}`)} strategy={horizontalListSortingStrategy}>
+                  {Array(4).fill(null).map((_, idx) => (
+                    <div key={`ixim-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
+                         data-droppable-id={`ixim-${idx}`}>
+                      {organizedDeck.iximCards[idx] ? (
+                        <SortableCard 
+                          card={organizedDeck.iximCards[idx]} 
+                          id={`ixim-${idx}`} 
+                        />
+                      ) : (
+                        <div className="text-center text-sm text-muted-foreground">
+                          <div className="mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                          </div>
+                          Ixim {idx + 1}
                         </div>
-                        Ixim {idx + 1}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </SortableContext>
-            </div>
+                      )}
+                    </div>
+                  ))}
+                </SortableContext>
+              </div>
+            )}
           </div>
           
           {/* Fila 5+: Otras cartas (3 columnas) - Siempre mostrar al menos una fila vacía */}
@@ -990,7 +1024,13 @@ export default function DeckEditor() {
         return;
       }
     }
-    
+
+    // Si la carta ya está en el deck, mostrar un toast y no agregarla de nuevo
+    if (deckCards[card.id]) {
+      toast.warning('Esta carta ya está en el mazo');
+      return;
+    }
+
     // Si no es Rava o es el primer Rava, proceder normalmente
     setDeckCards(prev => {
       const currentQty = prev[card.id] || 0;
