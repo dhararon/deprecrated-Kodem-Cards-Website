@@ -387,13 +387,13 @@ export default function DeckEditor() {
                 )}
               </div>
               <SortableContext 
-                items={Array(6).fill(null).map((_, i) => `mainAdendei-${i}`)} 
+                items={organizedDeck.mainAdendeis.map((_, i) => `mainAdendei-${i}`)} 
                 strategy={horizontalListSortingStrategy}
               >
                 {Array(3).fill(null).map((_, idx) => (
                   <div key={`main-adendei-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container" 
                        data-droppable-id={`mainAdendei-${idx}`}>
-                    {idx < organizedDeck.mainAdendeis.length ? (
+                    {organizedDeck.mainAdendeis[idx] ? (
                       <SortableCard 
                         card={organizedDeck.mainAdendeis[idx]} 
                         id={`mainAdendei-${idx}`} 
@@ -589,7 +589,7 @@ export default function DeckEditor() {
       opacity: isDragging ? 0.6 : 1,
       zIndex: isDragging ? 999 : 1,
       boxShadow: isDragging ? '0 8px 20px rgba(0, 0, 0, 0.2)' : 'none',
-      touchAction: 'none', // Importante para dispositivos táctiles
+      touchAction: 'none',
       width: '157px',
       height: '220px',
     };
@@ -913,7 +913,7 @@ export default function DeckEditor() {
       <div className="flex items-center space-x-1">
         <Button
           variant="outline"
-          size="icon"
+          size="md"
           className="h-7 w-7"
           onClick={(e) => {
             e.stopPropagation();
@@ -925,7 +925,7 @@ export default function DeckEditor() {
         <span className="w-6 text-center font-medium">{quantity}</span>
         <Button
           variant="outline"
-          size="icon"
+          size="md"
           className="h-7 w-7"
           onClick={(e) => {
             e.stopPropagation();
