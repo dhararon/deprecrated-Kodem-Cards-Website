@@ -49,6 +49,9 @@ export function Sidebar() {
         return defaultSections;
     }, [isAdmin]);
 
+    // Obtener la versión desde una variable de entorno
+    const version = import.meta.env.VITE_APP_VERSION || 'v1.2.0';
+
     return (
         <SidebarComponent
             sections={getSections()}
@@ -56,6 +59,11 @@ export function Sidebar() {
             logo={
                 <div className="flex items-center space-x-2">
                     {!isCollapsed && <span className="text-xl font-bold">Kodem Cards</span>}
+                </div>
+            }
+            footer={
+                <div className="mb-2 text-xs text-muted-foreground text-center select-none">
+                    Versión {version}
                 </div>
             }
         />
