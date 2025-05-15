@@ -693,7 +693,7 @@ export default function DeckEditor() {
         userAvatar: user!.avatarUrl || undefined,
         cardIds,
         isPublic,
-        description: deckDescription.trim() || undefined
+        description: deckDescription.trim() || ""
       };
       
       let newDeckId;
