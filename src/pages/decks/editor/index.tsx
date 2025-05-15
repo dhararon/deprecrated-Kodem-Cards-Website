@@ -979,65 +979,12 @@ export default function DeckEditor() {
 
   return (
     <div className="flex flex-col h-screen max-h-screen overflow-hidden">
-      {/* Cabecera */}
-      <div className="border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="md" 
-            className="h-8 w-8" 
-            onClick={() => navigate('/decks')}
-          >
-            <ArrowLeft size={18} />
-          </Button>
-          <div className="text-sm text-muted-foreground">Nuevo mazo</div>
-          <Input
-            value={deckName}
-            onChange={(e) => {
-              setDeckName(e.target.value);
-              setNameError('');
-            }}
-            placeholder="Nombre del mazo"
-            className={`w-60 ${nameError ? 'border-destructive' : ''}`}
-          />
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            className={`flex items-center gap-1 ${isPublic ? '' : 'bg-red-50'}`}
-            onClick={() => setIsPublic(!isPublic)}
-          >
-            {isPublic ? 
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg> : 
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-lock text-red-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            }
-            {isPublic ? 'Público' : 'Privado'}
-          </Button>
-          <Button 
-            onClick={handleSaveDeck}
-            disabled={isSaving}
-            className="flex items-center gap-1"
-          >
-            {isSaving ? (
-              <Spinner size="sm" className="mr-1" />
-            ) : (
-              <Save size={16} className="mr-1" />
-            )}
-            Guardar
-          </Button>
-          <Button
-            variant="outline"
-            className="flex items-center gap-1"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
-            Compartir
-          </Button>
-        </div>
+      {/* Mensaje solo para mobile */}
+      <div className="block md:hidden bg-yellow-100 text-yellow-800 text-center py-3 px-4 font-semibold border-b border-yellow-300">
+        La creación de mazos solo está disponible en escritorio
       </div>
-
-      {/* Contenido principal - 3 columnas */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* Contenido principal - solo visible en escritorio */}
+      <div className="hidden md:flex flex-1 overflow-hidden">
         {/* Columna 1: Detalle de carta seleccionada */}
         <div className="w-72 border-r overflow-y-auto">
           <div className="p-4">
