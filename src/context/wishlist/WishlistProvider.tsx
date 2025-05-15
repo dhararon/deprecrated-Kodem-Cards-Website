@@ -166,7 +166,8 @@ export const WishlistProvider: React.FC<WishlistProviderProps> = ({ children }) 
     // Cargar las listas cuando cambie el usuario
     useEffect(() => {
         loadWishlists();
-    }, [loadWishlists]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user]);
     
     // Refrescar las listas
     const refreshWishlists = useCallback(async () => {
