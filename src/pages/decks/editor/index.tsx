@@ -859,23 +859,13 @@ export default function DeckEditor() {
       className="relative group border rounded-md overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
       onClick={() => handleAddCard(card)}
     >
-      <div className="relative h-48 w-full">
+      <div className="relative aspect-[2.5/3.5] w-full">
         <Image
           src={card.imageUrl}
           alt={card.name}
           className="object-cover"
           style={{ width: '100%', height: '100%', position: 'absolute' }}
         />
-      </div>
-      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity flex items-center justify-center">
-        <Plus className="text-white h-12 w-12 opacity-0 group-hover:opacity-100" />
-      </div>
-      <div className="p-2 bg-white">
-        <h3 className="font-semibold text-sm truncate">{card.name}</h3>
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{card.cardType}</span>
-          <span>{card.cardEnergy}</span>
-        </div>
       </div>
     </div>
   );
