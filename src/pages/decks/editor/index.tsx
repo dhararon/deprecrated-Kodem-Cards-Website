@@ -611,7 +611,7 @@ export default function DeckEditor() {
 
   // Renderizar una carta en el organizador
   const renderDeckCard = (card: CardDetails) => (
-    <div className="border rounded-md overflow-hidden hover:shadow-md transition-shadow bg-white w-full h-full">
+    <div className="border rounded-md overflow-hidden hover:shadow-md transition-shadow bg-white w-full h-full relative">
       <div className="relative w-full h-full" style={{ aspectRatio: '2.5/3.5' }}>
         <Image
           src={card.imageUrl}
@@ -620,6 +620,21 @@ export default function DeckEditor() {
           style={{ width: '100%', height: '100%', position: 'absolute' }}
           sizes="(max-width: 768px) 100vw, 33vw"
         />
+        {/* Botón de eliminar en la esquina inferior derecha */}
+        <button
+          type="button"
+          className="absolute bottom-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-lg z-10"
+          style={{ minWidth: 32, minHeight: 32 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRemoveCard(card.id);
+          }}
+          onPointerDown={e => e.stopPropagation()}
+          tabIndex={-1}
+          title="Eliminar del mazo"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
       </div>
     </div>
   );
@@ -983,6 +998,62 @@ export default function DeckEditor() {
       <div className="block md:hidden bg-yellow-100 text-yellow-800 text-center py-3 px-4 font-semibold border-b border-yellow-300">
         La creación de mazos solo está disponible en escritorio
       </div>
+      {/* Cabecera solo visible en escritorio */}
+      <div className="hidden md:flex border-b px-4 py-3 items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button 
+            variant="ghost" 
+            size="md" 
+            className="h-8 w-8" 
+            onClick={() => navigate('/decks')}
+          >
+            <ArrowLeft size={18} />
+          </Button>
+          <div className="text-sm text-muted-foreground">Nuevo mazo</div>
+          <Input
+            value={deckName}
+            onChange={(e) => {
+              setDeckName(e.target.value);
+              setNameError('');
+            }}
+            placeholder="Nombre del mazo"
+            className={`w-60 ${nameError ? 'border-destructive' : ''}`}
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className={`flex items-center gap-1 ${isPublic ? '' : 'bg-red-50'}`}
+            onClick={() => setIsPublic(!isPublic)}
+          >
+            {isPublic ? 
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg> : 
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-lock text-red-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            }
+            {isPublic ? 'Público' : 'Privado'}
+          </Button>
+          <Button 
+            onClick={handleSaveDeck}
+            disabled={isSaving}
+            className="flex items-center gap-1"
+          >
+            {isSaving ? (
+              <Spinner size="sm" className="mr-1" />
+            ) : (
+              <Save size={16} className="mr-1" />
+            )}
+            Guardar
+          </Button>
+          <Button
+            variant="outline"
+            className="flex items-center gap-1"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
+            Compartir
+          </Button>
+        </div>
+      </div>
       {/* Contenido principal - solo visible en escritorio */}
       <div className="hidden md:flex flex-1 overflow-hidden">
         {/* Columna 1: Detalle de carta seleccionada */}
@@ -1034,7 +1105,7 @@ export default function DeckEditor() {
                       <p className="text-sm whitespace-pre-wrap">{selectedCard.description}</p>
                     </div>
                   )}
-                  <div className="pt-3">
+                  <div className="pt-3 flex flex-col gap-2">
                     <Button 
                       className="w-full" 
                       onClick={() => handleAddCard(selectedCard)}
@@ -1042,6 +1113,18 @@ export default function DeckEditor() {
                       <Plus size={16} className="mr-1" />
                       Agregar al mazo
                     </Button>
+                    {deckCards[selectedCard.id] && (
+                      <Button
+                        className="w-full"
+                        variant="danger"
+                        onClick={() => {
+                          handleRemoveCard(selectedCard.id);
+                          setSelectedCard(null);
+                        }}
+                      >
+                        Eliminar del mazo
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
