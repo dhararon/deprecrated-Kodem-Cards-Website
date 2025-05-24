@@ -151,7 +151,7 @@ const Decks: React.FC = () => {
                 <h1 className="text-2xl font-bold">Mis Mazos</h1>
                 
                 <div className="flex gap-2">
-                    <Link href="/decks/editor">
+                    <Link href="/decks/editor/new">
                         <Button>
                             <Plus className="h-4 w-4 mr-2" />
                             Crear Mazo
@@ -172,7 +172,7 @@ const Decks: React.FC = () => {
                     description="Crea tu primer mazo para organizar tus cartas y construir estrategias"
                     icon={<Layers className="h-10 w-10 text-primary/60" />}
                     action={
-                        <Link href="/decks/editor">
+                        <Link href="/decks/editor/new">
                             <Button className="mt-4">
                                 Crear Mazo
                             </Button>
@@ -232,7 +232,7 @@ const Decks: React.FC = () => {
             )}
 
             {/* Botón flotante para crear un nuevo mazo */}
-            <Link href="/decks/editor">
+            <Link href="/decks/editor/new">
                 <button
                     className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 p-4 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 z-10"
                     aria-label="Crear nuevo mazo"

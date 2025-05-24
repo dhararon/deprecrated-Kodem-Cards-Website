@@ -26,10 +26,7 @@
     "tag:create": "bun run scripts/create-tag.js --create",
     "tag:push": "bun run scripts/create-tag.js --create --push",
     "tag:push:force": "bun run scripts/create-tag.js --create --push --force",
-    "release": "bun run scripts/create-tag.js --create --push --release",
-    "release:pre": "bun run scripts/create-tag.js --create --push --release --prerelease",
-    "release:last": "bun run scripts/create-tag.js --last-tag --release",
-    "release:last:pre": "bun run scripts/create-tag.js --last-tag --release --prerelease"
+    "release": "bun run scripts/create-tag.js --create --push --release"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
