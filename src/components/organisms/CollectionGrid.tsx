@@ -732,7 +732,7 @@ const CardItem = memo(({
                                     >
                                         <Heart
                                             size={18}
-                                            className={inWishlist ? "fill-primary text-primary" : ""}
+                                            className={inWishlist ? "fill-primary text-red-500" : "text-red-500"}
                                         />
                                     </Button>
                                 </DropdownMenuTrigger>
@@ -770,7 +770,7 @@ const CardItem = memo(({
                             </DropdownMenu>
                         </div>
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent className="bg-white">
                         Lista de deseos
                     </TooltipContent>
                 </Tooltip>
