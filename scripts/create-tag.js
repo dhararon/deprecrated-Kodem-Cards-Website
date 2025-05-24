@@ -178,17 +178,17 @@ function obtenerInfoRepositorio() {
   try {
     // Obtener la URL del origen remoto
     const remoteUrl = execCommand('git config --get remote.origin.url');
-    
-    // Extraer el nombre del propietario y repositorio de la URL
-    // Soporta formatos: https://github.com/propietario/repositorio.git o git@github.com:propietario/repositorio.git
     let propietario, repositorio;
-    
-    if (remoteUrl.includes('github.com')) {
+    // Validación segura usando el objeto URL
+    try {
       if (remoteUrl.startsWith('https://')) {
-        const match = remoteUrl.match(/https:\/\/github\.com\/([^\/]+)\/([^.]+)(\.git)?/);
-        if (match) {
-          propietario = match[1];
-          repositorio = match[2];
+        const parsed = new URL(remoteUrl);
+        if (parsed.host === 'github.com') {
+          const match = parsed.pathname.match(/^\/([^\/]+)\/([^.]+)(\.git)?$/);
+          if (match) {
+            propietario = match[1];
+            repositorio = match[2];
+          }
         }
       } else if (remoteUrl.includes('git@github.com:')) {
         const match = remoteUrl.match(/git@github\.com:([^\/]+)\/([^.]+)(\.git)?/);
@@ -197,12 +197,12 @@ function obtenerInfoRepositorio() {
           repositorio = match[2];
         }
       }
+    } catch (e) {
+      // Si no es una URL válida, continuar con la lógica anterior
     }
-    
     if (!propietario || !repositorio) {
       throw new Error('No se pudo determinar el propietario o repositorio de GitHub.');
     }
-    
     return { propietario, repositorio };
   } catch (error) {
     console.error(chalk.red('Error al obtener información del repositorio:', error.message));
@@ -582,7 +582,7 @@ async function main() {
   console.log(chalk.bold('==========================\n'));
 
   console.log(chalk.bold('Para crear el tag, ejecuta:'));
-  console.log(chalk.green(`git tag -a ${nuevaVersion} -m "${mensajeTag.replace(/"/g, '\\"')}"`));
+  console.log(chalk.green(`git tag -a ${nuevaVersion} -m "${escapeSingleQuotes(mensajeTag).replace(/"/g, '\\"')}"`));
   console.log(chalk.green(`git push origin ${nuevaVersion}`));
 
   // Preguntar si quiere crear el tag automáticamente
@@ -596,7 +596,7 @@ async function main() {
   if (process.argv.includes('--create')) {
     console.log(chalk.green('\nCreando tag automáticamente...'));
     try {
-      execCommand(`git tag -a ${nuevaVersion} -m "${mensajeTag.replace(/"/g, '\\"')}"`);
+      execCommand(`git tag -a ${nuevaVersion} -m "${escapeSingleQuotes(mensajeTag).replace(/"/g, '\\"')}"`);
       console.log(chalk.green(`✅ Tag ${nuevaVersion} creado exitosamente.`));
       
       let tagPusheado = false;
