@@ -18,7 +18,7 @@ import { execSync } from 'child_process';
 import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
-import * as https from 'https';
+import fetch from 'node-fetch';
 
 // Función para ejecutar comandos y obtener su salida
 function execCommand(command) {
@@ -254,61 +254,39 @@ async function verificarReleaseExistente(tag) {
   
   console.log(chalk.blue(`Verificando si existe release para el tag ${tag}...`));
   
-  return new Promise((resolve) => {
-    const options = {
-      hostname: 'api.github.com',
-      path: `/repos/${propietario}/${repositorio}/releases/tags/${tag}`,
+  const url = `https://api.github.com/repos/${propietario}/${repositorio}/releases/tags/${tag}`;
+  try {
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'User-Agent': 'Kodem-Cards-Release-Script',
         'Accept': 'application/vnd.github.v3+json',
         'Authorization': `token ${token}`
-      }
-    };
-    
-    const req = https.request(options, (res) => {
-      let responseData = '';
-      
-      res.on('data', (chunk) => {
-        responseData += chunk;
-      });
-      
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          // El release existe
-          try {
-            const data = JSON.parse(responseData);
-            console.log(chalk.yellow(`⚠️ El tag ${tag} ya tiene un release en GitHub.`));
-            console.log(chalk.yellow(`🔗 URL: ${data.html_url}`));
-            resolve(data);
-          } catch (error) {
-            console.error(chalk.red('Error al procesar la respuesta de GitHub:', error.message));
-            resolve(null);
-          }
-        } else if (res.statusCode === 404) {
-          // El release no existe
-          console.log(chalk.blue(`El tag ${tag} no tiene un release en GitHub.`));
-          resolve(false);
-        } else {
-          // Otro error
-          console.error(chalk.red(`❌ Error al verificar release. Código: ${res.statusCode}`));
-          console.error(chalk.red(`Respuesta: ${responseData}`));
-          resolve(null);
-        }
-      });
+      },
+      redirect: 'follow' // Sigue redirecciones automáticamente
     });
-    
-    req.on('error', (error) => {
-      console.error(chalk.red('❌ Error al comunicarse con la API de GitHub:', error.message));
-      resolve(null);
-    });
-    
-    req.end();
-  });
+    const responseData = await response.text();
+    if (response.status === 200) {
+      const data = JSON.parse(responseData);
+      console.log(chalk.yellow(`⚠️ El tag ${tag} ya tiene un release en GitHub.`));
+      console.log(chalk.yellow(`🔗 URL: ${data.html_url}`));
+      return data;
+    } else if (response.status === 404) {
+      console.log(chalk.blue(`El tag ${tag} no tiene un release en GitHub.`));
+      return false;
+    } else {
+      console.error(chalk.red(`❌ Error al verificar release. Código: ${response.status}`));
+      console.error(chalk.red(`Respuesta: ${responseData}`));
+      return null;
+    }
+  } catch (error) {
+    console.error(chalk.red('❌ Error al comunicarse con la API de GitHub:', error.message));
+    return null;
+  }
 }
 
 // Crear un release en GitHub
-function crearGithubRelease(tag, mensaje, esPrerelease = false) {
+async function crearGithubRelease(tag, mensaje, esPrerelease = false) {
   const token = obtenerGithubToken();
   if (!token) {
     console.error(chalk.red('❌ No se encontró un token de GitHub. Se requiere para crear releases.'));
@@ -339,56 +317,39 @@ function crearGithubRelease(tag, mensaje, esPrerelease = false) {
   }
   
   // Preparar datos del release
-  const data = JSON.stringify({
+  const data = {
     tag_name: tag,
     name: `${releaseType} ${tag}`,
     body: mensaje,
     draft: false,
     prerelease: esPrerelease
-  });
+  };
   
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'api.github.com',
-      path: `/repos/${propietario}/${repositorio}/releases`,
+  try {
+    const response = await fetch(`https://api.github.com/repos/${propietario}/${repositorio}/releases`, {
       method: 'POST',
       headers: {
         'User-Agent': 'Kodem-Cards-Release-Script',
         'Content-Type': 'application/json',
         'Accept': 'application/vnd.github.v3+json',
-        'Authorization': `token ${token}`,
-        'Content-Length': data.length
-      }
-    };
-    
-    const req = https.request(options, (res) => {
-      let responseData = '';
-      
-      res.on('data', (chunk) => {
-        responseData += chunk;
-      });
-      
-      res.on('end', () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          console.log(chalk.green(`✅ Release ${tag} creado exitosamente en GitHub.`));
-          console.log(chalk.green(`🔗 URL: https://github.com/${propietario}/${repositorio}/releases/tag/${tag}`));
-          resolve(true);
-        } else {
-          console.error(chalk.red(`❌ Error al crear release en GitHub. Código: ${res.statusCode}`));
-          console.error(chalk.red(`Respuesta: ${responseData}`));
-          resolve(false);
-        }
-      });
+        'Authorization': `token ${token}`
+      },
+      body: JSON.stringify(data)
     });
-    
-    req.on('error', (error) => {
-      console.error(chalk.red('❌ Error al comunicarse con la API de GitHub:', error.message));
-      resolve(false);
-    });
-    
-    req.write(data);
-    req.end();
-  });
+    const responseData = await response.text();
+    if (response.status >= 200 && response.status < 300) {
+      console.log(chalk.green(`✅ Release ${tag} creado exitosamente en GitHub.`));
+      console.log(chalk.green(`🔗 URL: https://github.com/${propietario}/${repositorio}/releases/tag/${tag}`));
+      return true;
+    } else {
+      console.error(chalk.red(`❌ Error al crear release en GitHub. Código: ${response.status}`));
+      console.error(chalk.red(`Respuesta: ${responseData}`));
+      return false;
+    }
+  } catch (error) {
+    console.error(chalk.red('❌ Error al comunicarse con la API de GitHub:', error.message));
+    return false;
+  }
 }
 
 // Generar mensaje para un tag existente
