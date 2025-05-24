@@ -576,10 +576,14 @@ const DeckDetail: React.FC = () => {
                     const imageUrl = url;
                     
                     // Si la URL no tiene un token de acceso y es de Firebase Storage, intentar obtener una URL firmada
-                    if (imageUrl.includes('firebasestorage.googleapis.com') && !imageUrl.includes('token=')) {
-                        console.log('Detectada URL de Firebase Storage, intentando acceso directo');
-                        // Podríamos necesitar generar un token o usar una URL pública alternativa
-                        // Por ahora, usamos la URL tal cual pero logeamos para depuración
+                    try {
+                        const parsedUrl = new URL(imageUrl);
+                        if (parsedUrl.host === 'firebasestorage.googleapis.com' && !imageUrl.includes('token=')) {
+                            console.log('Detectada URL de Firebase Storage, intentando acceso directo');
+                            // Aquí podrías agregar lógica adicional para obtener una URL firmada
+                        }
+                    } catch (e) {
+                        // Si no es una URL válida, continuar sin validación
                     }
                     
                     const img = new Image();

@@ -72,6 +72,16 @@ export interface CardModalProps {
     showAction?: boolean;
 }
 
+// Ejemplo de validación segura de host
+function isTrustedHost(url: string, trustedHosts: string[]): boolean {
+    try {
+        const parsed = new URL(url);
+        return trustedHosts.includes(parsed.host);
+    } catch (e) {
+        return false;
+    }
+}
+
 /**
  * CardModal - Componente para mostrar detalles de una carta en un modal
  */
@@ -128,7 +138,7 @@ export function CardModal({
                     <div
                         className="aspect-[2/3] w-full max-w-[200px] mx-auto bg-gray-100 rounded-md overflow-hidden"
                         style={{
-                            backgroundImage: `url(${card.imageUrl && !card.imageUrl.includes("kodem-tcg.com")
+                            backgroundImage: `url(${card.imageUrl && !isTrustedHost(card.imageUrl, ["kodem-tcg.com"])
                                 ? card.imageUrl
                                 : getCardPlaceholder(card)})`,
                             backgroundSize: 'cover',

@@ -44,9 +44,14 @@ const OptimizedImage = ({
         // Solo convertir si no es una URL de WebP ya
         if (url.includes('.webp')) return url;
 
-        // Si es una URL de Cloudinary, podemos pedir formato WebP
-        if (url.includes('cloudinary.com') && !url.includes('/f_webp/')) {
-            return url.replace(/\/upload\//, '/upload/f_webp/');
+        // Validación segura de Cloudinary usando el objeto URL
+        try {
+            const parsedUrl = new URL(url);
+            if (parsedUrl.host === 'res.cloudinary.com' && !url.includes('/f_webp/')) {
+                return url.replace(/\/upload\//, '/upload/f_webp/');
+            }
+        } catch (e) {
+            // Si no es una URL válida, continuar con la lógica anterior
         }
 
         // Si es un archivo local, buscar versión webp

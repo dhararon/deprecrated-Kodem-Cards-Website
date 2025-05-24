@@ -428,6 +428,21 @@ function verificarTagRemoto(tag) {
   return !!resultado;
 }
 
+// Utiliza el objeto URL para validar hosts en vez de includes o substring directo
+function isTrustedHost(url, trustedHosts) {
+  try {
+    const parsed = new URL(url);
+    return trustedHosts.includes(parsed.host);
+  } catch (e) {
+    return false;
+  }
+}
+
+// Refuerza el escape de comillas simples en strings
+function escapeSingleQuotes(str) {
+  return str.replace(/'/g, "''");
+}
+
 // Función principal
 async function main() {
   console.log(chalk.bold('🏷️  Generador de Tags y Releases basado en Semantic Commit 🏷️\n'));
