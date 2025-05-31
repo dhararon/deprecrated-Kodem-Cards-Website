@@ -7,6 +7,8 @@ import { Spinner } from '@/components/atoms/Spinner';
 import { Button } from '@/components/atoms/Button';
 import { Image } from '@/components/atoms/Image';
 import { X } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 /**
  * Página de selección de cartas (2 columnas):
@@ -23,6 +25,7 @@ export default function CardSelectorPage() {
 	const [selectedRarity, setSelectedRarity] = useState<string>('all_rarities');
 	const [selectedSet, setSelectedSet] = useState<string>('all_sets');
 	const [isLoadingCards, setIsLoadingCards] = useState(false);
+	const [isExporting, setIsExporting] = useState(false);
 
 	// Cargar todas las cartas al montar
 	useEffect(() => {
@@ -71,11 +74,86 @@ export default function CardSelectorPage() {
 		setSelectedCards(prev => prev.filter(c => c.id !== cardId));
 	};
 
+	// Utilidad para descargar imagen como base64
+	const fetchImageAsBase64 = async (url: string): Promise<string> => {
+		const response = await fetch(url, { mode: 'cors' });
+		const blob = await response.blob();
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				if (typeof reader.result === 'string') {
+					resolve(reader.result);
+				} else {
+					reject('No se pudo convertir la imagen');
+				}
+			};
+			reader.onerror = reject;
+			reader.readAsDataURL(blob);
+		});
+	};
+
+	const handleExportPDF = async () => {
+		if (selectedCards.length === 0) return;
+		setIsExporting(true);
+		try {
+			const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+			const CARD_WIDTH = 63;
+			const CARD_HEIGHT = 88;
+			const GAP = 2; // Espacio entre cartas en mm
+			const MARGIN_X = 10;
+			const MARGIN_Y = 10;
+			const CARDS_PER_ROW = Math.floor((210 - 2 * MARGIN_X + GAP) / (CARD_WIDTH + GAP));
+			let x = MARGIN_X;
+			let y = MARGIN_Y;
+			let cardCount = 0;
+
+			for (let i = 0; i < selectedCards.length; i++) {
+				const card = selectedCards[i];
+				const base64 = await fetchImageAsBase64(card.imageUrl);
+				const img = document.createElement('img');
+				img.src = base64;
+				await new Promise(resolve => {
+					img.onload = resolve;
+				});
+				const canvas = document.createElement('canvas');
+				canvas.width = 630;
+				canvas.height = 880;
+				const ctx = canvas.getContext('2d');
+				if (ctx) {
+					ctx.fillStyle = '#fff';
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+					ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+				}
+				const imgData = canvas.toDataURL('image/jpeg', 1.0);
+				doc.addImage(imgData, 'JPEG', x, y, CARD_WIDTH, CARD_HEIGHT);
+				x += CARD_WIDTH + GAP;
+				cardCount++;
+				if (cardCount % CARDS_PER_ROW === 0) {
+					x = MARGIN_X;
+					y += CARD_HEIGHT + GAP;
+					if (y + CARD_HEIGHT > 297 - MARGIN_Y) {
+						doc.addPage();
+						y = MARGIN_Y;
+					}
+				}
+			}
+			doc.save('cartas_seleccionadas.pdf');
+		} finally {
+			setIsExporting(false);
+		}
+	};
+
 	return (
 		<div className="flex h-screen">
 			{/* Columna izquierda: cartas seleccionadas */}
 			<div className="w-1/2 border-r overflow-y-auto p-6 bg-gray-50">
-				<h2 className="text-lg font-bold mb-4">Cartas seleccionadas</h2>
+				<div className="flex items-center justify-between mb-4">
+					<h2 className="text-lg font-bold">Cartas seleccionadas</h2>
+					<Button onClick={handleExportPDF} disabled={selectedCards.length === 0 || isExporting} variant="outline">
+						{isExporting ? <Spinner size="sm" className="mr-2" /> : null}
+						Exportar PDF
+					</Button>
+				</div>
 				{selectedCards.length === 0 ? (
 					<p className="text-muted-foreground">No has seleccionado cartas aún.</p>
 				) : (
