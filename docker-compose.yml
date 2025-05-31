@@ -16,4 +16,4 @@ services:
       - ./fixtures:/app/fixtures:ro
       - ./package.json:/app/package.json:ro
       - ./tsconfig.json:/app/tsconfig.json:ro
-      - ./.env:/app/.env:ro
+      - ./.env.local:/app/.env:ro

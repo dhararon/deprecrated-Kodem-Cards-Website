@@ -178,7 +178,7 @@ async function seedCards() {
         }
         
         // Contar el número total de cartas a insertar
-        const cardsCount = Object.keys(cardsData.data).length;
+        const cardsCount = Object.keys(cardsData).length;
         console.log(`Insertando ${cardsCount} cartas en la colección 'cards'...`);
         
         // Crear un lote para inserción en batch
@@ -190,7 +190,7 @@ async function seedCards() {
         let processedCount = 0;
         
         // Insertar cada carta en la colección 'cards'
-        for (const [cardId, cardData] of Object.entries(cardsData.data)) {
+        for (const [cardId, cardData] of Object.entries(cardsData)) {
             // Eliminar la propiedad __collections__ que no es necesaria en Firestore
             // @ts-ignore
             const { __collections__, ...cardDataToSave } = cardData;
