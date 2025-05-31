@@ -146,7 +146,7 @@ const Decks: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col p-4 w-full min-h-screen relative">
+        <div className="min-h-[calc(100vh-4rem)] flex flex-col p-4 w-full relative">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Mis Mazos</h1>
                 

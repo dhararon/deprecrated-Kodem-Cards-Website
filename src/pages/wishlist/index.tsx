@@ -143,153 +143,155 @@ export default function Wishlists() {
     }
 
     return (
-        <div className="px-3 py-4 sm:container sm:px-4 sm:py-6 max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-xl sm:text-2xl font-bold">Mis Listas de Deseos</h1>
-                <Button 
-                    onClick={handleOpenCreateDialog}
-                    className="flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    <span className="hidden sm:inline">Nueva Lista</span>
-                </Button>
-            </div>
+        <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+            <div className="px-3 py-4 sm:container sm:px-4 sm:py-6 max-w-7xl mx-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <h1 className="text-xl sm:text-2xl font-bold">Mis Listas de Deseos</h1>
+                    <Button 
+                        onClick={handleOpenCreateDialog}
+                        className="flex items-center gap-2"
+                    >
+                        <Plus size={18} />
+                        <span className="hidden sm:inline">Nueva Lista</span>
+                    </Button>
+                </div>
 
-            {userWishlists.length === 0 ? (
-                <EmptyState
-                    title="No tienes listas de deseos"
-                    description="Crea tu primera lista para guardar las cartas que deseas conseguir"
-                    icon="heart"
-                    action={
-                        <Button onClick={handleOpenCreateDialog} className="mt-4">
-                            Crear Lista
-                        </Button>
-                    }
-                />
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {userWishlists.map(list => (
-                        <div 
-                            key={list.id} 
-                            className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                        >
-                            <div className="relative h-40 bg-gradient-to-br from-primary/20 to-primary/5">
-                                {list.imageUrl ? (
-                                    <Image
-                                        src={list.imageUrl}
-                                        alt={list.name}
-                                        className="object-cover"
-                                    />
-                                ) : (
-                                    <div className="flex items-center justify-center h-full">
-                                        <Heart className="h-16 w-16 text-primary/30" />
-                                    </div>
-                                )}
-                            </div>
-                            <div className="p-4">
-                                <h3 className="font-semibold text-lg mb-1 truncate">{list.name}</h3>
-                                <p className="text-muted-foreground text-sm mb-3 line-clamp-2 h-10">
-                                    {list.description || "Sin descripción"}
-                                </p>
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm">
-                                        <span className="font-medium">{list.cardCount}</span> cartas
+                {userWishlists.length === 0 ? (
+                    <EmptyState
+                        title="No tienes listas de deseos"
+                        description="Crea tu primera lista para guardar las cartas que deseas conseguir"
+                        icon="heart"
+                        action={
+                            <Button onClick={handleOpenCreateDialog} className="mt-4">
+                                Crear Lista
+                            </Button>
+                        }
+                    />
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {userWishlists.map(list => (
+                            <div 
+                                key={list.id} 
+                                className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+                            >
+                                <div className="relative h-40 bg-gradient-to-br from-primary/20 to-primary/5">
+                                    {list.imageUrl ? (
+                                        <Image
+                                            src={list.imageUrl}
+                                            alt={list.name}
+                                            className="object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full">
+                                            <Heart className="h-16 w-16 text-primary/30" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-4">
+                                    <h3 className="font-semibold text-lg mb-1 truncate">{list.name}</h3>
+                                    <p className="text-muted-foreground text-sm mb-3 line-clamp-2 h-10">
+                                        {list.description || "Sin descripción"}
                                     </p>
-                                    <div className="flex space-x-1">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 w-8"
-                                            onClick={() => handleOpenEditDialog(list)}
-                                        >
-                                            <Edit size={16} />
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 w-8 text-destructive hover:text-destructive"
-                                            onClick={() => handleDeleteList(list.id)}
-                                        >
-                                            <Trash2 size={16} />
-                                        </Button>
-                                        <Button
-                                            variant="primary"
-                                            size="sm"
-                                            className="h-8 w-8 ml-2"
-                                            onClick={() => handleViewList(list)}
-                                        >
-                                            <ChevronRight size={16} />
-                                        </Button>
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm">
+                                            <span className="font-medium">{list.cardCount}</span> cartas
+                                        </p>
+                                        <div className="flex space-x-1">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 w-8"
+                                                onClick={() => handleOpenEditDialog(list)}
+                                            >
+                                                <Edit size={16} />
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                                onClick={() => handleDeleteList(list.id)}
+                                            >
+                                                <Trash2 size={16} />
+                                            </Button>
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                className="h-8 w-8 ml-2"
+                                                onClick={() => handleViewList(list)}
+                                            >
+                                                <ChevronRight size={16} />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )}
 
-            {/* Diálogo de creación/edición de lista */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="sm:max-w-[425px] bg-white">
-                    <DialogHeader>
-                        <DialogTitle>
-                            {dialogMode === 'create' ? 'Crear nueva lista' : 'Editar lista'}
-                        </DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit} className="space-y-4 py-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Nombre de la lista</Label>
-                            <Input
-                                id="name"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                placeholder="Mi lista de deseos"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="description">Descripción (opcional)</Label>
-                            <Textarea
-                                id="description"
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                placeholder="Describe tu lista de deseos..."
-                                rows={3}
-                            />
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Checkbox 
-                                id="isPublic" 
-                                checked={formData.isPublic} 
-                                onCheckedChange={handleCheckboxChange} 
-                            />
-                            <Label htmlFor="isPublic">Lista pública</Label>
-                        </div>
-                        <DialogFooter className="flex justify-end space-x-2 pt-4">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsDialogOpen(false)}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button 
-                                variant="primary"
-                                type="submit"
-                                disabled={isSubmitting || !formData.name.trim()}
-                                className="flex items-center gap-2"
-                            >
-                                {isSubmitting ? <Spinner size="sm" /> : (
-                                    dialogMode === 'create' ? <Plus size={16} /> : <Save size={16} />
-                                )}
-                                {dialogMode === 'create' ? 'Crear' : 'Guardar'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                {/* Diálogo de creación/edición de lista */}
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogContent className="sm:max-w-[425px] bg-white">
+                        <DialogHeader>
+                            <DialogTitle>
+                                {dialogMode === 'create' ? 'Crear nueva lista' : 'Editar lista'}
+                            </DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Nombre de la lista</Label>
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleInputChange}
+                                    placeholder="Mi lista de deseos"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="description">Descripción (opcional)</Label>
+                                <Textarea
+                                    id="description"
+                                    name="description"
+                                    value={formData.description}
+                                    onChange={handleInputChange}
+                                    placeholder="Describe tu lista de deseos..."
+                                    rows={3}
+                                />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox 
+                                    id="isPublic" 
+                                    checked={formData.isPublic} 
+                                    onCheckedChange={handleCheckboxChange} 
+                                />
+                                <Label htmlFor="isPublic">Lista pública</Label>
+                            </div>
+                            <DialogFooter className="flex justify-end space-x-2 pt-4">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsDialogOpen(false)}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button 
+                                    variant="primary"
+                                    type="submit"
+                                    disabled={isSubmitting || !formData.name.trim()}
+                                    className="flex items-center gap-2"
+                                >
+                                    {isSubmitting ? <Spinner size="sm" /> : (
+                                        dialogMode === 'create' ? <Plus size={16} /> : <Save size={16} />
+                                    )}
+                                    {dialogMode === 'create' ? 'Crear' : 'Guardar'}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
         </div>
     );
 } 

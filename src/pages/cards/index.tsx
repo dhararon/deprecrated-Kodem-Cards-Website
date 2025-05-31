@@ -287,41 +287,43 @@ export const CardsManager = () => {
     });
 
     return (
-        <CardsTemplate
-            cards={sortedFilteredCards as any[]}
-            isLoading={loading}
-            searchTerm={searchTerm}
-            onSearchChange={handleSearchChange}
-            onNewCard={handleNewCard}
-            onEditCard={handleEditCard as any}
-            onDeletePrompt={handleDeletePrompt as any}
-            showFilters={showFilters}
-            onToggleFilters={() => setShowFilters(!showFilters)}
-            hasActiveFilters={hasActiveFilters}
-            onClearFilters={clearFilters}
-            typeFilter={typeFilter as CardType | "all_types"}
-            onTypeFilterChange={handleTypeFilterChange}
-            energyFilter={energyFilter}
-            onEnergyFilterChange={handleEnergyFilterChange}
-            rarityFilter={rarityFilter}
-            onRarityFilterChange={handleRarityFilterChange}
-            artistFilter={artistFilter}
-            onArtistFilterChange={handleArtistFilterChange}
-            setFilter={setFilter}
-            onSetFilterChange={handleSetFilterChange}
-            standardLegalFilter={standardLegalFilter}
-            onStandardLegalFilterChange={handleStandardLegalFilterChange}
-            uniqueArtists={uniqueArtists}
-            currentCard={currentCard as any}
-            editMode={editMode}
-            showCardModal={showCardModal}
-            onCardModalChange={handleCardModalChange}
-            onCardSaved={handleCardSaved as any}
-            showDeleteModal={showDeleteModal}
-            isDeleting={isDeleting}
-            onDeleteCard={handleDeleteCard}
-            onCancelDelete={handleCancelDelete}
-        />
+        <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+            <CardsTemplate
+                cards={sortedFilteredCards as any[]}
+                isLoading={loading}
+                searchTerm={searchTerm}
+                onSearchChange={handleSearchChange}
+                onNewCard={handleNewCard}
+                onEditCard={handleEditCard as any}
+                onDeletePrompt={handleDeletePrompt as any}
+                showFilters={showFilters}
+                onToggleFilters={() => setShowFilters(!showFilters)}
+                hasActiveFilters={hasActiveFilters}
+                onClearFilters={clearFilters}
+                typeFilter={typeFilter as CardType | "all_types"}
+                onTypeFilterChange={handleTypeFilterChange}
+                energyFilter={energyFilter}
+                onEnergyFilterChange={handleEnergyFilterChange}
+                rarityFilter={rarityFilter}
+                onRarityFilterChange={handleRarityFilterChange}
+                artistFilter={artistFilter}
+                onArtistFilterChange={handleArtistFilterChange}
+                setFilter={setFilter}
+                onSetFilterChange={handleSetFilterChange}
+                standardLegalFilter={standardLegalFilter}
+                onStandardLegalFilterChange={handleStandardLegalFilterChange}
+                uniqueArtists={uniqueArtists}
+                currentCard={currentCard as any}
+                editMode={editMode}
+                showCardModal={showCardModal}
+                onCardModalChange={handleCardModalChange}
+                onCardSaved={handleCardSaved as any}
+                showDeleteModal={showDeleteModal}
+                isDeleting={isDeleting}
+                onDeleteCard={handleDeleteCard}
+                onCancelDelete={handleCancelDelete}
+            />
+        </div>
     );
 };
 

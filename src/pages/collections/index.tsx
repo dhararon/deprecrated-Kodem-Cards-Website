@@ -174,11 +174,11 @@ export default function Collection() {
     });
 
     return (
-        <div className="px-3 py-4 sm:container sm:px-4 sm:py-6 max-w-7xl mx-auto">
+        <div className="px-3 py-4 sm:container sm:px-4 sm:py-6 max-w-7xl mx-auto min-h-[calc(100vh-4rem)] flex flex-col">
             <h1 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-6">Mi Colección</h1>
 
             {/* Contenedor principal con gaps optimizados para móvil */}
-            <div className="flex flex-col space-y-3 sm:space-y-4">
+            <div className="flex flex-col space-y-3 sm:space-y-4 flex-1">
                 {/* Filtros: colapsables en móvil, siempre visibles en desktop */}
                 <div className="rounded-lg overflow-hidden border shadow-sm">
                     {/* Encabezado de filtros: botón colapsable solo en móvil, título fijo en desktop */}
