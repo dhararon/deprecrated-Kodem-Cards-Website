@@ -54,6 +54,11 @@ export const createDefaultSections = (badgeCount?: number): SidebarSection[] => 
                 text: 'Listas de Deseos',
                 href: '/wishlists',
                 icon: sidebarIcons.heart
+            },
+            {
+                text: 'Selector de Cartas',
+                href: '/cards/selector',
+                icon: sidebarIcons.new
             }
         ]
     },

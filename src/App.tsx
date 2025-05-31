@@ -63,6 +63,9 @@ const WithProviders = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// Lazy loading para la página de selector de cartas
+const CardSelectorPage = lazy(() => import(/* webpackChunkName: "cards" */ '@/pages/cards/selector'));
+
 function App() {
   // Verificar claims de Firebase al cargar la app
   useEffect(() => {
@@ -198,6 +201,13 @@ function App() {
 
                 <Route path="/gallery-demo" component={GalleryDemo} />
                 <Route path="/card-grid-demo" component={CardGridDemo} />
+
+                {/* Ruta para selector de cartas */}
+                <Route path="/cards/selector">
+                  <AuthenticatedRoute>
+                    <CardSelectorPage />
+                  </AuthenticatedRoute>
+                </Route>
 
                 {/* Ruta para capturar todas las URLs no definidas (404) y mostrar página no encontrada */}
                 <Route path="/:rest*">
