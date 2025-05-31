@@ -56,7 +56,7 @@ export const createDefaultSections = (badgeCount?: number): SidebarSection[] => 
                 icon: sidebarIcons.heart
             },
             {
-                text: 'Selector de Cartas',
+                text: 'Cartas Proxy',
                 href: '/cards/selector',
                 icon: sidebarIcons.new
             }
