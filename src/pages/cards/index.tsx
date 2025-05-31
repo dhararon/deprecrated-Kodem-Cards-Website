@@ -276,9 +276,19 @@ export const CardsManager = () => {
         setStandardLegalFilter(value);
     };
 
+    // Ordenar las cartas filtradas por el campo 'cardNumber' (numérico ascendente)
+    const sortedFilteredCards = [...filteredCards].sort((a, b) => {
+        const numA = typeof a.cardNumber === 'number' ? a.cardNumber : parseInt(a.cardNumber, 10);
+        const numB = typeof b.cardNumber === 'number' ? b.cardNumber : parseInt(b.cardNumber, 10);
+        // Si alguno no tiene número, lo manda al final
+        if (isNaN(numA)) return 1;
+        if (isNaN(numB)) return -1;
+        return numA - numB;
+    });
+
     return (
         <CardsTemplate
-            cards={filteredCards as any[]}
+            cards={sortedFilteredCards as any[]}
             isLoading={loading}
             searchTerm={searchTerm}
             onSearchChange={handleSearchChange}

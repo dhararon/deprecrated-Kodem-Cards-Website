@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "build:production": "export NODE_ENV=production && tsc && vite build --mode production",
     "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "analyze:deps": "node scripts/analyze-dependencies.js",
     "emulators": "firebase emulators:start",
