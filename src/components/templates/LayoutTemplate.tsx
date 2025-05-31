@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react';
+import Topbar from '@/components/organisms/Sidebar';
 
 interface LayoutTemplateProps {
     children: ReactNode;
@@ -12,7 +13,8 @@ interface LayoutTemplateProps {
 export const LayoutTemplate: React.FC<LayoutTemplateProps> = ({ children }) => {
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <main className="flex-1">
+            <Topbar />
+            <main className="flex-1 pt-16">
                 {children}
             </main>
         </div>
