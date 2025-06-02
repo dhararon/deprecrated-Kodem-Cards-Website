@@ -12,8 +12,9 @@ export default function PrivateLayout({ children }: PrivateLayoutProps) {
 
     return (
         <div className="min-h-screen bg-white flex flex-col">
-            <Topbar />
-            <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-white pt-16 ${isSmallScreen ? 'pb-16' : ''}`}>
+            {/* Mostrar TopBar solo en pantallas grandes */}
+            {!isSmallScreen && <Topbar />}
+            <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-white ${isSmallScreen ? 'pt-0 pb-16' : 'pt-16'}`}>
                 <div className={`container mx-auto ${isSmallScreen ? 'px-4 py-4 pb-20' : 'px-6 py-8'}`}>
                     {children}
                 </div>

@@ -17,7 +17,6 @@ WORKDIR /app
 
 # Copiar solo los archivos necesarios
 COPY ../../firebase.json .
-COPY ../../.firebaserc .
 COPY ../../firebase ./firebase
 COPY ../../scripts/seed-firebase-users.ts ./scripts/seed-firebase-users.ts
 COPY ../../scripts/seed-firebase-cards.ts ./scripts/seed-firebase-cards.ts

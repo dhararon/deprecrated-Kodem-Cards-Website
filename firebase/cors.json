@@ -13,21 +13,17 @@
         ],
         "method": [
             "GET",
-            "HEAD",
-            "PUT",
             "POST",
-            "OPTIONS",
-            "DELETE"
+            "PUT",
+            "DELETE",
+            "HEAD"
         ],
         "responseHeader": [
             "Content-Type",
-            "Content-Length",
-            "Accept",
-            "Origin",
             "Authorization",
-            "Access-Control-Allow-Origin",
-            "Cache-Control",
-            "X-Requested-With"
+            "Content-Length",
+            "User-Agent",
+            "x-goog-resumable"
         ],
         "maxAgeSeconds": 3600
     }
