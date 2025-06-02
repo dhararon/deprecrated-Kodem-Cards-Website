@@ -198,11 +198,11 @@ export default function DeckEditor() {
   useEffect(() => {
     if (allCards.length === 0) return;
     
-    // Obtener las cartas que están en el mazo
+    // Obtener las cartas que están en el mazo ordenadas por el orden de inserción
     const deckCardIds = Object.keys(deckCards);
     const deckCardDetails = allCards.filter(card => deckCardIds.includes(card.id));
     
-    // Organizar las cartas por tipo
+    // Organizar las cartas por tipo manteniendo el orden de inserción
     const protectors = deckCardDetails.filter(card => card.cardType === CardType.PROTECTOR);
     const adendeis = deckCardDetails.filter(card => 
       card.cardType === CardType.ADENDEI || 
@@ -219,20 +219,20 @@ export default function DeckEditor() {
     const iximCards = deckCardDetails.filter(card => card.cardType === CardType.IXIM);
     const bioCards = deckCardDetails.filter(card => card.cardType === CardType.BIO);
     
-    // Organizar cartas de izquierda a derecha sin espacios vacíos
-    // Protectores: máximo 2
+    // Organizar cartas respetando el orden de inserción
+    // Protectores: máximo 2, en orden de inserción
     const organizedProtectors = protectors.slice(0, 2);
     
     // Bio: máximo 1
     const organizedBio = bioCards.slice(0, 1);
     
-    // Rot: máximo 4, organizados de izquierda a derecha
+    // Rot: máximo 4, en orden de inserción
     const organizedRot = rotCards.slice(0, 4);
     
-    // Ixim: máximo 4, organizados de izquierda a derecha  
+    // Ixim: máximo 4, en orden de inserción  
     const organizedIxim = iximCards.slice(0, 4);
     
-    // Todos los adendeis van a la sección principal (hasta 24)
+    // Adendeis: hasta 24, en orden de inserción (se agregan al final)
     const allAdendeis = adendeis.slice(0, 24);
     
     // Otras cartas que no son de los tipos principales
@@ -256,7 +256,7 @@ export default function DeckEditor() {
       protector1: organizedProtectors[0] || undefined,
       protector2: organizedProtectors[1] || undefined,
       bio: organizedBio[0] || undefined,
-      mainAdendeis: allAdendeis, // Ahora contiene todos los adendeis (no solo 3)
+      mainAdendeis: allAdendeis, // Mantiene el orden de inserción
       rotCards: organizedRot,
       iximCards: organizedIxim,
       otherCards: [
@@ -323,53 +323,73 @@ export default function DeckEditor() {
           switch (activeSection) {
             case 'mainAdendei': {
               const newMainAdendeis = [...prev.mainAdendeis];
-              // Intercambiar las cartas en las posiciones específicas
-              const activeCard = newMainAdendeis[activeIndex];
-              const overCard = newMainAdendeis[overIndex];
+              // Crear un array de tamaño fijo para mantener posiciones
+              const fixedArray = new Array(24).fill(undefined);
+              
+              // Colocar las cartas existentes en sus posiciones
+              prev.mainAdendeis.forEach((card, idx) => {
+                fixedArray[idx] = card;
+              });
+              
+              const activeCard = fixedArray[activeIndex];
+              const overCard = fixedArray[overIndex];
               
               if (activeCard && overCard) {
                 // Intercambio directo entre dos cartas
-                newMainAdendeis[activeIndex] = overCard;
-                newMainAdendeis[overIndex] = activeCard;
+                fixedArray[activeIndex] = overCard;
+                fixedArray[overIndex] = activeCard;
               } else if (activeCard && !overCard) {
                 // Mover carta a posición vacía
-                newMainAdendeis[overIndex] = activeCard;
-                newMainAdendeis[activeIndex] = undefined as any;
+                fixedArray[overIndex] = activeCard;
+                fixedArray[activeIndex] = undefined;
               }
               
-              newDeck.mainAdendeis = newMainAdendeis.filter(card => card !== undefined);
+              // Filtrar elementos undefined para mantener array compacto pero en orden
+              newDeck.mainAdendeis = fixedArray.filter(card => card !== undefined);
               break;
             }
             case 'rot': {
               const newRotCards = [...prev.rotCards];
-              const activeCard = newRotCards[activeIndex];
-              const overCard = newRotCards[overIndex];
+              const fixedArray = new Array(4).fill(undefined);
+              
+              prev.rotCards.forEach((card, idx) => {
+                fixedArray[idx] = card;
+              });
+              
+              const activeCard = fixedArray[activeIndex];
+              const overCard = fixedArray[overIndex];
               
               if (activeCard && overCard) {
-                newRotCards[activeIndex] = overCard;
-                newRotCards[overIndex] = activeCard;
+                fixedArray[activeIndex] = overCard;
+                fixedArray[overIndex] = activeCard;
               } else if (activeCard && !overCard) {
-                newRotCards[overIndex] = activeCard;
-                newRotCards[activeIndex] = undefined as any;
+                fixedArray[overIndex] = activeCard;
+                fixedArray[activeIndex] = undefined;
               }
               
-              newDeck.rotCards = newRotCards.filter(card => card !== undefined);
+              newDeck.rotCards = fixedArray.filter(card => card !== undefined);
               break;
             }
             case 'ixim': {
               const newIximCards = [...prev.iximCards];
-              const activeCard = newIximCards[activeIndex];
-              const overCard = newIximCards[overIndex];
+              const fixedArray = new Array(4).fill(undefined);
+              
+              prev.iximCards.forEach((card, idx) => {
+                fixedArray[idx] = card;
+              });
+              
+              const activeCard = fixedArray[activeIndex];
+              const overCard = fixedArray[overIndex];
               
               if (activeCard && overCard) {
-                newIximCards[activeIndex] = overCard;
-                newIximCards[overIndex] = activeCard;
+                fixedArray[activeIndex] = overCard;
+                fixedArray[overIndex] = activeCard;
               } else if (activeCard && !overCard) {
-                newIximCards[overIndex] = activeCard;
-                newIximCards[activeIndex] = undefined as any;
+                fixedArray[overIndex] = activeCard;
+                fixedArray[activeIndex] = undefined;
               }
               
-              newDeck.iximCards = newIximCards.filter(card => card !== undefined);
+              newDeck.iximCards = fixedArray.filter(card => card !== undefined);
               break;
             }
             case 'other': {
@@ -409,7 +429,7 @@ export default function DeckEditor() {
               } else if (!overCard) {
                 // Mover a posición vacía
                 if (newMainAdendeis.filter(c => c !== undefined).length > 1) {
-                  newMainAdendeis[activeIndex] = undefined as any;
+                  newMainAdendeis.splice(activeIndex, 1); // Remover del array manteniendo orden
                   newOtherCards[overIndex] = activeCard;
                 } else {
                   toast.error('Debes tener al menos 1 adendei principal');
@@ -433,10 +453,10 @@ export default function DeckEditor() {
                 newOtherCards[activeIndex] = overCard;
                 newMainAdendeis[overIndex] = activeCard;
               } else if (!overCard) {
-                // Mover a posición vacía
-                if (newMainAdendeis.filter(c => c !== undefined).length < 24) {
-                  newOtherCards[activeIndex] = undefined as any;
-                  newMainAdendeis[overIndex] = activeCard;
+                // Agregar al final del array de adendeis
+                if (newMainAdendeis.length < 24) {
+                  newOtherCards.splice(activeIndex, 1); // Remover del array manteniendo orden
+                  newMainAdendeis.push(activeCard); // Agregar al final
                 } else {
                   toast.error('Solo puedes tener 24 adendeis máximo');
                   return prev;
@@ -444,7 +464,7 @@ export default function DeckEditor() {
               }
               
               newDeck.otherCards = newOtherCards.filter(card => card !== undefined);
-              newDeck.mainAdendeis = newMainAdendeis.filter(card => card !== undefined);
+              newDeck.mainAdendeis = newMainAdendeis;
             }
           }
         }
@@ -642,32 +662,41 @@ export default function DeckEditor() {
           {/* Filas 4-8: Adendeis y Rava (5 filas de 3 columnas = 15 slots mínimos) */}
           <div>
             <h3 className="font-medium text-sm mb-2">Adendeis y Rava (mínimo 15)</h3>
-            {Array(5).fill(null).map((_, rowIdx) => (
-              <div key={`adendei-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
-                {Array(3).fill(null).map((_, colIdx) => {
-                  const cardIndex = rowIdx * 3 + colIdx;
-                  return (
-                    <div key={`adendei-${cardIndex}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                      isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-                    }`} data-droppable-id={`mainAdendei-${cardIndex}`}>
-                      {organizedDeck.mainAdendeis[cardIndex] ? (
-                        <SortableCard 
-                          card={organizedDeck.mainAdendeis[cardIndex]} 
-                          id={`mainAdendei-${cardIndex}`} 
-                        />
-                      ) : (
-                        <div className="text-center text-sm text-muted-foreground">
-                          <div className="mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+            {/* Calcular el número de filas necesarias basado en las cartas existentes */}
+            {(() => {
+              const minRows = 5; // Mínimo 5 filas (15 slots)
+              const cardsCount = organizedDeck.mainAdendeis.length;
+              const maxRows = Math.ceil(24 / 3); // Máximo 8 filas (24 slots)
+              const neededRows = Math.max(minRows, Math.ceil(cardsCount / 3));
+              const totalRows = Math.min(neededRows, maxRows);
+              
+              return Array(totalRows).fill(null).map((_, rowIdx) => (
+                <div key={`adendei-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
+                  {Array(3).fill(null).map((_, colIdx) => {
+                    const cardIndex = rowIdx * 3 + colIdx;
+                    return (
+                      <div key={`adendei-${cardIndex}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                        isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+                      }`} data-droppable-id={`mainAdendei-${cardIndex}`}>
+                        {organizedDeck.mainAdendeis[cardIndex] ? (
+                          <SortableCard 
+                            card={organizedDeck.mainAdendeis[cardIndex]} 
+                            id={`mainAdendei-${cardIndex}`} 
+                          />
+                        ) : (
+                          <div className="text-center text-sm text-muted-foreground">
+                            <div className="mb-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                            </div>
+                            Adendei {cardIndex + 1}
                           </div>
-                          Adendei {cardIndex + 1}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ));
+            })()}
           </div>
 
           {/* Fila 9+: Cartas adicionales (si existen) */}
