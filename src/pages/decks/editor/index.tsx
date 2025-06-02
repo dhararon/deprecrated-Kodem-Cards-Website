@@ -71,6 +71,7 @@ export default function DeckEditor() {
   const [allCards, setAllCards] = useState<CardDetails[]>([]);
   const [filteredCards, setFilteredCards] = useState<CardDetails[]>([]);
   const [deckCards, setDeckCards] = useState<Record<string, number>>({});
+  const [deckCardOrder, setDeckCardOrder] = useState<string[]>([]); // Mantener orden de inserción
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [organizedDeck, setOrganizedDeck] = useState<{
@@ -171,14 +172,21 @@ export default function DeckEditor() {
         
         // Cargar las cartas del mazo
         if (existingDeck.cardIds && existingDeck.cardIds.length > 0 && allCards.length > 0) {
-          // Contar ocurrencias de cada ID de carta
+          // Contar ocurrencias de cada ID de carta y mantener orden
           const cardCounts: Record<string, number> = {};
+          const cardOrder: string[] = [];
+          
           existingDeck.cardIds.forEach(cardId => {
             cardCounts[cardId] = (cardCounts[cardId] || 0) + 1;
+            // Solo agregar al orden la primera vez que aparece
+            if (!cardOrder.includes(cardId)) {
+              cardOrder.push(cardId);
+            }
           });
           
-          // Establecer deckCards con los conteos
+          // Establecer deckCards con los conteos y el orden
           setDeckCards(cardCounts);
+          setDeckCardOrder(cardOrder);
         }
       } catch (err) {
         console.error('Error al cargar mazo:', err);
@@ -198,9 +206,11 @@ export default function DeckEditor() {
   useEffect(() => {
     if (allCards.length === 0) return;
     
-    // Obtener las cartas que están en el mazo ordenadas por el orden de inserción
-    const deckCardIds = Object.keys(deckCards);
-    const deckCardDetails = allCards.filter(card => deckCardIds.includes(card.id));
+    // Obtener las cartas que están en el mazo usando el orden explícito de inserción
+    const deckCardDetails = deckCardOrder
+      .filter(cardId => deckCards[cardId]) // Solo cartas que aún están en el mazo
+      .map(cardId => allCards.find(card => card.id === cardId))
+      .filter(card => card !== undefined) as CardDetails[];
     
     // Organizar las cartas por tipo manteniendo el orden de inserción
     const protectors = deckCardDetails.filter(card => card.cardType === CardType.PROTECTOR);
@@ -268,7 +278,7 @@ export default function DeckEditor() {
         ...otherCardTypes
       ]
     });
-  }, [allCards, deckCards]);
+  }, [allCards, deckCards, deckCardOrder]);
 
   // Lógica de Drag and Drop
   const sensors = useSensors(
@@ -1117,7 +1127,7 @@ export default function DeckEditor() {
     }
 
     // Verificar si la carta ya está en el deck (validación de nombre único)
-    const existingCard = Object.keys(deckCards).find(cardId => {
+    const existingCard = deckCardOrder.find(cardId => {
       const existingCardDetails = allCards.find(c => c.id === cardId);
       return existingCardDetails && existingCardDetails.name.toLowerCase() === card.name.toLowerCase();
     });
@@ -1127,11 +1137,14 @@ export default function DeckEditor() {
       return;
     }
 
-    // Agregar la carta al mazo (siempre será 1 ya que no permitimos duplicados por nombre)
+    // Agregar la carta al mazo y al final del orden
     setDeckCards(prev => ({
       ...prev,
       [card.id]: 1
     }));
+
+    // Agregar al final del orden de inserción
+    setDeckCardOrder(prev => [...prev, card.id]);
 
     toast.success(`${card.name} agregada al mazo`);
   };
@@ -1143,6 +1156,9 @@ export default function DeckEditor() {
       delete newDeckCards[cardId];
       return newDeckCards;
     });
+
+    // Remover del orden de inserción
+    setDeckCardOrder(prev => prev.filter(id => id !== cardId));
 
     // Mostrar mensaje de confirmación
     const removedCard = allCards.find(card => card.id === cardId);
@@ -1222,7 +1238,7 @@ export default function DeckEditor() {
   // Renderizar lista de cartas del mazo
   const renderDeckCardsList = () => {
     // Si no hay cartas, mostrar estado vacío
-    if (Object.keys(deckCards).length === 0) {
+    if (deckCardOrder.length === 0) {
       return (
         <EmptyState
           title="No hay cartas en el mazo"
@@ -1232,9 +1248,11 @@ export default function DeckEditor() {
       );
     }
 
-    // Obtener detalles de las cartas en el mazo
-    const deckCardIds = Object.keys(deckCards);
-    const deckCardDetails = allCards.filter(card => deckCardIds.includes(card.id));
+    // Obtener detalles de las cartas en el mazo usando el orden explícito
+    const deckCardDetails = deckCardOrder
+      .filter(cardId => deckCards[cardId]) // Solo cartas que aún están en el mazo
+      .map(cardId => allCards.find(card => card.id === cardId))
+      .filter(card => card !== undefined) as CardDetails[];
 
     return (
       <div className="space-y-2">
