@@ -219,35 +219,53 @@ export default function DeckEditor() {
     const iximCards = deckCardDetails.filter(card => card.cardType === CardType.IXIM);
     const bioCards = deckCardDetails.filter(card => card.cardType === CardType.BIO);
     
-    // Organizarlas según la estructura requerida - simplemente usar adendeis (que ya incluye ravas)
+    // Organizar cartas de izquierda a derecha sin espacios vacíos
+    // Protectores: máximo 2
+    const organizedProtectors = protectors.slice(0, 2);
+    
+    // Bio: máximo 1
+    const organizedBio = bioCards.slice(0, 1);
+    
+    // Rot: máximo 4, organizados de izquierda a derecha
+    const organizedRot = rotCards.slice(0, 4);
+    
+    // Ixim: máximo 4, organizados de izquierda a derecha  
+    const organizedIxim = iximCards.slice(0, 4);
+    
+    // Todos los adendeis van a la sección principal (hasta 24)
+    const allAdendeis = adendeis.slice(0, 24);
+    
+    // Otras cartas que no son de los tipos principales
+    const otherCardTypes = deckCardDetails.filter(card => 
+      !(card.cardType === CardType.PROTECTOR || 
+        card.cardType === CardType.ADENDEI || 
+        card.cardType === CardType.ADENDEI_TITAN || 
+        card.cardType === CardType.ADENDEI_GUARDIAN || 
+        card.cardType === CardType.ADENDEI_CATRIN || 
+        card.cardType === CardType.ADENDEI_KOSMICO || 
+        card.cardType === CardType.ADENDEI_EQUINO || 
+        card.cardType === CardType.ADENDEI_ABISMAL || 
+        card.cardType === CardType.ADENDEI_INFECTADO || 
+        card.cardType === CardType.RAVA ||
+        card.cardType === CardType.ROT || 
+        card.cardType === CardType.IXIM || 
+        card.cardType === CardType.BIO)
+    );
+    
     setOrganizedDeck({
-      protector1: protectors.length > 0 ? protectors[0] : undefined,
-      mainAdendeis: adendeis.slice(0, 3), // Los primeros 3 adendeis/ravas
-      protector2: protectors.length > 1 ? protectors[1] : undefined,
-      bio: bioCards.length > 0 ? bioCards[0] : undefined,
-      rotCards: rotCards.slice(0, 4), // Hasta 4 cartas rot para fila 3
-      iximCards: iximCards.slice(0, 4), // Hasta 4 cartas ixim para fila 4
+      protector1: organizedProtectors[0] || undefined,
+      protector2: organizedProtectors[1] || undefined,
+      bio: organizedBio[0] || undefined,
+      mainAdendeis: allAdendeis, // Ahora contiene todos los adendeis (no solo 3)
+      rotCards: organizedRot,
+      iximCards: organizedIxim,
       otherCards: [
-        ...adendeis.slice(3), // Adendeis/Ravas restantes
-        ...protectors.slice(2), // Protectores adicionales
-        ...bioCards.slice(1), // Bios adicionales
-        ...rotCards.slice(4), // Rot adicionales
-        ...iximCards.slice(4), // Ixim adicionales
-        ...deckCardDetails.filter(card => 
-          !(card.cardType === CardType.PROTECTOR || 
-            card.cardType === CardType.ADENDEI || 
-            card.cardType === CardType.ADENDEI_TITAN || 
-            card.cardType === CardType.ADENDEI_GUARDIAN || 
-            card.cardType === CardType.ADENDEI_CATRIN || 
-            card.cardType === CardType.ADENDEI_KOSMICO || 
-            card.cardType === CardType.ADENDEI_EQUINO || 
-            card.cardType === CardType.ADENDEI_ABISMAL || 
-            card.cardType === CardType.ADENDEI_INFECTADO || 
-            card.cardType === CardType.RAVA ||  // Incluir Rava en la lista de exclusión
-            card.cardType === CardType.ROT || 
-            card.cardType === CardType.IXIM || 
-            card.cardType === CardType.BIO)
-        )
+        ...protectors.slice(2), // Protectores adicionales (si los hay)
+        ...bioCards.slice(1), // Bios adicionales (si los hay)
+        ...rotCards.slice(4), // Rot adicionales (si los hay)
+        ...iximCards.slice(4), // Ixim adicionales (si los hay)
+        ...adendeis.slice(24), // Adendeis que exceden el límite de 24
+        ...otherCardTypes
       ]
     });
   }, [allCards, deckCards]);
@@ -297,113 +315,142 @@ export default function DeckEditor() {
       const activeIndex = parseInt(activeIndexStr);
       const overIndex = parseInt(overIndexStr);
 
-      // Reordenar dentro de la misma sección
-      if (activeSection === overSection) {
-        setOrganizedDeck(prev => {
-          const newDeck = { ...prev };
+      setOrganizedDeck(prev => {
+        const newDeck = { ...prev };
+
+        // Solo intercambiar cartas si están en la misma sección
+        if (activeSection === overSection) {
           switch (activeSection) {
-            case 'mainAdendei':
-              newDeck.mainAdendeis = arrayMove(prev.mainAdendeis, activeIndex, overIndex);
+            case 'mainAdendei': {
+              const newMainAdendeis = [...prev.mainAdendeis];
+              // Intercambiar las cartas en las posiciones específicas
+              const activeCard = newMainAdendeis[activeIndex];
+              const overCard = newMainAdendeis[overIndex];
+              
+              if (activeCard && overCard) {
+                // Intercambio directo entre dos cartas
+                newMainAdendeis[activeIndex] = overCard;
+                newMainAdendeis[overIndex] = activeCard;
+              } else if (activeCard && !overCard) {
+                // Mover carta a posición vacía
+                newMainAdendeis[overIndex] = activeCard;
+                newMainAdendeis[activeIndex] = undefined as any;
+              }
+              
+              newDeck.mainAdendeis = newMainAdendeis.filter(card => card !== undefined);
               break;
-            case 'rot':
-              newDeck.rotCards = arrayMove(prev.rotCards, activeIndex, overIndex);
+            }
+            case 'rot': {
+              const newRotCards = [...prev.rotCards];
+              const activeCard = newRotCards[activeIndex];
+              const overCard = newRotCards[overIndex];
+              
+              if (activeCard && overCard) {
+                newRotCards[activeIndex] = overCard;
+                newRotCards[overIndex] = activeCard;
+              } else if (activeCard && !overCard) {
+                newRotCards[overIndex] = activeCard;
+                newRotCards[activeIndex] = undefined as any;
+              }
+              
+              newDeck.rotCards = newRotCards.filter(card => card !== undefined);
               break;
-            case 'ixim':
-              newDeck.iximCards = arrayMove(prev.iximCards, activeIndex, overIndex);
+            }
+            case 'ixim': {
+              const newIximCards = [...prev.iximCards];
+              const activeCard = newIximCards[activeIndex];
+              const overCard = newIximCards[overIndex];
+              
+              if (activeCard && overCard) {
+                newIximCards[activeIndex] = overCard;
+                newIximCards[overIndex] = activeCard;
+              } else if (activeCard && !overCard) {
+                newIximCards[overIndex] = activeCard;
+                newIximCards[activeIndex] = undefined as any;
+              }
+              
+              newDeck.iximCards = newIximCards.filter(card => card !== undefined);
               break;
-            case 'other':
-              newDeck.otherCards = arrayMove(prev.otherCards, activeIndex, overIndex);
+            }
+            case 'other': {
+              const newOtherCards = [...prev.otherCards];
+              const activeCard = newOtherCards[activeIndex];
+              const overCard = newOtherCards[overIndex];
+              
+              if (activeCard && overCard) {
+                newOtherCards[activeIndex] = overCard;
+                newOtherCards[overIndex] = activeCard;
+              } else if (activeCard && !overCard) {
+                newOtherCards[overIndex] = activeCard;
+                newOtherCards[activeIndex] = undefined as any;
+              }
+              
+              newDeck.otherCards = newOtherCards.filter(card => card !== undefined);
               break;
+            }
           }
-          return newDeck;
-        });
-      } else if (
-        (activeSection === 'mainAdendei' && overSection === 'other') ||
-        (activeSection === 'other' && overSection === 'mainAdendei')
-      ) {
-        setOrganizedDeck(prev => {
-          const newDeck = { ...prev };
+        } else if (
+          // Intercambio entre mainAdendei y other
+          (activeSection === 'mainAdendei' && overSection === 'other') ||
+          (activeSection === 'other' && overSection === 'mainAdendei')
+        ) {
           if (activeSection === 'mainAdendei' && overSection === 'other') {
-            const cardToMove = prev.mainAdendeis[activeIndex];
-            if (!adendeiTypes.includes(cardToMove.cardType)) {
-              toast.warning('Solo puedes mover Adendeis o Rava a la sección de Adendeis y Rava adicionales');
-              return prev;
-            }
-            const targetCard = prev.otherCards[overIndex];
-            if (targetCard) {
-              if (!adendeiTypes.includes(targetCard.cardType)) {
-                toast.warning('Solo puedes poner Adendeis o Rava en los slots principales');
-                return prev;
-              }
-              // Validar máximo 1 Rava en principales
-              const mainAdendeisAfterSwap = [...prev.mainAdendeis];
-              mainAdendeisAfterSwap[activeIndex] = targetCard;
-              const ravaCount = mainAdendeisAfterSwap.filter(card => card.cardType === CardType.RAVA).length;
-              if (ravaCount > 1) {
-                toast.error('Solo puede existir 1 carta Rava por mazo');
-                return prev;
-              }
-              newDeck.mainAdendeis[activeIndex] = targetCard;
-              newDeck.otherCards = [...prev.otherCards];
-              newDeck.otherCards[overIndex] = cardToMove;
-            } else {
-              // Mover a slot vacío
-              if (newDeck.mainAdendeis.length <= 1) {
-                toast.error('Debes tener al menos 1 adendei principal');
-                return prev;
-              }
-              newDeck.mainAdendeis = [
-                ...prev.mainAdendeis.slice(0, activeIndex),
-                ...prev.mainAdendeis.slice(activeIndex + 1)
-              ];
-              newDeck.otherCards.splice(overIndex, 0, cardToMove);
-            }
-          } else if (activeSection === 'other' && overSection === 'mainAdendei') {
-            const cardToMove = prev.otherCards[activeIndex];
-            if (!adendeiTypes.includes(cardToMove.cardType)) {
-              toast.warning('Solo puedes mover Adendeis o Rava entre estas secciones');
-              return prev;
-            }
-            const targetCard = prev.mainAdendeis[overIndex];
-            if (targetCard) {
-              if (!adendeiTypes.includes(targetCard.cardType)) {
-                toast.warning('Solo puedes poner Adendeis o Rava en los slots principales');
-                return prev;
-              }
-              // Validar máximo 1 Rava en principales
-              const mainAdendeisAfterSwap = [...prev.mainAdendeis];
-              mainAdendeisAfterSwap[overIndex] = cardToMove;
-              const ravaCount = mainAdendeisAfterSwap.filter(card => card.cardType === CardType.RAVA).length;
-              if (ravaCount > 1) {
-                toast.error('Solo puede existir 1 carta Rava por mazo');
-                return prev;
-              }
-              newDeck.otherCards = [...prev.otherCards];
-              newDeck.otherCards[activeIndex] = targetCard;
-              newDeck.mainAdendeis[overIndex] = cardToMove;
-            } else {
-              // Mover a slot vacío
-              if (newDeck.mainAdendeis.length >= 3) {
-                toast.error('Solo puedes tener 3 adendeis principales');
-                return prev;
-              }
-              if (cardToMove.cardType === CardType.RAVA) {
-                const hasRava = newDeck.mainAdendeis.some(card => card.cardType === CardType.RAVA);
-                if (hasRava) {
-                  toast.error('Solo puede existir 1 carta Rava por mazo');
+            const activeCard = prev.mainAdendeis[activeIndex];
+            const overCard = prev.otherCards[overIndex];
+            
+            if (activeCard && adendeiTypes.includes(activeCard.cardType)) {
+              const newMainAdendeis = [...prev.mainAdendeis];
+              const newOtherCards = [...prev.otherCards];
+              
+              if (overCard && adendeiTypes.includes(overCard.cardType)) {
+                // Intercambio directo
+                newMainAdendeis[activeIndex] = overCard;
+                newOtherCards[overIndex] = activeCard;
+              } else if (!overCard) {
+                // Mover a posición vacía
+                if (newMainAdendeis.filter(c => c !== undefined).length > 1) {
+                  newMainAdendeis[activeIndex] = undefined as any;
+                  newOtherCards[overIndex] = activeCard;
+                } else {
+                  toast.error('Debes tener al menos 1 adendei principal');
                   return prev;
                 }
               }
-              newDeck.otherCards = [
-                ...prev.otherCards.slice(0, activeIndex),
-                ...prev.otherCards.slice(activeIndex + 1)
-              ];
-              newDeck.mainAdendeis.push(cardToMove);
+              
+              newDeck.mainAdendeis = newMainAdendeis.filter(card => card !== undefined);
+              newDeck.otherCards = newOtherCards.filter(card => card !== undefined);
+            }
+          } else if (activeSection === 'other' && overSection === 'mainAdendei') {
+            const activeCard = prev.otherCards[activeIndex];
+            const overCard = prev.mainAdendeis[overIndex];
+            
+            if (activeCard && adendeiTypes.includes(activeCard.cardType)) {
+              const newOtherCards = [...prev.otherCards];
+              const newMainAdendeis = [...prev.mainAdendeis];
+              
+              if (overCard && adendeiTypes.includes(overCard.cardType)) {
+                // Intercambio directo
+                newOtherCards[activeIndex] = overCard;
+                newMainAdendeis[overIndex] = activeCard;
+              } else if (!overCard) {
+                // Mover a posición vacía
+                if (newMainAdendeis.filter(c => c !== undefined).length < 24) {
+                  newOtherCards[activeIndex] = undefined as any;
+                  newMainAdendeis[overIndex] = activeCard;
+                } else {
+                  toast.error('Solo puedes tener 24 adendeis máximo');
+                  return prev;
+                }
+              }
+              
+              newDeck.otherCards = newOtherCards.filter(card => card !== undefined);
+              newDeck.mainAdendeis = newMainAdendeis.filter(card => card !== undefined);
             }
           }
-          return newDeck;
-        });
-      }
+        }
+        
+        return newDeck;
+      });
     }
   };
 
@@ -417,10 +464,10 @@ export default function DeckEditor() {
         onDragEnd={handleDragEnd}
       >
         <div className="space-y-6">
-          {/* Fila 1: Protector y adendeis principales */}
+          {/* Fila 1: Protector principal, protector secundario y bio */}
           <div>
-            <h3 className="font-medium text-sm mb-2">Protector y Adendeis Principales</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <h3 className="font-medium text-sm mb-2">Protectores y Bio</h3>
+            <div className="grid grid-cols-3 gap-3">
               <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
                 {organizedDeck.protector1 ? (
                   <div 
@@ -434,28 +481,70 @@ export default function DeckEditor() {
                     <div className="mb-2">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                     </div>
-                    Protector 1
+                    Protector Principal
                   </div>
                 )}
               </div>
-              <SortableContext 
-                items={organizedDeck.mainAdendeis.map((_, i) => `mainAdendei-${i}`)} 
-                strategy={horizontalListSortingStrategy}
-              >
-                {Array(3).fill(null).map((_, idx) => (
-                  <div key={`main-adendei-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container" 
-                       data-droppable-id={`mainAdendei-${idx}`}>
-                    {organizedDeck.mainAdendeis[idx] ? (
+              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
+                {organizedDeck.protector2 ? (
+                  <div 
+                    data-id="protector2-0"
+                    className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
+                  >
+                    {renderDeckCard(organizedDeck.protector2)}
+                  </div>
+                ) : (
+                  <div className="text-center text-sm text-muted-foreground">
+                    <div className="mb-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                    </div>
+                    Protector Secundario
+                  </div>
+                )}
+              </div>
+              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
+                {organizedDeck.bio ? (
+                  <div 
+                    data-id="bio-0"
+                    className={
+                      organizedDeck.bio.cardType === CardType.BIO
+                        ? "aspect-[3.5/2.5] w-[300px] mx-auto cursor-grab active:cursor-grabbing touch-manipulation"
+                        : "aspect-[2.5/3.5] w-[220px] mx-auto cursor-grab active:cursor-grabbing touch-manipulation"
+                    }
+                  >
+                    {renderDeckCard(organizedDeck.bio)}
+                  </div>
+                ) : (
+                  <div className="text-center text-sm text-muted-foreground">
+                    <div className="mb-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                    </div>
+                    Bio
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Fila 2: Cartas Rot */}
+          <div>
+            <h3 className="font-medium text-sm mb-2">Cartas Rot</h3>
+            <div className="grid grid-cols-4 gap-3">
+              <SortableContext items={organizedDeck.rotCards.map((_, i) => `rot-${i}`)} strategy={horizontalListSortingStrategy}>
+                {Array(4).fill(null).map((_, idx) => (
+                  <div key={`rot-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
+                       data-droppable-id={`rot-${idx}}`}>
+                    {organizedDeck.rotCards[idx] ? (
                       <SortableCard 
-                        card={organizedDeck.mainAdendeis[idx]} 
-                        id={`mainAdendei-${idx}`} 
+                        card={organizedDeck.rotCards[idx]} 
+                        id={`rot-${idx}`} 
                       />
                     ) : (
                       <div className="text-center text-sm text-muted-foreground">
                         <div className="mb-2">
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                         </div>
-                        Adendei Principal {idx + 1}
+                        Rot {idx + 1}
                       </div>
                     )}
                   </div>
@@ -463,137 +552,71 @@ export default function DeckEditor() {
               </SortableContext>
             </div>
           </div>
-          {/* Fila 2: Protector Secundario y Bio */}
+
+          {/* Fila 3: Cartas Ixim */}
           <div>
-            <button
-              type="button"
-              className="flex items-center w-full mb-2 text-sm font-medium focus:outline-none"
-              onClick={() => setShowProtectorBio((v) => !v)}
-              aria-expanded={showProtectorBio}
-            >
-              {showProtectorBio ? <ChevronDown className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 mr-2" />}
-              Protector Secundario y Bio
-            </button>
-            {showProtectorBio && (
-              <div className="grid grid-cols-4 gap-3">
-                <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
-                  {organizedDeck.protector2 ? (
-                    <div 
-                      data-id="protector2-0"
-                      className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
-                    >
-                      {renderDeckCard(organizedDeck.protector2)}
-                    </div>
-                  ) : (
-                    <div className="text-center text-sm text-muted-foreground">
-                      <div className="mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                      </div>
-                      Protector 2
-                    </div>
-                  )}
-                </div>
-                <div className="col-span-3 border-2 border-dashed border-muted-foreground/20 rounded-md p-2 flex items-center justify-center card-container">
-                  {organizedDeck.bio ? (
-                    <div 
-                      data-id="bio-0"
-                      className={
-                        organizedDeck.bio.cardType === CardType.BIO
-                          ? "aspect-[3.5/2.5] w-[300px] mx-auto cursor-grab active:cursor-grabbing touch-manipulation"
-                          : "aspect-[2.5/3.5] w-[220px] mx-auto cursor-grab active:cursor-grabbing touch-manipulation"
-                      }
-                    >
-                      {renderDeckCard(organizedDeck.bio)}
-                    </div>
-                  ) : (
-                    <div className="text-center text-sm text-muted-foreground">
-                      <div className="mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                      </div>
-                      Bio
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-          {/* Fila 3: Cartas Rot */}
-          <div>
-            <button
-              type="button"
-              className="flex items-center w-full mb-2 text-sm font-medium focus:outline-none"
-              onClick={() => setShowRot((v) => !v)}
-              aria-expanded={showRot}
-            >
-              {showRot ? <ChevronDown className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 mr-2" />}
-              Cartas Rot
-            </button>
-            {showRot && (
-              <div className="grid grid-cols-4 gap-3">
-                <SortableContext items={organizedDeck.rotCards.map((_, i) => `rot-${i}`)} strategy={horizontalListSortingStrategy}>
-                  {Array(4).fill(null).map((_, idx) => (
-                    <div key={`rot-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
-                         data-droppable-id={`rot-${idx}}`}>
-                      {organizedDeck.rotCards[idx] ? (
-                        <SortableCard 
-                          card={organizedDeck.rotCards[idx]} 
-                          id={`rot-${idx}`} 
-                        />
-                      ) : (
-                        <div className="text-center text-sm text-muted-foreground">
-                          <div className="mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                          </div>
-                          Rot {idx + 1}
+            <h3 className="font-medium text-sm mb-2">Cartas Ixim</h3>
+            <div className="grid grid-cols-4 gap-3">
+              <SortableContext items={organizedDeck.iximCards.map((_, i) => `ixim-${i}`)} strategy={horizontalListSortingStrategy}>
+                {Array(4).fill(null).map((_, idx) => (
+                  <div key={`ixim-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
+                       data-droppable-id={`ixim-${idx}`}> 
+                    {organizedDeck.iximCards[idx] ? (
+                      <SortableCard 
+                        card={organizedDeck.iximCards[idx]} 
+                        id={`ixim-${idx}`} 
+                      />
+                    ) : (
+                      <div className="text-center text-sm text-muted-foreground">
+                        <div className="mb-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </SortableContext>
-              </div>
-            )}
+                        Ixim {idx + 1}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </SortableContext>
+            </div>
           </div>
-          {/* Fila 4: Cartas Ixim */}
+
+          {/* Filas 4-8: Adendeis y Rava (5 filas de 3 columnas = 15 slots mínimos) */}
           <div>
-            <button
-              type="button"
-              className="flex items-center w-full mb-2 text-sm font-medium focus:outline-none"
-              onClick={() => setShowIxim((v) => !v)}
-              aria-expanded={showIxim}
-            >
-              {showIxim ? <ChevronDown className="w-4 h-4 mr-2" /> : <ChevronRight className="w-4 h-4 mr-2" />}
-              Cartas Ixim
-            </button>
-            {showIxim && (
-              <div className="grid grid-cols-4 gap-3">
-                <SortableContext items={organizedDeck.iximCards.map((_, i) => `ixim-${i}`)} strategy={horizontalListSortingStrategy}>
-                  {Array(4).fill(null).map((_, idx) => (
-                    <div key={`ixim-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
-                         data-droppable-id={`ixim-${idx}`}> 
-                      {organizedDeck.iximCards[idx] ? (
-                        <SortableCard 
-                          card={organizedDeck.iximCards[idx]} 
-                          id={`ixim-${idx}`} 
-                        />
-                      ) : (
-                        <div className="text-center text-sm text-muted-foreground">
-                          <div className="mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+            <h3 className="font-medium text-sm mb-2">Adendeis y Rava (mínimo 15)</h3>
+            <SortableContext items={organizedDeck.mainAdendeis.map((_, i) => `mainAdendei-${i}`)} strategy={rectSortingStrategy}>
+              {Array(5).fill(null).map((_, rowIdx) => (
+                <div key={`adendei-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
+                  {Array(3).fill(null).map((_, colIdx) => {
+                    const cardIndex = rowIdx * 3 + colIdx;
+                    return (
+                      <div key={`adendei-${cardIndex}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
+                           data-droppable-id={`mainAdendei-${cardIndex}`}>
+                        {organizedDeck.mainAdendeis[cardIndex] ? (
+                          <SortableCard 
+                            card={organizedDeck.mainAdendeis[cardIndex]} 
+                            id={`mainAdendei-${cardIndex}`} 
+                          />
+                        ) : (
+                          <div className="text-center text-sm text-muted-foreground">
+                            <div className="mb-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                            </div>
+                            Adendei {cardIndex + 1}
                           </div>
-                          Ixim {idx + 1}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </SortableContext>
-              </div>
-            )}
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </SortableContext>
           </div>
-          {/* Fila 5+: Otras cartas (3 columnas) - Siempre mostrar al menos una fila vacía */}
-          <div>
-            <h3 className="font-medium text-sm mb-2">Adendeis y Rava adicionales</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {organizedDeck.otherCards.length > 0 ? (
+
+          {/* Fila 9+: Cartas adicionales (si existen) */}
+          {organizedDeck.otherCards.length > 0 && (
+            <div>
+              <h3 className="font-medium text-sm mb-2">Cartas adicionales</h3>
+              <div className="grid grid-cols-3 gap-3">
                 <SortableContext items={organizedDeck.otherCards.map((_, i) => `other-${i}`)} strategy={horizontalListSortingStrategy}>
                   {organizedDeck.otherCards.map((card, idx) => (
                     <div key={`other-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
@@ -605,21 +628,9 @@ export default function DeckEditor() {
                     </div>
                   ))}
                 </SortableContext>
-              ) : (
-                // Mostrar al menos una fila vacía para adendeis y rava adicionales
-                Array(3).fill(null).map((_, idx) => (
-                  <div key={`other-empty-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
-                    <div className="text-center text-sm text-muted-foreground">
-                      <div className="mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                      </div>
-                      Adendei/Rava Adicional
-                    </div>
-                  </div>
-                ))
-              )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </DndContext>
     );
@@ -695,6 +706,165 @@ export default function DeckEditor() {
     </div>
   );
 
+  // Función para validar las reglas del deck
+  const validateDeckRules = (currentDeckCards: Record<string, number>, newCard?: CardDetails): { isValid: boolean; error?: string } => {
+    // Obtener detalles de las cartas actuales en el mazo
+    const currentCardIds = Object.keys(currentDeckCards);
+    const currentCardDetails = allCards.filter(card => currentCardIds.includes(card.id));
+    
+    // Si estamos validando para agregar una nueva carta, incluirla temporalmente
+    let cardsToValidate = currentCardDetails;
+    if (newCard) {
+      cardsToValidate = [...currentCardDetails, newCard];
+    }
+    
+    // Contar cartas por tipo
+    let rotCount = 0;
+    let iximCount = 0;
+    let ravaCount = 0;
+    let bioCount = 0;
+    let protectorCount = 0;
+    let adendeiCount = 0;
+    
+    // Map para contar nombres únicos
+    const nameCount = new Map<string, number>();
+    
+    cardsToValidate.forEach(card => {
+      const cardId = card.id;
+      const quantity = currentDeckCards[cardId] || (newCard && newCard.id === cardId ? 1 : 0);
+      
+      // Contar nombres únicos (en minúsculas)
+      const normalizedName = card.name.toLowerCase();
+      nameCount.set(normalizedName, (nameCount.get(normalizedName) || 0) + quantity);
+      
+      // Contar por tipo
+      switch (card.cardType) {
+        case CardType.ROT:
+          rotCount += quantity;
+          break;
+        case CardType.IXIM:
+          iximCount += quantity;
+          break;
+        case CardType.RAVA:
+          ravaCount += quantity;
+          break;
+        case CardType.BIO:
+          bioCount += quantity;
+          break;
+        case CardType.PROTECTOR:
+          protectorCount += quantity;
+          break;
+        case CardType.ADENDEI:
+        case CardType.ADENDEI_TITAN:
+        case CardType.ADENDEI_GUARDIAN:
+        case CardType.ADENDEI_CATRIN:
+        case CardType.ADENDEI_KOSMICO:
+        case CardType.ADENDEI_EQUINO:
+        case CardType.ADENDEI_ABISMAL:
+        case CardType.ADENDEI_INFECTADO:
+          adendeiCount += quantity;
+          break;
+      }
+    });
+    
+    // Validar nombres únicos
+    for (const [name, count] of nameCount.entries()) {
+      if (count > 1) {
+        return { isValid: false, error: `Solo puede existir 1 carta con el nombre "${name}" en el mazo` };
+      }
+    }
+    
+    // Validar límites por tipo
+    if (rotCount > 4) {
+      return { isValid: false, error: `Máximo 4 cartas Rot permitidas (tienes ${rotCount})` };
+    }
+    
+    if (iximCount > 4) {
+      return { isValid: false, error: `Máximo 4 cartas Ixim permitidas (tienes ${iximCount})` };
+    }
+    
+    if (ravaCount > 1) {
+      return { isValid: false, error: `Máximo 1 carta Rava permitida (tienes ${ravaCount})` };
+    }
+    
+    if (bioCount > 1) {
+      return { isValid: false, error: `Máximo 1 carta Bio permitida (tienes ${bioCount})` };
+    }
+    
+    if (protectorCount > 2) {
+      return { isValid: false, error: `Máximo 2 Protectores permitidos (tienes ${protectorCount})` };
+    }
+    
+    if (adendeiCount > 24) {
+      return { isValid: false, error: `Máximo 24 Adendeis permitidos (tienes ${adendeiCount})` };
+    }
+    
+    return { isValid: true };
+  };
+
+  // Función para validar deck completo antes de guardar
+  const validateCompleteDeck = (deckCards: Record<string, number>): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    // Obtener detalles de las cartas en el mazo
+    const cardIds = Object.keys(deckCards);
+    const cardDetails = allCards.filter(card => cardIds.includes(card.id));
+    
+    // Contar cartas por tipo
+    let rotCount = 0;
+    let iximCount = 0;
+    let ravaCount = 0;
+    let bioCount = 0;
+    let protectorCount = 0;
+    let adendeiCount = 0;
+    
+    cardDetails.forEach(card => {
+      const quantity = deckCards[card.id];
+      
+      switch (card.cardType) {
+        case CardType.ROT:
+          rotCount += quantity;
+          break;
+        case CardType.IXIM:
+          iximCount += quantity;
+          break;
+        case CardType.RAVA:
+          ravaCount += quantity;
+          break;
+        case CardType.BIO:
+          bioCount += quantity;
+          break;
+        case CardType.PROTECTOR:
+          protectorCount += quantity;
+          break;
+        case CardType.ADENDEI:
+        case CardType.ADENDEI_TITAN:
+        case CardType.ADENDEI_GUARDIAN:
+        case CardType.ADENDEI_CATRIN:
+        case CardType.ADENDEI_KOSMICO:
+        case CardType.ADENDEI_EQUINO:
+        case CardType.ADENDEI_ABISMAL:
+        case CardType.ADENDEI_INFECTADO:
+          adendeiCount += quantity;
+          break;
+      }
+    });
+    
+    // Validar mínimos requeridos
+    if (protectorCount < 1) {
+      errors.push('Se requiere al menos 1 Protector');
+    }
+    
+    if (adendeiCount < 15) {
+      errors.push(`Se requieren al menos 15 Adendeis (tienes ${adendeiCount})`);
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
   // Guardar el mazo
   const handleSaveDeck = async () => {
     // Validaciones
@@ -705,6 +875,13 @@ export default function DeckEditor() {
     
     if (totalCards === 0) {
       toast.error('Debes agregar al menos una carta al mazo');
+      return;
+    }
+
+    // Validar reglas del deck completo
+    const deckValidation = validateCompleteDeck(deckCards);
+    if (!deckValidation.isValid) {
+      deckValidation.errors.forEach(error => toast.error(error));
       return;
     }
     
@@ -869,79 +1046,46 @@ export default function DeckEditor() {
       return;
     }
 
-    // Solo puede existir 1 carta BIO
-    if (card.cardType === CardType.BIO) {
-      const bioCount = Object.keys(deckCards).reduce((acc, cardId) => {
-        const existingCard = allCards.find(c => c.id === cardId);
-        if (existingCard && existingCard.cardType === CardType.BIO) {
-          return acc + (deckCards[cardId] || 0);
-        }
-        return acc;
-      }, 0);
-      if (bioCount >= 1) {
-        toast.warning('Solo puede existir 1 carta Bio en el mazo');
-        return;
-      }
-    }
-
-    // Si la carta es un Rava, verificar si ya existe un Rava en el mazo
-    if (card.cardType === CardType.RAVA) {
-      const hasRavaAlready = Object.keys(deckCards).some(cardId => {
-        const existingCard = allCards.find(c => c.id === cardId);
-        return existingCard && existingCard.cardType === CardType.RAVA;
-      });
-      if (hasRavaAlready) {
-        toast.error('Solo puede existir 1 carta Rava por mazo');
-        return;
-      }
-    }
-
-    // Si la carta es un PROTECTOR, verificar que no haya más de 2
-    if (card.cardType === CardType.PROTECTOR) {
-      const protectorsCount = Object.keys(deckCards).reduce((acc, cardId) => {
-        const existingCard = allCards.find(c => c.id === cardId);
-        if (existingCard && existingCard.cardType === CardType.PROTECTOR) {
-          return acc + (deckCards[cardId] || 0);
-        }
-        return acc;
-      }, 0);
-      if (protectorsCount >= 2) {
-        toast.warning('Solo pueden existir 2 protectores en el mazo');
-        return;
-      }
-    }
-
-    // Si la carta ya está en el deck, mostrar un toast y no agregarla de nuevo
-    if (deckCards[card.id]) {
-      toast.warning('Esta carta ya está en el mazo');
+    // Validar reglas del deck antes de agregar
+    const validation = validateDeckRules(deckCards, card);
+    if (!validation.isValid) {
+      toast.error(validation.error);
       return;
     }
 
-    setDeckCards(prev => {
-      const currentQty = prev[card.id] || 0;
-      return {
-        ...prev,
-        [card.id]: currentQty + 1
-      };
+    // Verificar si la carta ya está en el deck (validación de nombre único)
+    const existingCard = Object.keys(deckCards).find(cardId => {
+      const existingCardDetails = allCards.find(c => c.id === cardId);
+      return existingCardDetails && existingCardDetails.name.toLowerCase() === card.name.toLowerCase();
     });
+
+    if (existingCard) {
+      toast.warning(`Ya existe una carta con el nombre "${card.name}" en el mazo`);
+      return;
+    }
+
+    // Agregar la carta al mazo (siempre será 1 ya que no permitimos duplicados por nombre)
+    setDeckCards(prev => ({
+      ...prev,
+      [card.id]: 1
+    }));
+
+    toast.success(`${card.name} agregada al mazo`);
   };
 
   // Quitar carta del mazo
   const handleRemoveCard = (cardId: string) => {
     setDeckCards(prev => {
-      const currentQty = prev[cardId] || 0;
-      
-      if (currentQty <= 1) {
-        const newDeckCards = { ...prev };
-        delete newDeckCards[cardId];
-        return newDeckCards;
-      }
-      
-      return {
-        ...prev,
-        [cardId]: currentQty - 1
-      };
+      const newDeckCards = { ...prev };
+      delete newDeckCards[cardId];
+      return newDeckCards;
     });
+
+    // Mostrar mensaje de confirmación
+    const removedCard = allCards.find(card => card.id === cardId);
+    if (removedCard) {
+      toast.success(`${removedCard.name} eliminada del mazo`);
+    }
   };
 
   // Renderizar tarjeta para el catálogo
@@ -962,20 +1106,11 @@ export default function DeckEditor() {
     </div>
   );
 
-  // Estado para la carta seleccionada para ver detalles
-  const [selectedCard, setSelectedCard] = useState<CardDetails | null>(null);
-
-  // Manejar clic en carta para ver detalles
-  const handleCardSelect = (card: CardDetails) => {
-    setSelectedCard(card);
-  };
-
   // Renderizar tarjeta para el mazo
   const renderCardForDeck = (card: CardDetails, quantity: number) => (
     <div 
       key={card.id} 
       className="flex items-center border rounded-md p-2 mb-2 hover:bg-muted/30 cursor-pointer"
-      onClick={() => handleCardSelect(card)}
     >
       <div className="relative h-16 w-12 flex-shrink-0 mr-3">
         <Image
@@ -1004,7 +1139,7 @@ export default function DeckEditor() {
         >
           <Minus size={14} />
         </Button>
-        <span className="w-6 text-center font-medium">{quantity}</span>
+        <span className="w-6 text-center font-medium">1</span>
         <Button
           variant="outline"
           size="md"
@@ -1013,6 +1148,7 @@ export default function DeckEditor() {
             e.stopPropagation();
             handleAddCard(card);
           }}
+          disabled={true}
         >
           <Plus size={14} />
         </Button>
@@ -1133,98 +1269,14 @@ export default function DeckEditor() {
       </div>
       {/* Contenido principal - solo visible en escritorio */}
       <div className="hidden md:flex flex-1 overflow-hidden">
-        {/* Columna 1: Detalle de carta seleccionada */}
-        <div className="w-72 border-r overflow-y-auto">
-          <div className="p-4">
-            {selectedCard ? (
-              <div>
-                <div className="relative aspect-[2.5/3.5] w-full mb-4 rounded-lg overflow-hidden shadow-md">
-                  <Image
-                    src={selectedCard.imageUrl}
-                    alt={selectedCard.name}
-                    className="object-cover"
-                    style={{ width: '100%', height: '100%', position: 'absolute' }}
-                  />
-                </div>
-                <h2 className="text-xl font-semibold mb-2">{selectedCard.name}</h2>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Tipo</p>
-                    <p>{selectedCard.cardType}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Energía</p>
-                    <p>{selectedCard.cardEnergy}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Rareza</p>
-                    <p>{selectedCard.rarity}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">Set</p>
-                    <p>{selectedCard.cardSet}</p>
-                  </div>
-                  {selectedCard.power !== undefined && (
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Poder</p>
-                      <p>{selectedCard.power}</p>
-                    </div>
-                  )}
-                  {selectedCard.sleep !== undefined && (
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Sleep</p>
-                      <p>{selectedCard.sleep}</p>
-                    </div>
-                  )}
-                  {selectedCard.description && (
-    <div>
-                      <p className="text-sm font-medium text-muted-foreground mb-1">Descripción</p>
-                      <p className="text-sm whitespace-pre-wrap">{selectedCard.description}</p>
-                    </div>
-                  )}
-                  <div className="pt-3 flex flex-col gap-2">
-                    <Button 
-                      className="w-full" 
-                      onClick={() => handleAddCard(selectedCard)}
-                    >
-                      <Plus size={16} className="mr-1" />
-                      Agregar al mazo
-                    </Button>
-                    {deckCards[selectedCard.id] && (
-                      <Button
-                        className="w-full"
-                        variant="danger"
-                        onClick={() => {
-                          handleRemoveCard(selectedCard.id);
-                          setSelectedCard(null);
-                        }}
-                      >
-                        Eliminar del mazo
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-4">
-                <div className="bg-muted/30 rounded-full p-6 mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
-                    <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><path d="m9 16 3-3 3 3"/></svg>
-                </div>
-                <h3 className="font-semibold text-lg">Selecciona una carta</h3>
-                <p className="text-sm text-muted-foreground mt-2">Haz clic en una carta para ver sus detalles</p>
-              </div>
-            )}
-          </div>
-        </div>
-        {/* Columna 2: Organizador de mazos */}
-        <div className="w-[805px] overflow-y-auto">
+        {/* Columna 1: Organizador de mazos */}
+        <div className="w-[60%] overflow-y-auto">
           <div className="p-4">
             {renderDeckOrganizer()}
           </div>
         </div>
-        {/* Columna 3: Catálogo de cartas */}
-        <div className="w-[700px] border-l overflow-y-auto">
+        {/* Columna 2: Catálogo de cartas */}
+        <div className="w-[40%] border-l overflow-y-auto">
           <div className="p-4">
             {/* Buscador */}
             <div className="flex mb-6">
@@ -1292,7 +1344,7 @@ export default function DeckEditor() {
                 <p className="text-sm text-muted-foreground mt-1">Introduce un término de búsqueda para encontrar cartas</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {filteredCards.map(card => renderCardForCatalog(card))}
               </div>
             )}
