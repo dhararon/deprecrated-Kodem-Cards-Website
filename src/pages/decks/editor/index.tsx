@@ -454,12 +454,61 @@ export default function DeckEditor() {
     }
   };
 
+  // Componente Sortable Card con mejor manejo de eventos
+  const SortableCard = ({ card, id }: { card: CardDetails, id: string }) => {
+    const { 
+      attributes, 
+      listeners, 
+      setNodeRef, 
+      transform, 
+      transition,
+      isDragging 
+    } = useSortable({ 
+      id,
+      data: { card },
+    });
+    
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      // Ocultar la carta original durante el drag
+      opacity: isDragging ? 0 : 1,
+      touchAction: 'none',
+      width: '157px',
+      height: '220px',
+    };
+    
+    return (
+      <div 
+        ref={setNodeRef} 
+        style={style} 
+        {...attributes} 
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing touch-manipulation"
+        data-id={id}
+      >
+        {renderDeckCard(card)}
+      </div>
+    );
+  };
+
   // Renderizar el organizador
   const renderDeckOrganizer = () => {
+    // Obtener la carta que se está arrastrando para el DragOverlay
+    const activeCard = activeId ? 
+      organizedDeck.mainAdendeis.find((_, idx) => `mainAdendei-${idx}` === activeId) ||
+      organizedDeck.rotCards.find((_, idx) => `rot-${idx}` === activeId) ||
+      organizedDeck.iximCards.find((_, idx) => `ixim-${idx}` === activeId) ||
+      organizedDeck.otherCards.find((_, idx) => `other-${idx}` === activeId) ||
+      (activeId === 'protector1-0' ? organizedDeck.protector1 : null) ||
+      (activeId === 'protector2-0' ? organizedDeck.protector2 : null) ||
+      (activeId === 'bio-0' ? organizedDeck.bio : null)
+      : null;
+
     return (
       <DndContext 
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={rectIntersection}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
@@ -468,11 +517,15 @@ export default function DeckEditor() {
           <div>
             <h3 className="font-medium text-sm mb-2">Protectores y Bio</h3>
             <div className="grid grid-cols-3 gap-3">
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
+              <div className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+              }`}>
                 {organizedDeck.protector1 ? (
                   <div 
                     data-id="protector1-0"
-                    className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
+                    className={`w-full h-full cursor-grab active:cursor-grabbing touch-manipulation transition-opacity ${
+                      activeId === 'protector1-0' ? 'opacity-50' : 'opacity-100'
+                    }`}
                   >
                     {renderDeckCard(organizedDeck.protector1)}
                   </div>
@@ -485,11 +538,15 @@ export default function DeckEditor() {
                   </div>
                 )}
               </div>
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
+              <div className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+              }`}>
                 {organizedDeck.protector2 ? (
                   <div 
                     data-id="protector2-0"
-                    className="w-full h-full cursor-grab active:cursor-grabbing touch-manipulation"
+                    className={`w-full h-full cursor-grab active:cursor-grabbing touch-manipulation transition-opacity ${
+                      activeId === 'protector2-0' ? 'opacity-50' : 'opacity-100'
+                    }`}
                   >
                     {renderDeckCard(organizedDeck.protector2)}
                   </div>
@@ -502,15 +559,19 @@ export default function DeckEditor() {
                   </div>
                 )}
               </div>
-              <div className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container">
+              <div className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+              }`}>
                 {organizedDeck.bio ? (
                   <div 
                     data-id="bio-0"
-                    className={
+                    className={`cursor-grab active:cursor-grabbing touch-manipulation transition-opacity ${
+                      activeId === 'bio-0' ? 'opacity-50' : 'opacity-100'
+                    } ${
                       organizedDeck.bio.cardType === CardType.BIO
-                        ? "aspect-[3.5/2.5] w-[300px] mx-auto cursor-grab active:cursor-grabbing touch-manipulation"
-                        : "aspect-[2.5/3.5] w-[220px] mx-auto cursor-grab active:cursor-grabbing touch-manipulation"
-                    }
+                        ? "aspect-[3.5/2.5] w-[300px] mx-auto"
+                        : "aspect-[2.5/3.5] w-[220px] mx-auto"
+                    }`}
                   >
                     {renderDeckCard(organizedDeck.bio)}
                   </div>
@@ -530,26 +591,25 @@ export default function DeckEditor() {
           <div>
             <h3 className="font-medium text-sm mb-2">Cartas Rot</h3>
             <div className="grid grid-cols-4 gap-3">
-              <SortableContext items={organizedDeck.rotCards.map((_, i) => `rot-${i}`)} strategy={horizontalListSortingStrategy}>
-                {Array(4).fill(null).map((_, idx) => (
-                  <div key={`rot-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
-                       data-droppable-id={`rot-${idx}}`}>
-                    {organizedDeck.rotCards[idx] ? (
-                      <SortableCard 
-                        card={organizedDeck.rotCards[idx]} 
-                        id={`rot-${idx}`} 
-                      />
-                    ) : (
-                      <div className="text-center text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                        </div>
-                        Rot {idx + 1}
+              {Array(4).fill(null).map((_, idx) => (
+                <div key={`rot-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                  isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+                }`} data-droppable-id={`rot-${idx}}`}>
+                  {organizedDeck.rotCards[idx] ? (
+                    <SortableCard 
+                      card={organizedDeck.rotCards[idx]} 
+                      id={`rot-${idx}`} 
+                    />
+                  ) : (
+                    <div className="text-center text-sm text-muted-foreground">
+                      <div className="mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </SortableContext>
+                      Rot {idx + 1}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 
@@ -557,59 +617,57 @@ export default function DeckEditor() {
           <div>
             <h3 className="font-medium text-sm mb-2">Cartas Ixim</h3>
             <div className="grid grid-cols-4 gap-3">
-              <SortableContext items={organizedDeck.iximCards.map((_, i) => `ixim-${i}`)} strategy={horizontalListSortingStrategy}>
-                {Array(4).fill(null).map((_, idx) => (
-                  <div key={`ixim-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
-                       data-droppable-id={`ixim-${idx}`}> 
-                    {organizedDeck.iximCards[idx] ? (
-                      <SortableCard 
-                        card={organizedDeck.iximCards[idx]} 
-                        id={`ixim-${idx}`} 
-                      />
-                    ) : (
-                      <div className="text-center text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                        </div>
-                        Ixim {idx + 1}
+              {Array(4).fill(null).map((_, idx) => (
+                <div key={`ixim-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                  isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+                }`} data-droppable-id={`ixim-${idx}`}> 
+                  {organizedDeck.iximCards[idx] ? (
+                    <SortableCard 
+                      card={organizedDeck.iximCards[idx]} 
+                      id={`ixim-${idx}`} 
+                    />
+                  ) : (
+                    <div className="text-center text-sm text-muted-foreground">
+                      <div className="mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                       </div>
-                    )}
-                  </div>
-                ))}
-              </SortableContext>
+                      Ixim {idx + 1}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Filas 4-8: Adendeis y Rava (5 filas de 3 columnas = 15 slots mínimos) */}
           <div>
             <h3 className="font-medium text-sm mb-2">Adendeis y Rava (mínimo 15)</h3>
-            <SortableContext items={organizedDeck.mainAdendeis.map((_, i) => `mainAdendei-${i}`)} strategy={rectSortingStrategy}>
-              {Array(5).fill(null).map((_, rowIdx) => (
-                <div key={`adendei-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
-                  {Array(3).fill(null).map((_, colIdx) => {
-                    const cardIndex = rowIdx * 3 + colIdx;
-                    return (
-                      <div key={`adendei-${cardIndex}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
-                           data-droppable-id={`mainAdendei-${cardIndex}`}>
-                        {organizedDeck.mainAdendeis[cardIndex] ? (
-                          <SortableCard 
-                            card={organizedDeck.mainAdendeis[cardIndex]} 
-                            id={`mainAdendei-${cardIndex}`} 
-                          />
-                        ) : (
-                          <div className="text-center text-sm text-muted-foreground">
-                            <div className="mb-2">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                            </div>
-                            Adendei {cardIndex + 1}
+            {Array(5).fill(null).map((_, rowIdx) => (
+              <div key={`adendei-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
+                {Array(3).fill(null).map((_, colIdx) => {
+                  const cardIndex = rowIdx * 3 + colIdx;
+                  return (
+                    <div key={`adendei-${cardIndex}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                      isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+                    }`} data-droppable-id={`mainAdendei-${cardIndex}`}>
+                      {organizedDeck.mainAdendeis[cardIndex] ? (
+                        <SortableCard 
+                          card={organizedDeck.mainAdendeis[cardIndex]} 
+                          id={`mainAdendei-${cardIndex}`} 
+                        />
+                      ) : (
+                        <div className="text-center text-sm text-muted-foreground">
+                          <div className="mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                           </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </SortableContext>
+                          Adendei {cardIndex + 1}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
 
           {/* Fila 9+: Cartas adicionales (si existen) */}
@@ -617,62 +675,38 @@ export default function DeckEditor() {
             <div>
               <h3 className="font-medium text-sm mb-2">Cartas adicionales</h3>
               <div className="grid grid-cols-3 gap-3">
-                <SortableContext items={organizedDeck.otherCards.map((_, i) => `other-${i}`)} strategy={horizontalListSortingStrategy}>
-                  {organizedDeck.otherCards.map((card, idx) => (
-                    <div key={`other-${idx}`} className="border-2 border-dashed border-muted-foreground/20 rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container"
-                         data-droppable-id={`other-${idx}`}>
-                      <SortableCard 
-                        card={card} 
-                        id={`other-${idx}`} 
-                      />
-                    </div>
-                  ))}
-                </SortableContext>
+                {organizedDeck.otherCards.map((card, idx) => (
+                  <div key={`other-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                    isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+                  }`} data-droppable-id={`other-${idx}`}>
+                    <SortableCard 
+                      card={card} 
+                      id={`other-${idx}`} 
+                    />
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </div>
-      </DndContext>
-    );
-  };
 
-  // Componente Sortable Card con mejor manejo de eventos
-  const SortableCard = ({ card, id }: { card: CardDetails, id: string }) => {
-    const { 
-      attributes, 
-      listeners, 
-      setNodeRef, 
-      transform, 
-      transition,
-      isDragging 
-    } = useSortable({ 
-      id,
-      data: { card },
-    });
-    
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      opacity: isDragging ? 0.6 : 1,
-      zIndex: isDragging ? 999 : 1,
-      boxShadow: isDragging ? '0 8px 20px rgba(0, 0, 0, 0.2)' : 'none',
-      touchAction: 'none',
-      width: '157px',
-      height: '220px',
-    };
-    
-    return (
-      <div 
-        ref={setNodeRef} 
-        style={style} 
-        {...attributes} 
-        {...listeners}
-        className={`cursor-grab active:cursor-grabbing touch-manipulation ${isDragging ? 'scale-105' : ''}`}
-        data-id={id}
-        data-state={isDragging ? 'dragging' : 'idle'}
-      >
-        {renderDeckCard(card)}
-      </div>
+        {/* DragOverlay para mostrar la carta que se está moviendo */}
+        <DragOverlay dropAnimation={null}>
+          {activeCard ? (
+            <div className="cursor-grabbing transform rotate-3 scale-105 shadow-2xl border-2 border-blue-400 rounded-md overflow-hidden bg-white">
+              <div className="relative w-[157px] h-[220px]" style={{ aspectRatio: '2.5/3.5' }}>
+                <Image
+                  src={activeCard.imageUrl}
+                  alt={activeCard.name}
+                  className="object-cover"
+                  style={{ width: '100%', height: '100%', position: 'absolute' }}
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              </div>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     );
   };
 
