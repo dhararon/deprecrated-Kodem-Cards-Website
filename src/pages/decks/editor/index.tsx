@@ -74,6 +74,21 @@ export default function DeckEditor() {
   const [deckCardOrder, setDeckCardOrder] = useState<string[]>([]); // Mantener orden de inserción
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [customOrder, setCustomOrder] = useState<{
+    protectors: string[];
+    bio: string[];
+    rot: string[];
+    ixim: string[];
+    adendeis: string[];
+    others: string[];
+  }>({
+    protectors: [],
+    bio: [],
+    rot: [],
+    ixim: [],
+    adendeis: [],
+    others: []
+  });
   const [organizedDeck, setOrganizedDeck] = useState<{
     protector1?: CardDetails;
     mainAdendeis: CardDetails[];
@@ -187,6 +202,64 @@ export default function DeckEditor() {
           // Establecer deckCards con los conteos y el orden
           setDeckCards(cardCounts);
           setDeckCardOrder(cardOrder);
+          
+          // Inicializar customOrder basado en las cartas existentes
+          const initialCustomOrder = {
+            protectors: [] as string[],
+            bio: [] as string[],
+            rot: [] as string[],
+            ixim: [] as string[],
+            adendeis: [] as string[],
+            others: [] as string[]
+          };
+          
+          cardOrder.forEach(cardId => {
+            const card = allCards.find(c => c.id === cardId);
+            if (!card) return;
+            
+            switch (card.cardType) {
+              case CardType.PROTECTOR:
+                if (!initialCustomOrder.protectors.includes(cardId)) {
+                  initialCustomOrder.protectors.push(cardId);
+                }
+                break;
+              case CardType.BIO:
+                if (!initialCustomOrder.bio.includes(cardId)) {
+                  initialCustomOrder.bio.push(cardId);
+                }
+                break;
+              case CardType.ROT:
+                if (!initialCustomOrder.rot.includes(cardId)) {
+                  initialCustomOrder.rot.push(cardId);
+                }
+                break;
+              case CardType.IXIM:
+                if (!initialCustomOrder.ixim.includes(cardId)) {
+                  initialCustomOrder.ixim.push(cardId);
+                }
+                break;
+              case CardType.ADENDEI:
+              case CardType.ADENDEI_TITAN:
+              case CardType.ADENDEI_GUARDIAN:
+              case CardType.ADENDEI_CATRIN:
+              case CardType.ADENDEI_KOSMICO:
+              case CardType.ADENDEI_EQUINO:
+              case CardType.ADENDEI_ABISMAL:
+              case CardType.ADENDEI_INFECTADO:
+              case CardType.RAVA:
+                if (!initialCustomOrder.adendeis.includes(cardId)) {
+                  initialCustomOrder.adendeis.push(cardId);
+                }
+                break;
+              default:
+                if (!initialCustomOrder.others.includes(cardId)) {
+                  initialCustomOrder.others.push(cardId);
+                }
+                break;
+            }
+          });
+          
+          setCustomOrder(initialCustomOrder);
         }
       } catch (err) {
         console.error('Error al cargar mazo:', err);
@@ -206,79 +279,135 @@ export default function DeckEditor() {
   useEffect(() => {
     if (allCards.length === 0) return;
     
-    // Obtener las cartas que están en el mazo usando el orden explícito de inserción
-    const deckCardDetails = deckCardOrder
-      .filter(cardId => deckCards[cardId]) // Solo cartas que aún están en el mazo
+    // Función helper para obtener cartas en el orden personalizado
+    const getCardsInCustomOrder = (cardIds: string[], cardType: CardType | CardType[]) => {
+      return cardIds
+        .filter(cardId => deckCards[cardId]) // Solo cartas que aún están en el mazo
+        .map(cardId => allCards.find(card => card.id === cardId))
+        .filter(card => {
+          if (!card) return false;
+          if (Array.isArray(cardType)) {
+            return cardType.includes(card.cardType);
+          }
+          return card.cardType === cardType;
+        }) as CardDetails[];
+    };
+
+    // Obtener cartas en orden personalizado
+    const protectors = getCardsInCustomOrder(customOrder.protectors, CardType.PROTECTOR);
+    const bioCards = getCardsInCustomOrder(customOrder.bio, CardType.BIO);
+    const rotCards = getCardsInCustomOrder(customOrder.rot, CardType.ROT);
+    const iximCards = getCardsInCustomOrder(customOrder.ixim, CardType.IXIM);
+    const adendeiCards = getCardsInCustomOrder(customOrder.adendeis, [
+      CardType.ADENDEI,
+      CardType.ADENDEI_TITAN,
+      CardType.ADENDEI_GUARDIAN,
+      CardType.ADENDEI_CATRIN,
+      CardType.ADENDEI_KOSMICO,
+      CardType.ADENDEI_EQUINO,
+      CardType.ADENDEI_ABISMAL,
+      CardType.ADENDEI_INFECTADO,
+      CardType.RAVA
+    ]);
+    const otherCards = getCardsInCustomOrder(customOrder.others, [] as CardType[]);
+    
+    // Si hay cartas nuevas que no están en customOrder, agregarlas al final
+    const allDeckCardDetails = deckCardOrder
+      .filter(cardId => deckCards[cardId])
       .map(cardId => allCards.find(card => card.id === cardId))
       .filter(card => card !== undefined) as CardDetails[];
     
-    // Organizar las cartas por tipo manteniendo el orden de inserción
-    const protectors = deckCardDetails.filter(card => card.cardType === CardType.PROTECTOR);
-    const adendeis = deckCardDetails.filter(card => 
-      card.cardType === CardType.ADENDEI || 
-      card.cardType === CardType.ADENDEI_TITAN || 
-      card.cardType === CardType.ADENDEI_GUARDIAN || 
-      card.cardType === CardType.ADENDEI_CATRIN || 
-      card.cardType === CardType.ADENDEI_KOSMICO || 
-      card.cardType === CardType.ADENDEI_EQUINO || 
-      card.cardType === CardType.ADENDEI_ABISMAL || 
-      card.cardType === CardType.ADENDEI_INFECTADO ||
-      card.cardType === CardType.RAVA  // Tratar Rava como Adendei
-    );
-    const rotCards = deckCardDetails.filter(card => card.cardType === CardType.ROT);
-    const iximCards = deckCardDetails.filter(card => card.cardType === CardType.IXIM);
-    const bioCards = deckCardDetails.filter(card => card.cardType === CardType.BIO);
+    // Verificar si hay cartas no organizadas y agregarlas al orden correspondiente
+    const unorganizedCards = allDeckCardDetails.filter(card => {
+      const isInCustomOrder = 
+        customOrder.protectors.includes(card.id) ||
+        customOrder.bio.includes(card.id) ||
+        customOrder.rot.includes(card.id) ||
+        customOrder.ixim.includes(card.id) ||
+        customOrder.adendeis.includes(card.id) ||
+        customOrder.others.includes(card.id);
+      return !isInCustomOrder;
+    });
     
-    // Organizar cartas respetando el orden de inserción
-    // Protectores: máximo 2, en orden de inserción
+    if (unorganizedCards.length > 0) {
+      setCustomOrder(prev => {
+        const newOrder = { ...prev };
+        
+        unorganizedCards.forEach(card => {
+          switch (card.cardType) {
+            case CardType.PROTECTOR:
+              if (!newOrder.protectors.includes(card.id)) {
+                newOrder.protectors = [...newOrder.protectors, card.id];
+              }
+              break;
+            case CardType.BIO:
+              if (!newOrder.bio.includes(card.id)) {
+                newOrder.bio = [...newOrder.bio, card.id];
+              }
+              break;
+            case CardType.ROT:
+              if (!newOrder.rot.includes(card.id)) {
+                newOrder.rot = [...newOrder.rot, card.id];
+              }
+              break;
+            case CardType.IXIM:
+              if (!newOrder.ixim.includes(card.id)) {
+                newOrder.ixim = [...newOrder.ixim, card.id];
+              }
+              break;
+            case CardType.ADENDEI:
+            case CardType.ADENDEI_TITAN:
+            case CardType.ADENDEI_GUARDIAN:
+            case CardType.ADENDEI_CATRIN:
+            case CardType.ADENDEI_KOSMICO:
+            case CardType.ADENDEI_EQUINO:
+            case CardType.ADENDEI_ABISMAL:
+            case CardType.ADENDEI_INFECTADO:
+            case CardType.RAVA:
+              if (!newOrder.adendeis.includes(card.id)) {
+                newOrder.adendeis = [...newOrder.adendeis, card.id];
+              }
+              break;
+            default:
+              if (!newOrder.others.includes(card.id)) {
+                newOrder.others = [...newOrder.others, card.id];
+              }
+              break;
+          }
+        });
+        
+        return newOrder;
+      });
+      return; // Salir temprano, el useEffect se ejecutará de nuevo con customOrder actualizado
+    }
+    
+    // Organizar cartas respetando el orden personalizado
     const organizedProtectors = protectors.slice(0, 2);
-    
-    // Bio: máximo 1
     const organizedBio = bioCards.slice(0, 1);
-    
-    // Rot: máximo 4, en orden de inserción
     const organizedRot = rotCards.slice(0, 4);
-    
-    // Ixim: máximo 4, en orden de inserción  
     const organizedIxim = iximCards.slice(0, 4);
+    const allAdendeis = adendeiCards.slice(0, 24);
     
-    // Adendeis: hasta 24, en orden de inserción (se agregan al final)
-    const allAdendeis = adendeis.slice(0, 24);
-    
-    // Otras cartas que no son de los tipos principales
-    const otherCardTypes = deckCardDetails.filter(card => 
-      !(card.cardType === CardType.PROTECTOR || 
-        card.cardType === CardType.ADENDEI || 
-        card.cardType === CardType.ADENDEI_TITAN || 
-        card.cardType === CardType.ADENDEI_GUARDIAN || 
-        card.cardType === CardType.ADENDEI_CATRIN || 
-        card.cardType === CardType.ADENDEI_KOSMICO || 
-        card.cardType === CardType.ADENDEI_EQUINO || 
-        card.cardType === CardType.ADENDEI_ABISMAL || 
-        card.cardType === CardType.ADENDEI_INFECTADO || 
-        card.cardType === CardType.RAVA ||
-        card.cardType === CardType.ROT || 
-        card.cardType === CardType.IXIM || 
-        card.cardType === CardType.BIO)
-    );
+    // Cartas adicionales que exceden los límites
+    const additionalCards = [
+      ...protectors.slice(2),
+      ...bioCards.slice(1),
+      ...rotCards.slice(4),
+      ...iximCards.slice(4),
+      ...adendeiCards.slice(24),
+      ...otherCards
+    ];
     
     setOrganizedDeck({
       protector1: organizedProtectors[0] || undefined,
       protector2: organizedProtectors[1] || undefined,
       bio: organizedBio[0] || undefined,
-      mainAdendeis: allAdendeis, // Mantiene el orden de inserción
+      mainAdendeis: allAdendeis,
       rotCards: organizedRot,
       iximCards: organizedIxim,
-      otherCards: [
-        ...protectors.slice(2), // Protectores adicionales (si los hay)
-        ...bioCards.slice(1), // Bios adicionales (si los hay)
-        ...rotCards.slice(4), // Rot adicionales (si los hay)
-        ...iximCards.slice(4), // Ixim adicionales (si los hay)
-        ...adendeis.slice(24), // Adendeis que exceden el límite de 24
-        ...otherCardTypes
-      ]
+      otherCards: additionalCards
     });
-  }, [allCards, deckCards, deckCardOrder]);
+  }, [allCards, deckCards, customOrder]);
 
   // Lógica de Drag and Drop
   const sensors = useSensors(
@@ -331,6 +460,15 @@ export default function DeckEditor() {
         // Solo intercambiar cartas si están en la misma sección
         if (activeSection === overSection) {
           switch (activeSection) {
+            case 'protector1': 
+            case 'protector2': {
+              // No hacer nada aquí, porque protector1 y protector2 son diferentes secciones
+              break;
+            }
+            case 'bio': {
+              // Bio no se puede reordenar consigo mismo
+              break;
+            }
             case 'mainAdendei': {
               const newMainAdendeis = [...prev.mainAdendeis];
               // Crear un array de tamaño fijo para mantener posiciones
@@ -348,6 +486,19 @@ export default function DeckEditor() {
                 // Intercambio directo entre dos cartas
                 fixedArray[activeIndex] = overCard;
                 fixedArray[overIndex] = activeCard;
+                
+                // Actualizar customOrder para adendeis
+                setCustomOrder(prevOrder => {
+                  const newAdendeis = [...prevOrder.adendeis];
+                  const activeCardIdx = newAdendeis.findIndex(id => id === activeCard.id);
+                  const overCardIdx = newAdendeis.findIndex(id => id === overCard.id);
+                  
+                  if (activeCardIdx !== -1 && overCardIdx !== -1) {
+                    [newAdendeis[activeCardIdx], newAdendeis[overCardIdx]] = [newAdendeis[overCardIdx], newAdendeis[activeCardIdx]];
+                  }
+                  
+                  return { ...prevOrder, adendeis: newAdendeis };
+                });
               } else if (activeCard && !overCard) {
                 // Mover carta a posición vacía
                 fixedArray[overIndex] = activeCard;
@@ -372,6 +523,19 @@ export default function DeckEditor() {
               if (activeCard && overCard) {
                 fixedArray[activeIndex] = overCard;
                 fixedArray[overIndex] = activeCard;
+                
+                // Actualizar customOrder para rot
+                setCustomOrder(prevOrder => {
+                  const newRot = [...prevOrder.rot];
+                  const activeCardIdx = newRot.findIndex(id => id === activeCard.id);
+                  const overCardIdx = newRot.findIndex(id => id === overCard.id);
+                  
+                  if (activeCardIdx !== -1 && overCardIdx !== -1) {
+                    [newRot[activeCardIdx], newRot[overCardIdx]] = [newRot[overCardIdx], newRot[activeCardIdx]];
+                  }
+                  
+                  return { ...prevOrder, rot: newRot };
+                });
               } else if (activeCard && !overCard) {
                 fixedArray[overIndex] = activeCard;
                 fixedArray[activeIndex] = undefined;
@@ -394,6 +558,19 @@ export default function DeckEditor() {
               if (activeCard && overCard) {
                 fixedArray[activeIndex] = overCard;
                 fixedArray[overIndex] = activeCard;
+                
+                // Actualizar customOrder para ixim
+                setCustomOrder(prevOrder => {
+                  const newIxim = [...prevOrder.ixim];
+                  const activeCardIdx = newIxim.findIndex(id => id === activeCard.id);
+                  const overCardIdx = newIxim.findIndex(id => id === overCard.id);
+                  
+                  if (activeCardIdx !== -1 && overCardIdx !== -1) {
+                    [newIxim[activeCardIdx], newIxim[overCardIdx]] = [newIxim[overCardIdx], newIxim[activeCardIdx]];
+                  }
+                  
+                  return { ...prevOrder, ixim: newIxim };
+                });
               } else if (activeCard && !overCard) {
                 fixedArray[overIndex] = activeCard;
                 fixedArray[activeIndex] = undefined;
@@ -410,6 +587,19 @@ export default function DeckEditor() {
               if (activeCard && overCard) {
                 newOtherCards[activeIndex] = overCard;
                 newOtherCards[overIndex] = activeCard;
+                
+                // Actualizar customOrder para others
+                setCustomOrder(prevOrder => {
+                  const newOthers = [...prevOrder.others];
+                  const activeCardIdx = newOthers.findIndex(id => id === activeCard.id);
+                  const overCardIdx = newOthers.findIndex(id => id === overCard.id);
+                  
+                  if (activeCardIdx !== -1 && overCardIdx !== -1) {
+                    [newOthers[activeCardIdx], newOthers[overCardIdx]] = [newOthers[overCardIdx], newOthers[activeCardIdx]];
+                  }
+                  
+                  return { ...prevOrder, others: newOthers };
+                });
               } else if (activeCard && !overCard) {
                 newOtherCards[overIndex] = activeCard;
                 newOtherCards[activeIndex] = undefined as any;
@@ -420,61 +610,47 @@ export default function DeckEditor() {
             }
           }
         } else if (
-          // Intercambio entre mainAdendei y other
-          (activeSection === 'mainAdendei' && overSection === 'other') ||
-          (activeSection === 'other' && overSection === 'mainAdendei')
+          // Intercambio entre protectores de diferentes posiciones
+          (activeSection === 'protector1' && overSection === 'protector2') ||
+          (activeSection === 'protector2' && overSection === 'protector1')
         ) {
-          if (activeSection === 'mainAdendei' && overSection === 'other') {
-            const activeCard = prev.mainAdendeis[activeIndex];
-            const overCard = prev.otherCards[overIndex];
+          if (activeSection === 'protector1' && overSection === 'protector2') {
+            const temp = prev.protector1;
+            newDeck.protector1 = prev.protector2;
+            newDeck.protector2 = temp;
             
-            if (activeCard && adendeiTypes.includes(activeCard.cardType)) {
-              const newMainAdendeis = [...prev.mainAdendeis];
-              const newOtherCards = [...prev.otherCards];
-              
-              if (overCard && adendeiTypes.includes(overCard.cardType)) {
-                // Intercambio directo
-                newMainAdendeis[activeIndex] = overCard;
-                newOtherCards[overIndex] = activeCard;
-              } else if (!overCard) {
-                // Mover a posición vacía
-                if (newMainAdendeis.filter(c => c !== undefined).length > 1) {
-                  newMainAdendeis.splice(activeIndex, 1); // Remover del array manteniendo orden
-                  newOtherCards[overIndex] = activeCard;
-                } else {
-                  toast.error('Debes tener al menos 1 adendei principal');
-                  return prev;
+            // Actualizar customOrder para protectores
+            if (temp && prev.protector2) {
+              setCustomOrder(prevOrder => {
+                const newProtectors = [...prevOrder.protectors];
+                const activeIdx = newProtectors.findIndex(id => id === temp.id);
+                const overIdx = newProtectors.findIndex(id => id === prev.protector2!.id);
+                
+                if (activeIdx !== -1 && overIdx !== -1) {
+                  [newProtectors[activeIdx], newProtectors[overIdx]] = [newProtectors[overIdx], newProtectors[activeIdx]];
                 }
-              }
-              
-              newDeck.mainAdendeis = newMainAdendeis.filter(card => card !== undefined);
-              newDeck.otherCards = newOtherCards.filter(card => card !== undefined);
+                
+                return { ...prevOrder, protectors: newProtectors };
+              });
             }
-          } else if (activeSection === 'other' && overSection === 'mainAdendei') {
-            const activeCard = prev.otherCards[activeIndex];
-            const overCard = prev.mainAdendeis[overIndex];
+          } else if (activeSection === 'protector2' && overSection === 'protector1') {
+            const temp = prev.protector2;
+            newDeck.protector2 = prev.protector1;
+            newDeck.protector1 = temp;
             
-            if (activeCard && adendeiTypes.includes(activeCard.cardType)) {
-              const newOtherCards = [...prev.otherCards];
-              const newMainAdendeis = [...prev.mainAdendeis];
-              
-              if (overCard && adendeiTypes.includes(overCard.cardType)) {
-                // Intercambio directo
-                newOtherCards[activeIndex] = overCard;
-                newMainAdendeis[overIndex] = activeCard;
-              } else if (!overCard) {
-                // Agregar al final del array de adendeis
-                if (newMainAdendeis.length < 24) {
-                  newOtherCards.splice(activeIndex, 1); // Remover del array manteniendo orden
-                  newMainAdendeis.push(activeCard); // Agregar al final
-                } else {
-                  toast.error('Solo puedes tener 24 adendeis máximo');
-                  return prev;
+            // Actualizar customOrder para protectores
+            if (temp && prev.protector1) {
+              setCustomOrder(prevOrder => {
+                const newProtectors = [...prevOrder.protectors];
+                const activeIdx = newProtectors.findIndex(id => id === temp.id);
+                const overIdx = newProtectors.findIndex(id => id === prev.protector1!.id);
+                
+                if (activeIdx !== -1 && overIdx !== -1) {
+                  [newProtectors[activeIdx], newProtectors[overIdx]] = [newProtectors[overIdx], newProtectors[activeIdx]];
                 }
-              }
-              
-              newDeck.otherCards = newOtherCards.filter(card => card !== undefined);
-              newDeck.mainAdendeis = newMainAdendeis;
+                
+                return { ...prevOrder, protectors: newProtectors };
+              });
             }
           }
         }
@@ -504,7 +680,7 @@ export default function DeckEditor() {
       // Ocultar la carta original durante el drag
       opacity: isDragging ? 0 : 1,
       touchAction: 'none',
-      width: '157px',
+      width: card.cardType === CardType.BIO ? '300px' : '157px',
       height: '220px',
     };
     
@@ -514,7 +690,9 @@ export default function DeckEditor() {
         style={style} 
         {...attributes} 
         {...listeners}
-        className="cursor-grab active:cursor-grabbing touch-manipulation"
+        className={`cursor-grab active:cursor-grabbing touch-manipulation ${
+          card.cardType === CardType.BIO ? 'w-[300px] h-[157px] mx-auto' : 'w-[157px] h-[220px]'
+        }`}
         data-id={id}
       >
         {renderDeckCard(card)}
@@ -551,14 +729,10 @@ export default function DeckEditor() {
                 isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
               }`}>
                 {organizedDeck.protector1 ? (
-                  <div 
-                    data-id="protector1-0"
-                    className={`w-full h-full cursor-grab active:cursor-grabbing touch-manipulation transition-opacity ${
-                      activeId === 'protector1-0' ? 'opacity-50' : 'opacity-100'
-                    }`}
-                  >
-                    {renderDeckCard(organizedDeck.protector1)}
-                  </div>
+                  <SortableCard 
+                    card={organizedDeck.protector1} 
+                    id="protector1-0" 
+                  />
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -572,14 +746,10 @@ export default function DeckEditor() {
                 isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
               }`}>
                 {organizedDeck.protector2 ? (
-                  <div 
-                    data-id="protector2-0"
-                    className={`w-full h-full cursor-grab active:cursor-grabbing touch-manipulation transition-opacity ${
-                      activeId === 'protector2-0' ? 'opacity-50' : 'opacity-100'
-                    }`}
-                  >
-                    {renderDeckCard(organizedDeck.protector2)}
-                  </div>
+                  <SortableCard 
+                    card={organizedDeck.protector2} 
+                    id="protector2-0" 
+                  />
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -593,18 +763,10 @@ export default function DeckEditor() {
                 isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
               }`}>
                 {organizedDeck.bio ? (
-                  <div 
-                    data-id="bio-0"
-                    className={`cursor-grab active:cursor-grabbing touch-manipulation transition-opacity ${
-                      activeId === 'bio-0' ? 'opacity-50' : 'opacity-100'
-                    } ${
-                      organizedDeck.bio.cardType === CardType.BIO
-                        ? "aspect-[3.5/2.5] w-[300px] mx-auto"
-                        : "aspect-[2.5/3.5] w-[220px] mx-auto"
-                    }`}
-                  >
-                    {renderDeckCard(organizedDeck.bio)}
-                  </div>
+                  <SortableCard 
+                    card={organizedDeck.bio} 
+                    id="bio-0" 
+                  />
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -1146,11 +1308,61 @@ export default function DeckEditor() {
     // Agregar al final del orden de inserción
     setDeckCardOrder(prev => [...prev, card.id]);
 
+    // Actualizar customOrder según el tipo de carta
+    setCustomOrder(prev => {
+      const newOrder = { ...prev };
+      
+      switch (card.cardType) {
+        case CardType.PROTECTOR:
+          if (!newOrder.protectors.includes(card.id)) {
+            newOrder.protectors = [...newOrder.protectors, card.id];
+          }
+          break;
+        case CardType.BIO:
+          if (!newOrder.bio.includes(card.id)) {
+            newOrder.bio = [...newOrder.bio, card.id];
+          }
+          break;
+        case CardType.ROT:
+          if (!newOrder.rot.includes(card.id)) {
+            newOrder.rot = [...newOrder.rot, card.id];
+          }
+          break;
+        case CardType.IXIM:
+          if (!newOrder.ixim.includes(card.id)) {
+            newOrder.ixim = [...newOrder.ixim, card.id];
+          }
+          break;
+        case CardType.ADENDEI:
+        case CardType.ADENDEI_TITAN:
+        case CardType.ADENDEI_GUARDIAN:
+        case CardType.ADENDEI_CATRIN:
+        case CardType.ADENDEI_KOSMICO:
+        case CardType.ADENDEI_EQUINO:
+        case CardType.ADENDEI_ABISMAL:
+        case CardType.ADENDEI_INFECTADO:
+        case CardType.RAVA:
+          if (!newOrder.adendeis.includes(card.id)) {
+            newOrder.adendeis = [...newOrder.adendeis, card.id];
+          }
+          break;
+        default:
+          if (!newOrder.others.includes(card.id)) {
+            newOrder.others = [...newOrder.others, card.id];
+          }
+          break;
+      }
+      
+      return newOrder;
+    });
+
     toast.success(`${card.name} agregada al mazo`);
   };
 
   // Quitar carta del mazo
   const handleRemoveCard = (cardId: string) => {
+    const removedCard = allCards.find(card => card.id === cardId);
+    
     setDeckCards(prev => {
       const newDeckCards = { ...prev };
       delete newDeckCards[cardId];
@@ -1160,8 +1372,17 @@ export default function DeckEditor() {
     // Remover del orden de inserción
     setDeckCardOrder(prev => prev.filter(id => id !== cardId));
 
+    // Remover de customOrder
+    setCustomOrder(prev => ({
+      protectors: prev.protectors.filter(id => id !== cardId),
+      bio: prev.bio.filter(id => id !== cardId),
+      rot: prev.rot.filter(id => id !== cardId),
+      ixim: prev.ixim.filter(id => id !== cardId),
+      adendeis: prev.adendeis.filter(id => id !== cardId),
+      others: prev.others.filter(id => id !== cardId)
+    }));
+
     // Mostrar mensaje de confirmación
-    const removedCard = allCards.find(card => card.id === cardId);
     if (removedCard) {
       toast.success(`${removedCard.name} eliminada del mazo`);
     }
