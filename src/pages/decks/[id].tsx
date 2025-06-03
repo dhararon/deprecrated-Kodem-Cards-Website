@@ -1190,7 +1190,7 @@ const DeckDetail: React.FC = () => {
         );
     };
 
-    // Renderizar vista de grid para cartas
+    // Renderizar vista de grid para cartas (formato igual al editor, solo slots con cartas)
     const renderCardGrid = () => {
         if (!deck?.cards.length) {
             return (
@@ -1201,32 +1201,40 @@ const DeckDetail: React.FC = () => {
                 />
             );
         }
-        
-        // Filtrar cartas por tipo
+
+        // Agrupar cartas por tipo
         const protectorCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Protector');
-        const adendeiCards = deck.cards.filter(card => normalizeCardType(card.type).toLowerCase().includes('adendei'));
         const bioCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Bio');
-        const iximCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Ixim');
         const rotCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Rot');
-        const otherCards = deck.cards.filter(card => 
-            normalizeCardType(card.type) !== 'Protector' && 
-            !normalizeCardType(card.type).toLowerCase().includes('adendei') &&
-            normalizeCardType(card.type) !== 'Bio' &&
-            normalizeCardType(card.type) !== 'Ixim' &&
-            normalizeCardType(card.type) !== 'Rot'
-        );
-        
+        const iximCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Ixim');
+        // Adendeis y Rava
+        const adendeiCards = deck.cards.filter(card => {
+            const type = normalizeCardType(card.type);
+            return type.toLowerCase().includes('adendei') || type === 'Rava';
+        });
+        // Otras cartas
+        const otherCards = deck.cards.filter(card => {
+            const type = normalizeCardType(card.type);
+            return (
+                type !== 'Protector' &&
+                type !== 'Bio' &&
+                type !== 'Rot' &&
+                type !== 'Ixim' &&
+                !type.toLowerCase().includes('adendei') &&
+                type !== 'Rava'
+            );
+        });
+
         return (
-            <div className="space-y-6">
-                {/* Fila 1: Protector y Adendei */}
-                {(protectorCards.length > 0 || adendeiCards.length > 0) && (
+            <div className="space-y-8">
+                {/* Fila 1: Protectores y Bio */}
+                {(protectorCards.length > 0 || bioCards.length > 0) && (
                     <div>
                         <h2 className="text-lg font-bold flex items-center mb-3">
-                            Protectores y Adendeis principales
+                            Protectores y Bio
                         </h2>
-                        <div className="grid grid-cols-4 gap-3 mb-3">
-                            {/* Protector */}
-                            {protectorCards.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-3 mb-3">
+                            {protectorCards[0] && (
                                 <Card
                                     className="cursor-pointer transition-transform hover:scale-105 group relative"
                                     onClick={() => setSelectedCard(protectorCards[0])}
@@ -1239,184 +1247,148 @@ const DeckDetail: React.FC = () => {
                                         />
                                     </CardContent>
                                 </Card>
-                            ) : (
-                                <div className="bg-muted rounded-lg h-28 flex items-center justify-center text-xs text-muted-foreground">
-                                    Sin Protector
-                                </div>
                             )}
-                            
-                            {/* Adendei (3 posiciones) */}
-                            {[0, 1, 2].map((index) => (
-                                adendeiCards.length > index ? (
-                                    <Card
-                                        key={`adendei-${index}`}
-                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                        onClick={() => setSelectedCard(adendeiCards[index])}
-                                    >
-                                        <CardContent className="p-0 relative">
-                                            <img
-                                                src={adendeiCards[index].imageUrl}
-                                                alt={adendeiCards[index].name}
-                                                className="w-full h-auto rounded-lg"
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                ) : (
-                                    <div key={`empty-adendei-${index}`} className="bg-muted rounded-lg h-28 flex items-center justify-center text-xs text-muted-foreground">
-                                        Sin Adendei
-                                    </div>
-                                )
-                            ))}
+                            {protectorCards[1] && (
+                                <Card
+                                    className="cursor-pointer transition-transform hover:scale-105 group relative"
+                                    onClick={() => setSelectedCard(protectorCards[1])}
+                                >
+                                    <CardContent className="p-0 relative">
+                                        <img
+                                            src={protectorCards[1].imageUrl}
+                                            alt={protectorCards[1].name}
+                                            className="w-full h-auto rounded-lg"
+                                        />
+                                    </CardContent>
+                                </Card>
+                            )}
+                            {bioCards[0] && (
+                                <Card
+                                    className="cursor-pointer transition-transform hover:scale-105 group relative"
+                                    onClick={() => setSelectedCard(bioCards[0])}
+                                >
+                                    <CardContent className="p-0 relative">
+                                        <img
+                                            src={bioCards[0].imageUrl}
+                                            alt={bioCards[0].name}
+                                            className="w-full h-auto rounded-lg"
+                                        />
+                                    </CardContent>
+                                </Card>
+                            )}
                         </div>
                     </div>
                 )}
-                
-                {/* Fila 2: Bio - 2 columnas */}
-                {bioCards.length > 0 && (
-                    <div>
-                        <h2 className="text-lg font-bold flex items-center mb-3">
-                            Segundo Protector y Bio
-                        </h2>
-                        <div className="grid grid-cols-2 gap-3 mb-3">
-                            {/* Primera columna: Segundo Protector */}
-                            <div>
-                                {protectorCards.length > 1 ? (
-                                    <Card
-                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                        onClick={() => setSelectedCard(protectorCards[1])}
-                                    >
-                                        <CardContent className="p-0 relative">
-                                            <img
-                                                src={protectorCards[1].imageUrl}
-                                                alt={protectorCards[1].name}
-                                                className="w-full h-auto rounded-lg"
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                ) : (
-                                    <div className="bg-muted rounded-lg h-28 flex items-center justify-center text-xs text-muted-foreground">
-                                        Segundo Protector
-                                    </div>
-                                )}
-                            </div>
-                            
-                            {/* Segunda columna: Bio */}
-                            <div>
-                                {bioCards.length > 0 ? (
-                                    <Card
-                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                        onClick={() => setSelectedCard(bioCards[0])}
-                                    >
-                                        <CardContent className="p-0 relative">
-                                            <img
-                                                src={bioCards[0].imageUrl}
-                                                alt={bioCards[0].name}
-                                                className="w-full h-auto rounded-lg"
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                ) : (
-                                    <div className="bg-muted rounded-lg h-28 flex items-center justify-center text-xs text-muted-foreground">
-                                        Bio
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-                
-                {/* Fila 3: Rot - 4 columnas */}
+
+                {/* Fila 2: Rot (máx 4 por fila) */}
                 {rotCards.length > 0 && (
                     <div>
                         <h2 className="text-lg font-bold flex items-center mb-3">
                             Rot <span className="ml-2 text-sm font-normal text-muted-foreground">({rotCards.length})</span>
                         </h2>
-                        <div className="grid grid-cols-4 gap-3 mb-3">
-                            {[0, 1, 2, 3].map((index) => (
-                                <div key={`rot-container-${index}`}>
-                                    {rotCards.length > index ? (
-                                        <Card
-                                            key={`rot-${index}`}
-                                            className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                            onClick={() => setSelectedCard(rotCards[index])}
-                                        >
-                                            <CardContent className="p-0 relative">
-                                                <img
-                                                    src={rotCards[index].imageUrl}
-                                                    alt={rotCards[index].name}
-                                                    className="w-full h-auto rounded-lg"
-                                                />
-                                            </CardContent>
-                                        </Card>
-                                    ) : (
-                                        <div className="bg-muted rounded-lg h-28 flex items-center justify-center text-xs text-muted-foreground">
-                                            Slot Rot
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                        {Array.from({ length: Math.ceil(rotCards.length / 4) }).map((_, rowIdx) => (
+                            <div key={`rot-row-${rowIdx}`} className="grid grid-cols-4 gap-3 mb-3">
+                                {rotCards.slice(rowIdx * 4, rowIdx * 4 + 4).map((card, idx) => (
+                                    <Card
+                                        key={`rot-${rowIdx * 4 + idx}`}
+                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
+                                        onClick={() => setSelectedCard(card)}
+                                    >
+                                        <CardContent className="p-0 relative">
+                                            <img
+                                                src={card.imageUrl}
+                                                alt={card.name}
+                                                className="w-full h-auto rounded-lg"
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ))}
                     </div>
                 )}
-                
-                {/* Fila 4: Ixim - 4 columnas */}
+
+                {/* Fila 3: Ixim (máx 4 por fila) */}
                 {iximCards.length > 0 && (
                     <div>
                         <h2 className="text-lg font-bold flex items-center mb-3">
                             Ixim <span className="ml-2 text-sm font-normal text-muted-foreground">({iximCards.length})</span>
                         </h2>
-                        <div className="grid grid-cols-4 gap-3 mb-3">
-                            {[0, 1, 2, 3].map((index) => (
-                                <div key={`ixim-container-${index}`}>
-                                    {iximCards.length > index ? (
-                                        <Card
-                                            key={`ixim-${index}`}
-                                            className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                            onClick={() => setSelectedCard(iximCards[index])}
-                                        >
-                                            <CardContent className="p-0 relative">
-                                                <img
-                                                    src={iximCards[index].imageUrl}
-                                                    alt={iximCards[index].name}
-                                                    className="w-full h-auto rounded-lg"
-                                                />
-                                            </CardContent>
-                                        </Card>
-                                    ) : (
-                                        <div className="bg-muted rounded-lg h-28 flex items-center justify-center text-xs text-muted-foreground">
-                                            Slot Ixim
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+                        {Array.from({ length: Math.ceil(iximCards.length / 4) }).map((_, rowIdx) => (
+                            <div key={`ixim-row-${rowIdx}`} className="grid grid-cols-4 gap-3 mb-3">
+                                {iximCards.slice(rowIdx * 4, rowIdx * 4 + 4).map((card, idx) => (
+                                    <Card
+                                        key={`ixim-${rowIdx * 4 + idx}`}
+                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
+                                        onClick={() => setSelectedCard(card)}
+                                    >
+                                        <CardContent className="p-0 relative">
+                                            <img
+                                                src={card.imageUrl}
+                                                alt={card.name}
+                                                className="w-full h-auto rounded-lg"
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ))}
                     </div>
                 )}
-                
-                {/* Fila 5 en adelante: Otras cartas - 3 columnas */}
-                {(adendeiCards.length > 3 || otherCards.length > 0) && (
+
+                {/* Filas 4+: Adendeis y Rava (máx 3 por fila, hasta 24) */}
+                {adendeiCards.length > 0 && (
                     <div>
                         <h2 className="text-lg font-bold flex items-center mb-3">
-                            Otras cartas <span className="ml-2 text-sm font-normal text-muted-foreground">({adendeiCards.length - 3 + otherCards.length})</span>
+                            Adendeis y Rava <span className="ml-2 text-sm font-normal text-muted-foreground">({adendeiCards.length})</span>
                         </h2>
-                        <div className="grid grid-cols-3 gap-3">
-                            {/* Combinar adendeis adicionales y otras cartas para mostrarlas en el mismo orden del editor */}
-                            {[...adendeiCards.slice(3), ...otherCards].map((card, index) => (
-                                <Card
-                                    key={`other-card-${index}`}
-                                    className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                    onClick={() => setSelectedCard(card)}
-                                >
-                                    <CardContent className="p-0 relative">
-                                        <img
-                                            src={card.imageUrl}
-                                            alt={card.name}
-                                            className="w-full h-auto rounded-lg"
-                                        />
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
+                        {Array.from({ length: Math.ceil(adendeiCards.length / 3) }).map((_, rowIdx) => (
+                            <div key={`adendei-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
+                                {adendeiCards.slice(rowIdx * 3, rowIdx * 3 + 3).map((card, idx) => (
+                                    <Card
+                                        key={`adendei-${rowIdx * 3 + idx}`}
+                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
+                                        onClick={() => setSelectedCard(card)}
+                                    >
+                                        <CardContent className="p-0 relative">
+                                            <img
+                                                src={card.imageUrl}
+                                                alt={card.name}
+                                                className="w-full h-auto rounded-lg"
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Fila extra: Otras cartas (3 por fila) */}
+                {otherCards.length > 0 && (
+                    <div>
+                        <h2 className="text-lg font-bold flex items-center mb-3">
+                            Otras cartas <span className="ml-2 text-sm font-normal text-muted-foreground">({otherCards.length})</span>
+                        </h2>
+                        {Array.from({ length: Math.ceil(otherCards.length / 3) }).map((_, rowIdx) => (
+                            <div key={`other-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
+                                {otherCards.slice(rowIdx * 3, rowIdx * 3 + 3).map((card, idx) => (
+                                    <Card
+                                        key={`other-${rowIdx * 3 + idx}`}
+                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
+                                        onClick={() => setSelectedCard(card)}
+                                    >
+                                        <CardContent className="p-0 relative">
+                                            <img
+                                                src={card.imageUrl}
+                                                alt={card.name}
+                                                className="w-full h-auto rounded-lg"
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
