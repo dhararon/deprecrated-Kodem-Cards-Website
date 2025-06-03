@@ -16,6 +16,7 @@ export interface Deck {
     views?: number; // Número de veces que se ha visto el mazo
     createdAt?: string; // Fecha de creación en formato ISO
     updatedAt?: string; // Fecha de última actualización en formato ISO
+    deckSlots?: DeckCardSlot[]; // Nuevo: slots con posición
 }
 
 /**
@@ -23,6 +24,8 @@ export interface Deck {
  */
 export interface DeckWithCards extends Omit<Deck, 'cardIds'> {
     cards: CardDetails[];
+    cardIds: string[];
+    deckSlots?: DeckCardSlot[];
 }
 
 /**
@@ -33,4 +36,10 @@ export interface DeckFilters {
     isPublic?: boolean;
     searchTerm?: string;
     limit?: number;
-} 
+}
+
+export type DeckCardSlot = {
+    cardId: string;
+    row: number;
+    col: number;
+}; 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
 import { Card, CardDetails, CardType, CardEnergy, CardRarity, CardSet } from '@/types/card';
-import { Deck } from '@/types/deck';
+import { Deck, DeckCardSlot } from '@/types/deck';
 import { 
   getDeckById, 
   createDeck, 
@@ -186,16 +186,16 @@ export default function DeckEditor() {
         setIsPublic(existingDeck.isPublic);
         
         // Cargar las cartas del mazo
-        if (existingDeck.cardIds && existingDeck.cardIds.length > 0 && allCards.length > 0) {
-          // Contar ocurrencias de cada ID de carta y mantener orden
+        if (existingDeck.deckSlots && existingDeck.deckSlots.length > 0 && allCards.length > 0) {
+          // Establecer deckCards con los conteos y el orden
           const cardCounts: Record<string, number> = {};
           const cardOrder: string[] = [];
           
-          existingDeck.cardIds.forEach(cardId => {
-            cardCounts[cardId] = (cardCounts[cardId] || 0) + 1;
+          existingDeck.deckSlots.forEach(slot => {
+            cardCounts[slot.cardId] = (cardCounts[slot.cardId] || 0) + 1;
             // Solo agregar al orden la primera vez que aparece
-            if (!cardOrder.includes(cardId)) {
-              cardOrder.push(cardId);
+            if (!cardOrder.includes(slot.cardId)) {
+              cardOrder.push(slot.cardId);
             }
           });
           
@@ -1140,34 +1140,51 @@ export default function DeckEditor() {
     
     setIsSaving(true);
     try {
-      // Convertir el mapa de cartas a un array de IDs
-      const cardIds: string[] = [];
-      Object.entries(deckCards).forEach(([cardId, quantity]) => {
-        for (let i = 0; i < quantity; i++) {
-          cardIds.push(cardId);
-        }
-      });
-      
-      // Para simplificar, tratamos todo como creación de nuevo mazo
-      // Ya que la edición está dando problemas
-      const deckData: Omit<Deck, 'id'> = {
+      // Construir deckSlots recorriendo el grid visual (mainAdendeis, protectores, bio, rot, ixim, others)
+      const deckSlots: DeckCardSlot[] = [];
+      let currentRow = 0;
+      let currentCol = 0;
+      const maxCols = 3;
+
+      // Helper para agregar cartas a slots
+      const addCardsToSlots = (cards: CardDetails[]) => {
+        cards.forEach(card => {
+          deckSlots.push({ cardId: card.id, row: currentRow, col: currentCol });
+          currentCol++;
+          if (currentCol >= maxCols) {
+            currentCol = 0;
+            currentRow++;
+          }
+        });
+      };
+
+      // Agregar protectores, bio, rot, ixim, adendeis, others en orden visual
+      if (organizedDeck.protector1) addCardsToSlots([organizedDeck.protector1]);
+      if (organizedDeck.protector2) addCardsToSlots([organizedDeck.protector2]);
+      if (organizedDeck.bio) addCardsToSlots([organizedDeck.bio]);
+      addCardsToSlots(organizedDeck.rotCards);
+      addCardsToSlots(organizedDeck.iximCards);
+      addCardsToSlots(organizedDeck.mainAdendeis);
+      addCardsToSlots(organizedDeck.otherCards);
+
+      // Guardar el mazo con deckSlots
+      const deckData: Omit<Deck, 'id'> & { deckSlots: DeckCardSlot[] } = {
         name: deckName.trim(),
         userUid: user!.id,
         userName: user!.name || 'Usuario',
         userAvatar: user!.avatarUrl || undefined,
-        cardIds,
         isPublic,
-        description: deckDescription.trim() || ""
+        description: deckDescription.trim() || "",
+        cardIds: [], // Ya no se usa, pero requerido por el tipo
+        deckSlots // Nuevo campo
       };
-      
+
       let newDeckId;
-      // Si tenemos un ID y no estamos en modo "new", intentar actualizar
       if (deckId && !isNew) {
-        // Intentar actualizar, pero si falla, creamos uno nuevo
         try {
           await updateDeck(deckId, {
             name: deckData.name,
-            cardIds: deckData.cardIds,
+            deckSlots: deckData.deckSlots,
             isPublic: deckData.isPublic,
             description: deckData.description
           });
@@ -1179,12 +1196,9 @@ export default function DeckEditor() {
           toast.success('No se pudo actualizar, se ha creado un nuevo mazo');
         }
       } else {
-        // Crear nuevo
         newDeckId = await createDeck(deckData);
         toast.success('Mazo creado correctamente');
       }
-      
-      // Navegar al mazo creado/actualizado
       navigate(`/decks/${newDeckId}`);
     } catch (error) {
       console.error('Error al guardar el mazo:', error);

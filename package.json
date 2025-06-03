@@ -15,6 +15,7 @@
     "seed:users": "bun run scripts/seed-firebase-users.ts",
     "seed:cards": "bun run scripts/seed-firebase-cards.ts",
     "seed:all": "bun run scripts/seed-firebase-users.ts && bun run scripts/seed-firebase-cards.ts",
+    "migrate:deckslots": "bun run scripts/migrate_deckslots.ts",
     "lint": "bun eslint 'src/**/*.{ts,tsx}' --max-warnings=0",
     "lint:fix": "bun eslint 'src/**/*.{ts,tsx}' --fix",
     "lint:report": "bun eslint 'src/**/*.{ts,tsx}' --quiet --no-error-on-unmatched-pattern --output-file=reports/eslint-report.json --format=json",

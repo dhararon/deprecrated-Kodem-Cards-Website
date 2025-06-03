@@ -194,7 +194,8 @@ export const getDeckWithCards = async (deckId: string): Promise<DeckWithCards | 
 
         return {
             ...deck,
-            cards
+            cards,
+            cardIds: deck.cardIds
         };
     } catch (error) {
         console.error('Error al obtener el mazo con cartas:', error);

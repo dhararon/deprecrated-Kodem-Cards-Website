@@ -254,6 +254,15 @@ const DeckDetail: React.FC = () => {
         return orderedCards;
     };
 
+    // Obtener las cartas en el orden original del mazo
+    const getCardsInOriginalOrder = (): CardDetails[] => {
+        if (!deck?.cardIds || !deck.cards) return [];
+        // Mapear cada ID a su carta correspondiente
+        return deck.cardIds
+            .map(cardId => deck.cards.find(card => card.id === cardId))
+            .filter((card): card is CardDetails => !!card);
+    };
+
     // Imprimir el mazo
     const handlePrintDeck = () => {
         if (!deck) return;
@@ -682,204 +691,72 @@ const DeckDetail: React.FC = () => {
             
             // Comenzar a dibujar las cartas
             const drawCards = async () => {
-                try {
-                    let currentY = headerHeight;
-                    
-                    // Calcular total de cartas para el progreso
-                    const totalSections = sectionCount;
-                    let currentSection = 0;
-                    
-                    // Mostrar paso actual
-                    setGenerationStep('Dibujando Protectores y Adendeis...');
-                    setGenerationProgress(20);
-                    
-                    // Calcular tamaños para cada tipo de sección
-                    const protectorAdendeiWidth = (canvasWidth - marginX - (padding * (protectorAdendeiCols + 1))) / protectorAdendeiCols;
-                    const bioProtectorWidth = (canvasWidth - marginX - (padding * (bioProtectorCols + 1))) / bioProtectorCols;
-                    const rotIximWidth = (canvasWidth - marginX - (padding * (rotIximCols + 1))) / rotIximCols;
-                    const otherCardsWidth = (canvasWidth - marginX - (padding * (otherCardsCols + 1))) / otherCardsCols;
-                    
-                    // 1. Fila: Protector y Adendei
-                    if (protectorCards.length > 0 || adendeiCards.length > 0) {
-                        // Título de sección
-                        ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
-                        ctx.font = `bold ${16 * scaleFactor}px Arial`;
-                        ctx.fillText('Protectores y Adendeis principales', padding, currentY);
-                        currentY += sectionSpacing;
-                        
-                        // Dibujar protector
-                        if (protectorCards.length > 0) {
-                            await loadAndDrawImage(
-                                protectorCards[0].imageUrl,
-                                padding,
-                                currentY,
-                                protectorAdendeiWidth,
-                                cardHeight
-                            );
-                        }
-                        
-                        // Dibujar Adendeis (máximo 3)
-                        for (let i = 0; i < 3; i++) {
-                            if (adendeiCards.length > i) {
-                                await loadAndDrawImage(
-                                    adendeiCards[i].imageUrl,
-                                    padding + (protectorAdendeiWidth + padding) * (i + 1),
-                                    currentY,
-                                    protectorAdendeiWidth,
-                                    cardHeight
-                                );
+                if (deck?.deckSlots && deck.deckSlots.length > 0 && deck.cards) {
+                    const cardMap = new Map(deck.cards.map(card => [card.id, card]));
+                    const slots = deck.deckSlots;
+                    // Calcular filas y columnas
+                    const maxRow = Math.max(...slots.map(s => s.row));
+                    const maxCol = Math.max(...slots.map(s => s.col));
+                    const cardWidth = 180 * scaleFactor;
+                    const cardHeight = 260 * scaleFactor;
+                    const cardSpacing = 16 * scaleFactor;
+                    for (let row = 0; row <= maxRow; row++) {
+                        for (let col = 0; col <= maxCol; col++) {
+                            const slot = slots.find(s => s.row === row && s.col === col);
+                            if (slot) {
+                                const card = cardMap.get(slot.cardId);
+                                if (card) {
+                                    const x = marginX + col * (cardWidth + cardSpacing);
+                                    const y = headerHeight + row * (cardHeight + cardSpacing);
+                                    await loadAndDrawImage(card.imageUrl, x, y, cardWidth, cardHeight);
+                                }
                             }
                         }
-                        
-                        currentY += cardHeight + padding;
-                        currentSection++;
-                        setGenerationProgress(20 + (currentSection / totalSections) * 60);
                     }
-                    
-                    // Mostrar paso actual
-                    setGenerationStep('Dibujando Bio y segundo Protector...');
-                    
-                    // 2. Fila: Bio y segundo Protector
-                    if (bioCards.length > 0 || protectorCards.length > 1) {
-                        // Título de sección
-                        ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
-                        ctx.font = `bold ${16 * scaleFactor}px Arial`;
-                        ctx.fillText('Segundo Protector y Bio', padding, currentY);
-                        currentY += sectionSpacing;
-                        
-                        // Segundo Protector
-                        if (protectorCards.length > 1) {
-                            await loadAndDrawImage(
-                                protectorCards[1].imageUrl,
-                                padding,
-                                currentY,
-                                bioProtectorWidth,
-                                cardHeight
-                            );
-                        }
-                        
-                        // Bio
-                        if (bioCards.length > 0) {
-                            await loadAndDrawImage(
-                                bioCards[0].imageUrl,
-                                padding + bioProtectorWidth + padding,
-                                currentY,
-                                bioProtectorWidth,
-                                cardHeight
-                            );
-                        }
-                        
-                        currentY += cardHeight + padding;
-                        currentSection++;
-                        setGenerationProgress(20 + (currentSection / totalSections) * 60);
+                    return;
+                }
+                // Fallback: lógica anterior
+                try {
+                    let currentY = headerHeight;
+                    const sectionSpacing = 32 * scaleFactor;
+                    const cardSpacing = 16 * scaleFactor;
+                    const cardHeight = 180 * scaleFactor;
+                    const cardWidth3 = (canvasWidth - marginX - (cardSpacing * 2)) / 3;
+                    const orderedCards = getCardsInOriginalOrder();
+
+                    // Título de sección
+                    ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
+                    ctx.font = `bold ${16 * scaleFactor}px Arial`;
+                    ctx.fillText('Cartas del mazo', padding, currentY);
+                    currentY += sectionSpacing;
+
+                    for (let i = 0; i < orderedCards.length; i++) {
+                        const row = Math.floor(i / 3);
+                        const col = i % 3;
+                        await loadAndDrawImage(
+                            orderedCards[i].imageUrl,
+                            padding + (cardWidth3 + cardSpacing) * col,
+                            currentY + (cardHeight + cardSpacing) * row,
+                            cardWidth3,
+                            cardHeight
+                        );
                     }
-                    
-                    // Mostrar paso actual
-                    setGenerationStep('Dibujando cartas Rot...');
-                    
-                    // 3. Fila: Rot
-                    if (rotCards.length > 0) {
-                        // Título de sección
-                        ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
-                        ctx.font = `bold ${16 * scaleFactor}px Arial`;
-                        ctx.fillText(`Rot (${rotCards.length})`, padding, currentY);
-                        currentY += sectionSpacing;
-                        
-                        for (let i = 0; i < rotCards.length; i++) {
-                            const row = Math.floor(i / rotIximCols);
-                            const col = i % rotIximCols;
-                            
-                            await loadAndDrawImage(
-                                rotCards[i].imageUrl,
-                                padding + (rotIximWidth + padding) * col,
-                                currentY + (cardHeight + padding) * row,
-                                rotIximWidth,
-                                cardHeight
-                            );
-                        }
-                        
-                        currentY += Math.ceil(rotCards.length / rotIximCols) * (cardHeight + padding);
-                        currentSection++;
-                        setGenerationProgress(20 + (currentSection / totalSections) * 60);
-                    }
-                    
-                    // Mostrar paso actual
-                    setGenerationStep('Dibujando cartas Ixim...');
-                    
-                    // 4. Fila: Ixim
-                    if (iximCards.length > 0) {
-                        // Título de sección
-                        ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
-                        ctx.font = `bold ${16 * scaleFactor}px Arial`;
-                        ctx.fillText(`Ixim (${iximCards.length})`, padding, currentY);
-                        currentY += sectionSpacing;
-                        
-                        for (let i = 0; i < iximCards.length; i++) {
-                            const row = Math.floor(i / rotIximCols);
-                            const col = i % rotIximCols;
-                            
-                            await loadAndDrawImage(
-                                iximCards[i].imageUrl,
-                                padding + (rotIximWidth + padding) * col,
-                                currentY + (cardHeight + padding) * row,
-                                rotIximWidth,
-                                cardHeight
-                            );
-                        }
-                        
-                        currentY += Math.ceil(iximCards.length / rotIximCols) * (cardHeight + padding);
-                        currentSection++;
-                        setGenerationProgress(20 + (currentSection / totalSections) * 60);
-                    }
-                    
-                    // Mostrar paso actual
-                    setGenerationStep('Dibujando otras cartas...');
-                    
-                    // 5. Otras cartas (3 columnas para mejor disposición)
-                    const remainingAdendeis = adendeiCards.slice(3);
-                    const combinedOtherCards = [...remainingAdendeis, ...otherCards];
-                    
-                    if (combinedOtherCards.length > 0) {
-                        // Título de sección
-                        ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
-                        ctx.font = `bold ${16 * scaleFactor}px Arial`;
-                        ctx.fillText(`Otras cartas (${combinedOtherCards.length})`, padding, currentY);
-                        currentY += sectionSpacing;
-                        
-                        for (let i = 0; i < combinedOtherCards.length; i++) {
-                            const row = Math.floor(i / otherCardsCols);
-                            const col = i % otherCardsCols;
-                            
-                            await loadAndDrawImage(
-                                combinedOtherCards[i].imageUrl,
-                                padding + (otherCardsWidth + padding) * col,
-                                currentY + (cardHeight + padding) * row,
-                                otherCardsWidth,
-                                cardHeight
-                            );
-                        }
-                        
-                        currentSection++;
-                        setGenerationProgress(20 + (currentSection / totalSections) * 60);
-                    }
-                    
-                    // Pequeño pie de página
+                    currentY += Math.ceil(orderedCards.length / 3) * (cardHeight + cardSpacing) + sectionSpacing;
+
+                    // Pie de página
                     ctx.fillStyle = selectedBackground === 'dark' ? '#94a3b8' : '#6b7280';
                     ctx.font = `${10 * scaleFactor}px Arial`;
                     ctx.textAlign = 'left';
                     ctx.fillText(`Kodem Cards • ${new Date().toLocaleDateString()} • https://kodemcards.xyz`, padding, canvas.height - padding * 1.5);
-                    
-                    // Actualizar progreso
+
                     setGenerationProgress(90);
                     setGenerationStep('Finalizando imagen...');
-                    
                 } catch (err) {
                     console.error('Error general al dibujar cartas:', err);
                     setGenerationError('Error al generar la imagen. Revisa la consola para más detalles.');
                     setIsGeneratingImage(false);
                     return;
                 }
-                
                 // Convertir canvas a imagen y descargar
                 try {
                     console.log('Generando imagen final...');
@@ -1190,9 +1067,29 @@ const DeckDetail: React.FC = () => {
         );
     };
 
-    // Renderizar vista de grid para cartas (formato igual al editor, solo slots con cartas)
+    // Renderizar grid visual usando deckSlots si existen
     const renderCardGrid = () => {
-        if (!deck?.cards.length) {
+        if (deck?.deckSlots && deck.deckSlots.length > 0) {
+            const grid = getGridFromDeckSlots();
+            return (
+                <div className="space-y-4">
+                    {grid.map((row, rowIdx) => (
+                        <div key={rowIdx} className="grid grid-cols-3 gap-3">
+                            {row.map((card, colIdx) => (
+                                <div key={colIdx} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors">
+                                    {card ? (
+                                        <img src={card.imageUrl} alt={card.name} className="object-cover w-full h-full" />
+                                    ) : null}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        // Fallback: lógica anterior
+        const orderedCards = getCardsInOriginalOrder();
+        if (!orderedCards.length) {
             return (
                 <EmptyState
                     title="No hay cartas"
@@ -1201,196 +1098,27 @@ const DeckDetail: React.FC = () => {
                 />
             );
         }
-
-        // Agrupar cartas por tipo
-        const protectorCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Protector');
-        const bioCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Bio');
-        const rotCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Rot');
-        const iximCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Ixim');
-        // Adendeis y Rava
-        const adendeiCards = deck.cards.filter(card => {
-            const type = normalizeCardType(card.type);
-            return type.toLowerCase().includes('adendei') || type === 'Rava';
-        });
-        // Otras cartas
-        const otherCards = deck.cards.filter(card => {
-            const type = normalizeCardType(card.type);
-            return (
-                type !== 'Protector' &&
-                type !== 'Bio' &&
-                type !== 'Rot' &&
-                type !== 'Ixim' &&
-                !type.toLowerCase().includes('adendei') &&
-                type !== 'Rava'
-            );
-        });
-
         return (
             <div className="space-y-8">
-                {/* Fila 1: Protectores y Bio */}
-                {(protectorCards.length > 0 || bioCards.length > 0) && (
-                    <div>
-                        <h2 className="text-lg font-bold flex items-center mb-3">
-                            Protectores y Bio
-                        </h2>
-                        <div className="grid grid-cols-3 gap-3 mb-3">
-                            {protectorCards[0] && (
-                                <Card
-                                    className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                    onClick={() => setSelectedCard(protectorCards[0])}
-                                >
-                                    <CardContent className="p-0 relative">
-                                        <img
-                                            src={protectorCards[0].imageUrl}
-                                            alt={protectorCards[0].name}
-                                            className="w-full h-auto rounded-lg"
-                                        />
-                                    </CardContent>
-                                </Card>
-                            )}
-                            {protectorCards[1] && (
-                                <Card
-                                    className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                    onClick={() => setSelectedCard(protectorCards[1])}
-                                >
-                                    <CardContent className="p-0 relative">
-                                        <img
-                                            src={protectorCards[1].imageUrl}
-                                            alt={protectorCards[1].name}
-                                            className="w-full h-auto rounded-lg"
-                                        />
-                                    </CardContent>
-                                </Card>
-                            )}
-                            {bioCards[0] && (
-                                <Card
-                                    className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                    onClick={() => setSelectedCard(bioCards[0])}
-                                >
-                                    <CardContent className="p-0 relative">
-                                        <img
-                                            src={bioCards[0].imageUrl}
-                                            alt={bioCards[0].name}
-                                            className="w-full h-auto rounded-lg"
-                                        />
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Fila 2: Rot (máx 4 por fila) */}
-                {rotCards.length > 0 && (
-                    <div>
-                        <h2 className="text-lg font-bold flex items-center mb-3">
-                            Rot <span className="ml-2 text-sm font-normal text-muted-foreground">({rotCards.length})</span>
-                        </h2>
-                        {Array.from({ length: Math.ceil(rotCards.length / 4) }).map((_, rowIdx) => (
-                            <div key={`rot-row-${rowIdx}`} className="grid grid-cols-4 gap-3 mb-3">
-                                {rotCards.slice(rowIdx * 4, rowIdx * 4 + 4).map((card, idx) => (
-                                    <Card
-                                        key={`rot-${rowIdx * 4 + idx}`}
-                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                        onClick={() => setSelectedCard(card)}
-                                    >
-                                        <CardContent className="p-0 relative">
-                                            <img
-                                                src={card.imageUrl}
-                                                alt={card.name}
-                                                className="w-full h-auto rounded-lg"
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
+                {Array.from({ length: Math.ceil(orderedCards.length / 3) }).map((_, rowIdx) => (
+                    <div key={`row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
+                        {orderedCards.slice(rowIdx * 3, rowIdx * 3 + 3).map((card, idx) => (
+                            <Card
+                                key={`card-${rowIdx * 3 + idx}`}
+                                className="cursor-pointer transition-transform hover:scale-105 group relative"
+                                onClick={() => setSelectedCard(card)}
+                            >
+                                <CardContent className="p-0 relative">
+                                    <img
+                                        src={card.imageUrl}
+                                        alt={card.name}
+                                        className="w-full h-auto rounded-lg"
+                                    />
+                                </CardContent>
+                            </Card>
                         ))}
                     </div>
-                )}
-
-                {/* Fila 3: Ixim (máx 4 por fila) */}
-                {iximCards.length > 0 && (
-                    <div>
-                        <h2 className="text-lg font-bold flex items-center mb-3">
-                            Ixim <span className="ml-2 text-sm font-normal text-muted-foreground">({iximCards.length})</span>
-                        </h2>
-                        {Array.from({ length: Math.ceil(iximCards.length / 4) }).map((_, rowIdx) => (
-                            <div key={`ixim-row-${rowIdx}`} className="grid grid-cols-4 gap-3 mb-3">
-                                {iximCards.slice(rowIdx * 4, rowIdx * 4 + 4).map((card, idx) => (
-                                    <Card
-                                        key={`ixim-${rowIdx * 4 + idx}`}
-                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                        onClick={() => setSelectedCard(card)}
-                                    >
-                                        <CardContent className="p-0 relative">
-                                            <img
-                                                src={card.imageUrl}
-                                                alt={card.name}
-                                                className="w-full h-auto rounded-lg"
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Filas 4+: Adendeis y Rava (máx 3 por fila, hasta 24) */}
-                {adendeiCards.length > 0 && (
-                    <div>
-                        <h2 className="text-lg font-bold flex items-center mb-3">
-                            Adendeis y Rava <span className="ml-2 text-sm font-normal text-muted-foreground">({adendeiCards.length})</span>
-                        </h2>
-                        {Array.from({ length: Math.ceil(adendeiCards.length / 3) }).map((_, rowIdx) => (
-                            <div key={`adendei-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
-                                {adendeiCards.slice(rowIdx * 3, rowIdx * 3 + 3).map((card, idx) => (
-                                    <Card
-                                        key={`adendei-${rowIdx * 3 + idx}`}
-                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                        onClick={() => setSelectedCard(card)}
-                                    >
-                                        <CardContent className="p-0 relative">
-                                            <img
-                                                src={card.imageUrl}
-                                                alt={card.name}
-                                                className="w-full h-auto rounded-lg"
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Fila extra: Otras cartas (3 por fila) */}
-                {otherCards.length > 0 && (
-                    <div>
-                        <h2 className="text-lg font-bold flex items-center mb-3">
-                            Otras cartas <span className="ml-2 text-sm font-normal text-muted-foreground">({otherCards.length})</span>
-                        </h2>
-                        {Array.from({ length: Math.ceil(otherCards.length / 3) }).map((_, rowIdx) => (
-                            <div key={`other-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
-                                {otherCards.slice(rowIdx * 3, rowIdx * 3 + 3).map((card, idx) => (
-                                    <Card
-                                        key={`other-${rowIdx * 3 + idx}`}
-                                        className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                        onClick={() => setSelectedCard(card)}
-                                    >
-                                        <CardContent className="p-0 relative">
-                                            <img
-                                                src={card.imageUrl}
-                                                alt={card.name}
-                                                className="w-full h-auto rounded-lg"
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                )}
+                ))}
             </div>
         );
     };
@@ -1443,6 +1171,26 @@ const DeckDetail: React.FC = () => {
                 </CardContent>
             </Card>
         );
+    };
+
+    // Utilidad: obtener matriz de cartas por fila y columna desde deckSlots
+    const getGridFromDeckSlots = () => {
+        if (!deck?.deckSlots || !deck.cards) return [];
+        // Crear un mapa de id -> CardDetails
+        const cardMap = new Map(deck.cards.map(card => [card.id, card]));
+        // Agrupar por fila
+        const rows: CardDetails[][] = [];
+        deck.deckSlots.forEach(slot => {
+            if (!rows[slot.row]) rows[slot.row] = [];
+            rows[slot.row][slot.col] = cardMap.get(slot.cardId) || null;
+        });
+        // Rellenar huecos con null para mantener la estructura
+        const maxCols = Math.max(...rows.map(r => r.length));
+        return rows.map(row => {
+            const filled = Array(maxCols).fill(null);
+            row.forEach((card, idx) => { filled[idx] = card; });
+            return filled;
+        });
     };
 
     // Renderizado de estados de carga y error
