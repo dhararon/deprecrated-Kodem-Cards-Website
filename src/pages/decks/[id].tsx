@@ -23,6 +23,10 @@ import { Separator } from '@/components/atoms/Separator';
 import { getDeckWithCards } from '@/lib/firebase/services/deckService';
 import { DeckWithCards } from '@/types/deck';
 import { CardDetails } from '@/types/card';
+import DeckCard from '@/components/atoms/DeckCard';
+import DeckCardRow from '@/components/molecules/DeckCardRow';
+import DeckDetailHeader from '@/components/organisms/DeckDetailHeader';
+import DeckSelectedCard from '@/components/organisms/DeckSelectedCard';
 
 /**
  * Página para visualizar un mazo existente
@@ -105,6 +109,8 @@ const DeckDetail: React.FC = () => {
 
         loadDeckData();
     }, [id]);
+
+    // Helpers y lógica de negocio
 
     // Agrupar cartas por tipo
     const getCardsByType = () => {
@@ -850,144 +856,17 @@ const DeckDetail: React.FC = () => {
         );
     };
 
-    // Modal de progreso para la generación de imagen
-    const renderProgressModal = () => {
-        if (!isGeneratingImage) return null;
-        
-        return (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white dark:bg-white rounded-lg shadow-xl max-w-md w-full">
-                    <div className="flex justify-between items-center p-4 border-b">
-                        <h2 className="text-xl font-bold text-black">Generando imagen</h2>
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => setIsGeneratingImage(false)}
-                        >
-                            <X className="h-5 w-5" />
-                        </Button>
-                    </div>
-                    
-                    <div className="p-4">
-                        {generationError ? (
-                            <div className="flex flex-col items-center">
-                                <AlertCircle className="h-16 w-16 text-red-500 mb-3" />
-                                <p className="text-red-500 font-medium text-center mb-2">¡Ups! Algo salió mal</p>
-                                <p className="text-sm text-gray-600 text-center mb-4">{generationError}</p>
-                                <Button 
-                                    variant="primary" 
-                                    size="sm"
-                                    onClick={() => setIsGeneratingImage(false)}
-                                >
-                                    Cerrar
-                                </Button>
-                            </div>
-                        ) : generationProgress === 100 ? (
-                            <div className="flex flex-col items-center">
-                                <CheckCircle className="h-16 w-16 text-green-500 mb-3" />
-                                <p className="text-green-500 font-medium text-center mb-2">¡Imagen generada correctamente!</p>
-                                <p className="text-sm text-gray-600 text-center mb-4">La descarga debería iniciar automáticamente</p>
-                                
-                                {generatedImageUrl && (
-                                    <div className="w-full bg-gray-100 p-2 rounded-lg mb-4 relative">
-                                        <div className="h-32 overflow-hidden rounded">
-                                            <img 
-                                                src={generatedImageUrl} 
-                                                alt="Vista previa" 
-                                                className="w-full h-full object-contain"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                <Button 
-                                    variant="primary" 
-                                    size="sm"
-                                    onClick={() => setIsGeneratingImage(false)}
-                                >
-                                    Cerrar
-                                </Button>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="mb-4 flex justify-center">
-                                    <Spinner size="lg" className="text-primary" />
-                                </div>
-                                
-                                <p className="text-center text-sm text-gray-600 mb-3">{generationStep}</p>
-                                
-                                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                                    <div 
-                                        className="bg-primary h-2.5 rounded-full" 
-                                        style={{ width: `${generationProgress}%` }}
-                                    ></div>
-                                </div>
-                                
-                                <p className="text-center text-xs text-gray-500">
-                                    {generationProgress < 90 
-                                        ? 'Este proceso puede tardar unos segundos...' 
-                                        : 'Casi listo...'}
-                                </p>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    // Nuevo componente atómico para la visualización de una carta en el grid/lista
-    const DeckCard: React.FC<{
-      card: CardDetails;
-      selected?: boolean;
-      onClick?: (card: CardDetails) => void;
-      showId?: boolean;
-    }> = React.memo(({ card, selected, onClick, showId }) => (
-      <div
-        className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white ${selected ? 'ring-2 ring-primary' : ''}`}
-        onClick={() => onClick && onClick(card)}
-        tabIndex={0}
-        role="button"
-        aria-pressed={selected}
-      >
-        {showId && (
-          <span className="absolute top-1 left-1 text-xs text-muted-foreground bg-white/80 px-1 rounded">{card.fullId || 'ID-???'}</span>
-        )}
-        <img
-          src={card.imageUrl}
-          alt={card.name}
-          className="w-full h-full object-contain"
-          style={{ maxHeight: 200 }}
-          draggable={false}
-          loading="lazy"
-        />
-      </div>
-    ));
-    DeckCard.displayName = 'DeckCard';
-
-    // Componente molecular para una fila de cartas
-    const DeckCardRow: React.FC<{
-      cards: (CardDetails | null)[];
-      columns: number;
-      onCardClick?: (card: CardDetails) => void;
-      selectedCardId?: string;
-    }> = React.memo(({ cards, columns, onCardClick, selectedCardId }) => (
-      <div className={`grid grid-cols-${columns} gap-3`}>
-        {cards.map((card, idx) =>
-          card ? (
-            <DeckCard
-              key={card.id}
-              card={card}
-              selected={selectedCardId === card.id}
-              onClick={onCardClick}
-            />
-          ) : (
-            <div key={`empty-${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full bg-white" />
-          )
-        )}
-      </div>
-    ));
-    DeckCardRow.displayName = 'DeckCardRow';
+    // Reemplazar el renderizado del modal de progreso por el nuevo componente
+    const renderProgressModal = () => (
+      <GenerationProgressModal
+        isOpen={isGeneratingImage}
+        onClose={() => setIsGeneratingImage(false)}
+        error={generationError}
+        progress={generationProgress}
+        step={generationStep}
+        imageUrl={generatedImageUrl}
+      />
+    );
 
     // Refactor del renderCardGrid usando los nuevos componentes
     const renderCardGrid = () => {
@@ -1144,15 +1023,12 @@ const DeckDetail: React.FC = () => {
         </div>
     );
 
+    // Render principal
     return (
         <div className="flex flex-col w-full min-h-screen bg-background">
-            {/* Modal de selección de fondo */}
             {showBackgroundModal && renderBackgroundModal()}
-            
-            {/* Modal de progreso de generación de imagen */}
             {renderProgressModal()}
-            
-            {/* Barra superior */}
+            {/* Barra superior (cabecera original restaurada) */}
             <div className="flex items-center justify-between p-4 border-b border-border bg-card">
                 <div className="flex items-center">
                     <Link href="/decks">
@@ -1161,10 +1037,10 @@ const DeckDetail: React.FC = () => {
                         </Button>
                     </Link>
                     <div>
-                        <h1 className="text-xl font-bold">{deck.name}</h1>
+                        <h1 className="text-xl font-bold">{deck?.name || ''}</h1>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <span>{getDeckCardCount()} cartas</span>
-                            {deck.isPublic ? (
+                            {deck?.isPublic ? (
                                 <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
                                     <Eye className="h-3 w-3 mr-1" />
                                     Público
@@ -1179,12 +1055,7 @@ const DeckDetail: React.FC = () => {
                     </div>
                 </div>
                 <div className="hidden md:flex gap-2">
-                    {/* Vista toggle */}
-                    <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}>
                         {viewMode === 'list' ? (
                             <>
                                 <Grid className="h-4 w-4 mr-2" />
@@ -1211,46 +1082,14 @@ const DeckDetail: React.FC = () => {
                     </Button>
                 </div>
             </div>
-
-            {/* Contenido principal */}
             <div className="flex flex-col md:flex-row flex-1 p-4 gap-6">
-                {/* Lista de cartas - en móvil ocupa todo el ancho */}
                 <div className="w-full md:w-2/3">
-                    {/* Información del creador */}
                     <Card className="mb-6">
                         <CardContent className="p-4">
                             <div className="flex items-center gap-4">
-                                <div className="bg-primary/10 p-3 rounded-full">
-                                    <User className="h-6 w-6 text-primary" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="font-medium">Creado por {deck.userName || 'Usuario anónimo'}</h3>
-                                    <div className="flex items-center flex-wrap text-sm text-muted-foreground gap-4 mt-1">
-                                        <div className="flex items-center">
-                                            <Calendar className="h-4 w-4 mr-1" />
-                                            {formatDate(deck.createdAt)}
-                                        </div>
-                                        {/* {deck.views !== undefined && (
-                                            <div className="flex items-center">
-                                                <Eye className="h-4 w-4 mr-1" />
-                                                {deck.views} visualizaciones
-                                            </div>
-                                        )}
-                                        {deck.likes !== undefined && (
-                                            <div className="flex items-center">
-                                                <Heart className="h-4 w-4 mr-1" />
-                                                {deck.likes} me gusta
-                                            </div>
-                                        )} */}
-                                    </div>
-                                </div>
-                                <Link href={`/decks/editor/${deck.id}`}>
-                                    <Button variant="outline" size="sm">
-                                        Editar
-                                    </Button>
-                                </Link>
+                                {/* Aquí puedes agregar info del creador, fecha, etc. */}
                             </div>
-                            {deck.description && (
+                            {deck?.description && (
                                 <>
                                     <Separator className="my-4" />
                                     <p className="text-sm">{deck.description}</p>
@@ -1258,89 +1097,89 @@ const DeckDetail: React.FC = () => {
                             )}
                         </CardContent>
                     </Card>
-
-                    {/* Toggle para vistas en móvil */}
                     <div className="flex justify-between items-center mb-4">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
                             className="md:hidden"
                         >
-                            {viewMode === 'list' ? (
-                                <>
-                                    <Grid className="h-4 w-4 mr-2" />
-                                    Ver como grid
-                                </>
-                            ) : (
-                                <>
-                                    <List className="h-4 w-4 mr-2" />
-                                    Ver como lista
-                                </>
-                            )}
+                            {viewMode === 'list' ? <><Grid className="h-4 w-4 mr-2" />Ver como grid</> : <><List className="h-4 w-4 mr-2" />Ver como lista</>}
                         </Button>
                     </div>
-
-                    {/* Acciones rápidas solo en móvil */}
                     {isMobile && actionButtons}
-
-                    {/* Mostrar cartas según la vista seleccionada */}
                     {viewMode === 'list' ? renderCardList() : renderCardGrid()}
                 </div>
-
-                {/* Visualización de carta seleccionada - solo en desktop */}
                 {!isMobile && (
                     <div className="w-full md:w-1/3 flex flex-col gap-4">
-                        {selectedCard ? (
-                            <Card className="sticky top-4">
-                                <CardContent className="p-4 flex flex-col items-center">
-                                    <div className="w-full max-w-[300px] rounded-lg overflow-hidden mb-4">
-                                        <img
-                                            src={selectedCard.imageUrl}
-                                            alt={selectedCard.name}
-                                            className="w-full h-auto"
-                                        />
-                                    </div>
-                                    <h3 className="text-xl font-bold mb-1">{selectedCard.name}</h3>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        {selectedCard.type} {selectedCard.energy && `• ${selectedCard.energy}`}
-                                    </p>
-
-                                    {selectedCard.description && (
-                                        <div className="w-full mb-3">
-                                            <h4 className="text-sm font-semibold mb-1">Descripción</h4>
-                                            <p className="text-sm">{selectedCard.description}</p>
-                                        </div>
-                                    )}
-
-                                    {selectedCard.rules && selectedCard.rules.length > 0 && (
-                                        <div className="w-full">
-                                            <h4 className="text-sm font-semibold mb-1">Reglas</h4>
-                                            <div className="space-y-2">
-                                                {selectedCard.rules.map((rule, idx) => (
-                                                    <p key={idx} className="text-sm">{rule}</p>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <Card className="sticky top-4">
-                                <CardContent className="p-8">
-                                    <EmptyState
-                                        title="Selecciona una carta"
-                                        description="Haz clic en una carta del mazo para ver sus detalles"
-                                        icon={<Eye className="h-10 w-10 text-primary/60" />}
-                                    />
-                                </CardContent>
-                            </Card>
-                        )}
+                        <DeckSelectedCard card={selectedCard} />
                     </div>
                 )}
             </div>
         </div>
     );
 };
+
+// Componente atómico para el modal de progreso de generación de imagen
+const GenerationProgressModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  error?: string | null;
+  progress: number;
+  step: string;
+  imageUrl?: string | null;
+}> = React.memo(({ isOpen, onClose, error, progress, step, imageUrl }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="flex justify-between items-center p-4 border-b">
+          <h2 className="text-xl font-bold text-black">Generando imagen</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+        <div className="p-4">
+          {error ? (
+            <div className="flex flex-col items-center">
+              <AlertCircle className="h-16 w-16 text-red-500 mb-3" />
+              <p className="text-red-500 font-medium text-center mb-2">¡Ups! Algo salió mal</p>
+              <p className="text-sm text-gray-600 text-center mb-4">{error}</p>
+              <Button variant="primary" size="sm" onClick={onClose}>Cerrar</Button>
+            </div>
+          ) : progress === 100 ? (
+            <div className="flex flex-col items-center">
+              <CheckCircle className="h-16 w-16 text-green-500 mb-3" />
+              <p className="text-green-500 font-medium text-center mb-2">¡Imagen generada correctamente!</p>
+              <p className="text-sm text-gray-600 text-center mb-4">La descarga debería iniciar automáticamente</p>
+              {imageUrl && (
+                <div className="w-full bg-gray-100 p-2 rounded-lg mb-4 relative">
+                  <div className="h-32 overflow-hidden rounded">
+                    <img src={imageUrl} alt="Vista previa" className="w-full h-full object-contain" />
+                  </div>
+                </div>
+              )}
+              <Button variant="primary" size="sm" onClick={onClose}>Cerrar</Button>
+            </div>
+          ) : (
+            <>
+              <div className="mb-4 flex justify-center">
+                <Spinner size="lg" className="text-primary" />
+              </div>
+              <p className="text-center text-sm text-gray-600 mb-3">{step}</p>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+                <div className="bg-primary h-2.5 rounded-full" style={{ width: `${progress}%` }}></div>
+              </div>
+              <p className="text-center text-xs text-gray-500">
+                {progress < 90 ? 'Este proceso puede tardar unos segundos...' : 'Casi listo...'}
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+GenerationProgressModal.displayName = 'GenerationProgressModal';
 
 export default DeckDetail;
