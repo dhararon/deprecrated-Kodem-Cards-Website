@@ -450,202 +450,43 @@ const DeckDetail: React.FC = () => {
     // Generar la imagen con el fondo seleccionado
     const generateDeckImage = async () => {
         if (!deck) return;
-        
         try {
-            // Inicializar estados de generación
             setIsGeneratingImage(true);
             setGenerationProgress(0);
             setGenerationStep('Iniciando proceso...');
             setGenerationError(null);
             setGeneratedImageUrl(null);
-            
-            // Cerrar el modal de selección de fondo
             setShowBackgroundModal(false);
-            
-            // Obtener el color de fondo seleccionado
-            const bgColor = backgroundOptions.find(bg => bg.id === selectedBackground)?.color || '#ffffff';
-            
-            // Mostrar paso actual
-            setGenerationStep('Preparando canvas...');
-            setGenerationProgress(5);
-            
-            // Crear un elemento canvas para renderizar el mazo como imagen
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            if (!ctx) {
-                throw new Error('Tu navegador no soporta la generación de imágenes');
-            }
-            
-            // Mostrar paso actual
-            setGenerationStep('Calculando dimensiones...');
-            setGenerationProgress(10);
-            
-            // Factor de escala para aumentar la resolución
-            const scaleFactor = 2.5; // Ajustar para un equilibrio entre resolución y tamaño
-            
-            // Definir dimensiones del canvas basadas en el contenido y layout
-            // Ajustar estos valores para un mejor diseño
-            const cardWidth = 160 * scaleFactor; // Aumentamos el ancho con el factor de escala
-            const cardHeight = 220 * scaleFactor; // Aumentamos la altura con el factor de escala
-            const padding = 15 * scaleFactor; // Aumentamos el espacio entre cartas
-            const headerHeight = 80 * scaleFactor; // Aumentamos el espacio para el título
-            const sectionSpacing = 22 * scaleFactor; // Aumentamos el espacio entre secciones
-            const footerHeight = 30 * scaleFactor; // Altura reservada para el pie de página
-            
-            // Número de filas y columnas basado en los tipos de cartas
-            const protectorCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Protector');
-            const adendeiCards = deck.cards.filter(card => normalizeCardType(card.type).toLowerCase().includes('adendei'));
-            const bioCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Bio');
-            const iximCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Ixim');
-            const rotCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Rot');
-            const otherCards = deck.cards.filter(card => 
-                normalizeCardType(card.type) !== 'Protector' && 
-                !normalizeCardType(card.type).toLowerCase().includes('adendei') &&
-                normalizeCardType(card.type) !== 'Bio' &&
-                normalizeCardType(card.type) !== 'Ixim' &&
-                normalizeCardType(card.type) !== 'Rot'
-            );
-            
-            // Definir número de columnas para cada sección
-            const protectorAdendeiCols = 4;
-            const bioProtectorCols = 2;
-            const rotIximCols = 4;
-            const otherCardsCols = 3; // Reducir a 3 columnas para "Otras cartas"
-            
-            // Recalcular el número de columnas máximo para el ancho del canvas
-            const maxCols = Math.max(protectorAdendeiCols, rotIximCols, otherCardsCols);
-            
-            // Añadir margen adicional para evitar cortes
-            const marginX = padding * 2;
-            const marginY = padding * 2;
-            
-            // Ancho fijo basado en el ancho máximo de columnas + margen
-            const canvasWidth = (cardWidth * maxCols) + (padding * (maxCols + 1)) + marginX;
-            
-            // Calcular filas necesarias para cada sección
-            let rowsNeeded = 0;
-            
-            // Sección 1: Protector y Adendeis principales
-            if (protectorCards.length > 0 || adendeiCards.slice(0, 3).length > 0) {
-                rowsNeeded += 1;
-            }
-            
-            // Sección 2: Bio y segundo Protector
-            if (bioCards.length > 0 || protectorCards.length > 1) {
-                rowsNeeded += 1;
-            }
-            
-            // Sección 3: Rot
-            if (rotCards.length > 0) {
-                rowsNeeded += Math.ceil(rotCards.length / rotIximCols);
-            }
-            
-            // Sección 4: Ixim
-            if (iximCards.length > 0) {
-                rowsNeeded += Math.ceil(iximCards.length / rotIximCols);
-            }
-            
-            // Sección 5: Otras cartas
-            const remainingAdendeis = adendeiCards.slice(3);
-            const combinedOtherCards = [...remainingAdendeis, ...otherCards];
-            if (combinedOtherCards.length > 0) {
-                rowsNeeded += Math.ceil(combinedOtherCards.length / otherCardsCols);
-            }
-            
-            // Espacio para títulos de sección (solo para secciones con cartas)
-            let sectionCount = 0;
-            if (protectorCards.length > 0 || adendeiCards.slice(0, 3).length > 0) sectionCount++;
-            if (bioCards.length > 0 || protectorCards.length > 1) sectionCount++;
-            if (rotCards.length > 0) sectionCount++;
-            if (iximCards.length > 0) sectionCount++;
-            if (combinedOtherCards.length > 0) sectionCount++;
-            
-            // Altura total: encabezado + espacio para títulos + espacio para cartas + pie de página + margen adicional
-            const canvasHeight = headerHeight + (sectionCount * sectionSpacing) + (rowsNeeded * (cardHeight + padding)) + footerHeight + marginY;
-            
-            // Mostrar paso actual
-            setGenerationStep('Configurando canvas...');
-            setGenerationProgress(15);
-            
-            console.log(`Canvas dimensions: ${canvasWidth}x${canvasHeight}`);
-            
-            // Configurar el tamaño del canvas
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-            
-            // Fondo
-            ctx.fillStyle = bgColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Título
-            ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
-            ctx.font = `bold ${24 * scaleFactor}px Arial`;
-            ctx.fillText(deck.name, padding, padding + 20 * scaleFactor);
-            
-            // Subtítulo
-            ctx.font = `${12 * scaleFactor}px Arial`;
-            ctx.fillStyle = selectedBackground === 'dark' ? '#cbd5e1' : '#555555';
-            ctx.fillText(`${getDeckCardCount()} cartas • Creado por ${deck.userName || 'Usuario anónimo'} • ${formatDate(deck.createdAt)}`, padding, padding + 40 * scaleFactor);
-            
+            const wait = (ms: number) => new Promise(res => setTimeout(res, ms));
+
             // Función para cargar una imagen y dibujarla en el canvas
             const loadAndDrawImage = (url: string, x: number, y: number, width: number, height: number): Promise<void> => {
                 return new Promise((resolve) => {
-                    // Para imágenes de Firebase Storage, asegurar que tenemos una URL directa
                     const imageUrl = url;
-                    
-                    // Si la URL no tiene un token de acceso y es de Firebase Storage, intentar obtener una URL firmada
                     try {
                         const parsedUrl = new URL(imageUrl);
                         if (parsedUrl.host === 'firebasestorage.googleapis.com' && !imageUrl.includes('token=')) {
-                            console.log('Detectada URL de Firebase Storage, intentando acceso directo');
                             // Aquí podrías agregar lógica adicional para obtener una URL firmada
                         }
-                    } catch (e) {
-                        // Si no es una URL válida, continuar sin validación
-                    }
-                    
-                    const img = new Image();
-                    
-                    // Importante: este atributo debe estar ANTES de asignar src
+                    } catch (e) {}
+                    const img = new window.Image();
                     img.crossOrigin = 'anonymous';
-                    
-                    // Función de manejo de error
                     img.onerror = () => {
-                        console.error(`Error al cargar imagen (CORS o acceso): ${imageUrl}`);
-                        
-                        // Si hay error al cargar, intentar con proxy CORS (si aplica)
-                        if (!imageUrl.includes('cors-anywhere') && !imageUrl.includes('firebasestorage')) {
-                            console.log('Intentando con proxy CORS...');
-                            // Esto es un ejemplo, necesitarías configurar tu propio proxy CORS
-                            // const proxyUrl = `https://cors-anywhere.herokuapp.com/${imageUrl}`;
-                            // img.src = proxyUrl;
-                            // return; // No resolvemos aún, esperamos el segundo intento
-                        }
-                        
-                        // Dibujar un placeholder para esta imagen
                         ctx.fillStyle = '#f1f5f9';
                         ctx.fillRect(x, y, width, height);
                         ctx.fillStyle = '#94a3b8';
-                        ctx.font = `${14 * scaleFactor}px Arial`;
-                        ctx.fillText('Imagen no disponible', x + 10 * scaleFactor, y + height/2);
-                        
-                        // Dibujar al menos un borde para la carta
+                        ctx.font = `14px Arial`;
+                        ctx.fillText('Imagen no disponible', x + 10, y + height/2);
                         ctx.strokeStyle = '#e2e8f0';
-                        ctx.lineWidth = 2 * scaleFactor;
+                        ctx.lineWidth = 2;
                         ctx.strokeRect(x, y, width, height);
-                        
                         resolve();
                     };
-                    
-                    // Función de carga exitosa
                     img.onload = () => {
-                        console.log(`Imagen cargada con éxito: ${imageUrl}`);
                         try {
-                            // Dibujar la carta con bordes redondeados
                             ctx.save();
                             ctx.beginPath();
-                            const radius = 10 * scaleFactor;
+                            const radius = 10;
                             ctx.moveTo(x + radius, y);
                             ctx.lineTo(x + width - radius, y);
                             ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
@@ -657,160 +498,178 @@ const DeckDetail: React.FC = () => {
                             ctx.quadraticCurveTo(x, y, x + radius, y);
                             ctx.closePath();
                             ctx.clip();
-                            
                             ctx.drawImage(img, x, y, width, height);
-                            
-                            // Añadir borde
                             ctx.strokeStyle = selectedBackground === 'dark' ? '#475569' : '#e2e8f0';
-                            ctx.lineWidth = 2 * scaleFactor;
+                            ctx.lineWidth = 2;
                             ctx.stroke();
-                            
                             ctx.restore();
                         } catch (err) {
-                            console.error('Error al dibujar imagen:', err);
-                            // Si hay error al dibujar, mostrar placeholder
                             ctx.fillStyle = '#fee2e2';
                             ctx.fillRect(x, y, width, height);
                             ctx.fillStyle = '#ef4444';
-                            ctx.font = `${14 * scaleFactor}px Arial`;
-                            ctx.fillText('Error al dibujar', x + 10 * scaleFactor, y + height/2);
+                            ctx.font = `14px Arial`;
+                            ctx.fillText('Error al dibujar', x + 10, y + height/2);
                         }
                         resolve();
                     };
-                    
-                    // Agregar un timeout para no quedarse esperando indefinidamente
                     setTimeout(() => {
                         if (!img.complete) {
-                            console.warn(`Timeout esperando imagen: ${imageUrl}`);
-                            img.src = ''; // Cancelar la carga
-                            // Dibujar placeholder por timeout
+                            img.src = '';
                             ctx.fillStyle = '#fef3c7';
                             ctx.fillRect(x, y, width, height);
                             ctx.fillStyle = '#d97706';
-                            ctx.font = `${14 * scaleFactor}px Arial`;
-                            ctx.fillText('Tiempo excedido', x + 10 * scaleFactor, y + height/2);
+                            ctx.font = `14px Arial`;
+                            ctx.fillText('Tiempo excedido', x + 10, y + height/2);
                             resolve();
                         }
-                    }, 5000); // 5 segundos máximo por imagen
-                    
-                    // Intentar cargar la imagen
-                    console.log(`Intentando cargar imagen: ${imageUrl}`);
+                    }, 5000);
                     img.src = imageUrl;
                 });
             };
-            
-            // Comenzar a dibujar las cartas
-            const drawCards = async () => {
-                if (deck?.deckSlots && deck.deckSlots.length > 0 && deck.cards) {
-                    const cardMap = new Map(deck.cards.map(card => [card.id, card]));
-                    const slots = deck.deckSlots;
-                    // Calcular filas y columnas
-                    const maxRow = Math.max(...slots.map(s => s.row));
-                    const maxCol = Math.max(...slots.map(s => s.col));
-                    const cardWidth = 180 * scaleFactor;
-                    const cardHeight = 260 * scaleFactor;
-                    const cardSpacing = 16 * scaleFactor;
-                    for (let row = 0; row <= maxRow; row++) {
-                        for (let col = 0; col <= maxCol; col++) {
-                            const slot = slots.find(s => s.row === row && s.col === col);
-                            if (slot) {
-                                const card = cardMap.get(slot.cardId);
-                                if (card) {
-                                    const x = marginX + col * (cardWidth + cardSpacing);
-                                    const y = headerHeight + row * (cardHeight + cardSpacing);
-                                    await loadAndDrawImage(card.imageUrl, x, y, cardWidth, cardHeight);
-                                }
-                            }
-                        }
+
+            // Paso 1: Preparar datos y layout
+            setGenerationStep('Preparando canvas...');
+            setGenerationProgress(5);
+            await wait(100);
+
+            // Filtrar cartas por tipo
+            const protectors = deck.cards.filter(card => normalizeCardType(card.type) === 'Protector');
+            const bio = deck.cards.filter(card => normalizeCardType(card.type) === 'Bio');
+            const rots = deck.cards.filter(card => normalizeCardType(card.type) === 'Rot');
+            const ixims = deck.cards.filter(card => normalizeCardType(card.type) === 'Ixim');
+            const adendeis = deck.cards.filter(card => normalizeCardType(card.type).toLowerCase().includes('adendei') || normalizeCardType(card.type).toLowerCase().includes('rava'));
+
+            // Layout: filas y columnas como en el detalle
+            // Fila 1: 3 columnas (2 protectores, 1 bio)
+            const row1 = [protectors[0] || null, protectors[1] || null, bio[0] || null];
+            // Fila 2: Rots (4 columnas, múltiples filas)
+            const rotsRows = [];
+            for (let i = 0; i < rots.length; i += 4) {
+                rotsRows.push(rots.slice(i, i + 4));
+            }
+            // Fila 3: Ixim (3 columnas, múltiples filas)
+            const iximRows = [];
+            for (let i = 0; i < ixims.length; i += 3) {
+                iximRows.push(ixims.slice(i, i + 3));
+            }
+            // Fila 4: Adendei/Rava (3 columnas, múltiples filas)
+            const adendeiRows = [];
+            for (let i = 0; i < adendeis.length; i += 3) {
+                adendeiRows.push(adendeis.slice(i, i + 3));
+            }
+
+            // Paso 2: Calcular dimensiones
+            const scaleFactor = 2.5;
+            const cardWidth = 160 * scaleFactor;
+            const cardHeight = 220 * scaleFactor;
+            const padding = 15 * scaleFactor;
+            const headerHeight = 80 * scaleFactor;
+            const sectionSpacing = 22 * scaleFactor;
+            const footerHeight = 30 * scaleFactor;
+            const marginX = padding * 2;
+            const marginY = padding * 2;
+            // Calcular alto total
+            let rowsNeeded = 1; // Fila 1
+            rowsNeeded += rotsRows.length;
+            rowsNeeded += iximRows.length;
+            rowsNeeded += adendeiRows.length;
+            const sectionCount = 1 + (rotsRows.length > 0 ? 1 : 0) + (iximRows.length > 0 ? 1 : 0) + (adendeiRows.length > 0 ? 1 : 0);
+            const canvasWidth = Math.max(3 * cardWidth + 4 * padding, 4 * cardWidth + 5 * padding) + marginX;
+            const canvasHeight = headerHeight + (sectionCount * sectionSpacing) + (rowsNeeded * (cardHeight + padding)) + footerHeight + marginY;
+
+            setGenerationStep('Configurando canvas...');
+            setGenerationProgress(20);
+            await wait(100);
+
+            // Paso 3: Crear canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Tu navegador no soporta la generación de imágenes');
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            const bgColor = backgroundOptions.find(bg => bg.id === selectedBackground)?.color || '#ffffff';
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            setGenerationStep('Dibujando título...');
+            setGenerationProgress(30);
+            await wait(100);
+
+            // Título
+            ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
+            ctx.font = `bold ${24 * scaleFactor}px Arial`;
+            ctx.fillText(deck.name, padding, padding + 20 * scaleFactor);
+            ctx.font = `${12 * scaleFactor}px Arial`;
+            ctx.fillStyle = selectedBackground === 'dark' ? '#cbd5e1' : '#555555';
+            ctx.fillText(`${getDeckCardCount()} cartas • Creado por ${deck.userName || 'Usuario anónimo'} • ${formatDate(deck.createdAt)}`, padding, padding + 40 * scaleFactor);
+
+            setGenerationStep('Dibujando cartas...');
+            setGenerationProgress(40);
+            await wait(100);
+
+            // Helper para dibujar una fila de cartas
+            const drawRow = async (cards: (CardDetails|null)[], y: number, columns: number) => {
+                for (let i = 0; i < columns; i++) {
+                    const card = cards[i];
+                    const x = padding + i * (cardWidth + padding);
+                    if (card) {
+                        await loadAndDrawImage(card.imageUrl, x, y, cardWidth, cardHeight);
                     }
-                    return;
-                }
-                // Fallback: lógica anterior
-                try {
-                    let currentY = headerHeight;
-                    const sectionSpacing = 32 * scaleFactor;
-                    const cardSpacing = 16 * scaleFactor;
-                    const cardHeight = 180 * scaleFactor;
-                    const cardWidth3 = (canvasWidth - marginX - (cardSpacing * 2)) / 3;
-                    const orderedCards = getCardsInVisualOrder();
-
-                    // Título de sección
-                    ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
-                    ctx.font = `bold ${16 * scaleFactor}px Arial`;
-                    ctx.fillText('Cartas del mazo', padding, currentY);
-                    currentY += sectionSpacing;
-
-                    for (let i = 0; i < orderedCards.length; i++) {
-                        const row = Math.floor(i / 3);
-                        const col = i % 3;
-                        await loadAndDrawImage(
-                            orderedCards[i].imageUrl,
-                            padding + (cardWidth3 + cardSpacing) * col,
-                            currentY + (cardHeight + cardSpacing) * row,
-                            cardWidth3,
-                            cardHeight
-                        );
-                    }
-                    currentY += Math.ceil(orderedCards.length / 3) * (cardHeight + cardSpacing) + sectionSpacing;
-
-                    // Pie de página
-                    ctx.fillStyle = selectedBackground === 'dark' ? '#94a3b8' : '#6b7280';
-                    ctx.font = `${10 * scaleFactor}px Arial`;
-                    ctx.textAlign = 'left';
-                    ctx.fillText(`Kodem Cards • ${new Date().toLocaleDateString()} • https://kodemcards.xyz`, padding, canvas.height - padding * 1.5);
-
-                    setGenerationProgress(90);
-                    setGenerationStep('Finalizando imagen...');
-                } catch (err) {
-                    console.error('Error general al dibujar cartas:', err);
-                    setGenerationError('Error al generar la imagen. Revisa la consola para más detalles.');
-                    setIsGeneratingImage(false);
-                    return;
-                }
-                // Convertir canvas a imagen y descargar
-                try {
-                    console.log('Generando imagen final...');
-                    setGenerationStep('Guardando imagen...');
-                    setGenerationProgress(95);
-                    
-                    const dataUrl = canvas.toDataURL('image/png');
-                    const filename = `${deck.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_deck.png`;
-                    
-                    const link = document.createElement('a');
-                    link.download = filename;
-                    link.href = dataUrl;
-                    
-                    // Guardar URL de vista previa
-                    setGeneratedImageUrl(dataUrl);
-                    
-                    // Completar proceso
-                    setGenerationProgress(100);
-                    setGenerationStep('¡Imagen generada exitosamente!');
-                    
-                    // Pequeña pausa para ver el 100%
-                    setTimeout(() => {
-                        link.click();
-                        
-                        // No cerramos el modal inmediatamente para que el usuario pueda ver el resultado
-                        setTimeout(() => {
-                            setIsGeneratingImage(false);
-                        }, 1500);
-                    }, 500);
-                    
-                    console.log('Imagen guardada como:', filename);
-                } catch (err) {
-                    console.error('Error al generar la imagen final:', err);
-                    setGenerationError('Error al generar la imagen del mazo. Revisa la consola para más detalles.');
-                    setIsGeneratingImage(false);
                 }
             };
-            
-            // Iniciar el proceso de dibujo
-            await drawCards();
-            
-            // Esto mejora la calidad de la imagen final
-            console.log(`Imagen generada con factor de escala ${scaleFactor}x (resolución aumentada)`);
-            
+
+            // Helper para dibujar varias filas
+            let currentY = headerHeight + sectionSpacing;
+            // Fila 1
+            await drawRow(row1, currentY, 3);
+            currentY += cardHeight + padding + sectionSpacing;
+            // Fila 2: Rots
+            for (const row of rotsRows) {
+                await drawRow(row, currentY, 4);
+                currentY += cardHeight + padding;
+            }
+            if (rotsRows.length > 0) currentY += sectionSpacing;
+            // Fila 3: Ixim
+            for (const row of iximRows) {
+                await drawRow(row, currentY, 3);
+                currentY += cardHeight + padding;
+            }
+            if (iximRows.length > 0) currentY += sectionSpacing;
+            // Fila 4: Adendei/Rava
+            for (const row of adendeiRows) {
+                await drawRow(row, currentY, 3);
+                currentY += cardHeight + padding;
+            }
+            if (adendeiRows.length > 0) currentY += sectionSpacing;
+
+            setGenerationProgress(90);
+            setGenerationStep('Finalizando imagen...');
+            await wait(100);
+
+            // Pie de página
+            ctx.fillStyle = selectedBackground === 'dark' ? '#94a3b8' : '#6b7280';
+            ctx.font = `${10 * scaleFactor}px Arial`;
+            ctx.textAlign = 'left';
+            ctx.fillText(`Kodem Cards • ${new Date().toLocaleDateString()} • https://kodemcards.xyz`, padding, canvas.height - padding * 1.5);
+
+            // Convertir canvas a imagen y descargar
+            setGenerationProgress(95);
+            setGenerationStep('Guardando imagen...');
+            await wait(100);
+            const dataUrl = canvas.toDataURL('image/png');
+            const filename = `${deck.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_deck.png`;
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataUrl;
+            setGeneratedImageUrl(dataUrl);
+            setGenerationProgress(100);
+            setGenerationStep('¡Imagen generada exitosamente!');
+            setTimeout(() => {
+                link.click();
+                setTimeout(() => {
+                    setIsGeneratingImage(false);
+                }, 1500);
+            }, 500);
         } catch (err) {
             console.error('Error general en generación de imagen:', err);
             setGenerationError('Error inesperado al generar la imagen. Por favor, intenta de nuevo.');
