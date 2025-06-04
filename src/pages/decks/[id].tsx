@@ -936,141 +936,150 @@ const DeckDetail: React.FC = () => {
         );
     };
 
-    // Renderizar grid visual personalizado según la estructura solicitada
+    // Nuevo componente atómico para la visualización de una carta en el grid/lista
+    const DeckCard: React.FC<{
+      card: CardDetails;
+      selected?: boolean;
+      onClick?: (card: CardDetails) => void;
+      showId?: boolean;
+    }> = React.memo(({ card, selected, onClick, showId }) => (
+      <div
+        className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white ${selected ? 'ring-2 ring-primary' : ''}`}
+        onClick={() => onClick && onClick(card)}
+        tabIndex={0}
+        role="button"
+        aria-pressed={selected}
+      >
+        {showId && (
+          <span className="absolute top-1 left-1 text-xs text-muted-foreground bg-white/80 px-1 rounded">{card.fullId || 'ID-???'}</span>
+        )}
+        <img
+          src={card.imageUrl}
+          alt={card.name}
+          className="w-full h-full object-contain"
+          style={{ maxHeight: 200 }}
+          draggable={false}
+          loading="lazy"
+        />
+      </div>
+    ));
+    DeckCard.displayName = 'DeckCard';
+
+    // Componente molecular para una fila de cartas
+    const DeckCardRow: React.FC<{
+      cards: (CardDetails | null)[];
+      columns: number;
+      onCardClick?: (card: CardDetails) => void;
+      selectedCardId?: string;
+    }> = React.memo(({ cards, columns, onCardClick, selectedCardId }) => (
+      <div className={`grid grid-cols-${columns} gap-3`}>
+        {cards.map((card, idx) =>
+          card ? (
+            <DeckCard
+              key={card.id}
+              card={card}
+              selected={selectedCardId === card.id}
+              onClick={onCardClick}
+            />
+          ) : (
+            <div key={`empty-${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full bg-white" />
+          )
+        )}
+      </div>
+    ));
+    DeckCardRow.displayName = 'DeckCardRow';
+
+    // Refactor del renderCardGrid usando los nuevos componentes
     const renderCardGrid = () => {
-        if (!deck?.cards || deck.cards.length === 0) {
-            return (
-                <EmptyState
-                    title="No hay cartas"
-                    description="Este mazo no contiene cartas"
-                    icon={<Eye className="h-10 w-10 text-muted-foreground" />}
-                />
-            );
-        }
-
-        // Filtrar cartas por tipo
-        const protectors = deck.cards.filter(card => normalizeCardType(card.type) === 'Protector');
-        const bio = deck.cards.filter(card => normalizeCardType(card.type) === 'Bio');
-        const rots = deck.cards.filter(card => normalizeCardType(card.type) === 'Rot');
-        const ixims = deck.cards.filter(card => normalizeCardType(card.type) === 'Ixim');
-        const adendeis = deck.cards.filter(card => normalizeCardType(card.type).toLowerCase().includes('adendei') || normalizeCardType(card.type).toLowerCase().includes('rava'));
-
-        // Fila 1: 2 protectores, 1 bio
-        const row1 = [protectors[0] || null, protectors[1] || null, bio[0] || null];
-
+      if (!deck?.cards || deck.cards.length === 0) {
         return (
-            <div className="space-y-4">
-                {/* Fila 1: 3 columnas (2 protectores, 1 bio) */}
-                <div className="grid grid-cols-3 gap-3">
-                    {row1.map((card, idx) => (
-                        <div key={`row1-col${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white">
-                            {card ? (
-                                <img
-                                    src={card.imageUrl}
-                                    alt={card.name}
-                                    className="w-full h-full object-contain"
-                                    style={{ maxHeight: 200 }}
-                                    onClick={() => setSelectedCard(card)}
-                                />
-                            ) : null}
-                        </div>
-                    ))}
-                </div>
-                {/* Fila 2: Rots (4 columnas, todas las cartas, múltiples filas si es necesario) */}
-                {rots.length > 0 && (
-                    <div className="grid grid-cols-4 gap-3">
-                        {rots.map((card, idx) => (
-                            <div key={`row2-rot-${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white">
-                                <img
-                                    src={card.imageUrl}
-                                    alt={card.name}
-                                    className="w-full h-full object-contain"
-                                    style={{ maxHeight: 200 }}
-                                    onClick={() => setSelectedCard(card)}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                )}
-                {/* Fila 3: Ixim (3 columnas, todas las cartas, múltiples filas si es necesario) */}
-                {ixims.length > 0 && (
-                    <div className="grid grid-cols-3 gap-3">
-                        {ixims.map((card, idx) => (
-                            <div key={`row3-ixim-${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white">
-                                <img
-                                    src={card.imageUrl}
-                                    alt={card.name}
-                                    className="w-full h-full object-contain"
-                                    style={{ maxHeight: 200 }}
-                                    onClick={() => setSelectedCard(card)}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                )}
-                {/* Fila 4: Adendei o Rava (3 columnas, todas las cartas, múltiples filas si es necesario) */}
-                {adendeis.length > 0 && (
-                    <div className="grid grid-cols-3 gap-3">
-                        {adendeis.map((card, idx) => (
-                            <div key={`row4-adendei-${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white">
-                                <img
-                                    src={card.imageUrl}
-                                    alt={card.name}
-                                    className="w-full h-full object-contain"
-                                    style={{ maxHeight: 200 }}
-                                    onClick={() => setSelectedCard(card)}
-                                />
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+          <EmptyState
+            title="No hay cartas"
+            description="Este mazo no contiene cartas"
+            icon={<Eye className="h-10 w-10 text-muted-foreground" />}
+          />
         );
+      }
+      const protectors = deck.cards.filter(card => normalizeCardType(card.type) === 'Protector');
+      const bio = deck.cards.filter(card => normalizeCardType(card.type) === 'Bio');
+      const rots = deck.cards.filter(card => normalizeCardType(card.type) === 'Rot');
+      const ixims = deck.cards.filter(card => normalizeCardType(card.type) === 'Ixim');
+      const adendeis = deck.cards.filter(card => normalizeCardType(card.type).toLowerCase().includes('adendei') || normalizeCardType(card.type).toLowerCase().includes('rava'));
+      // Fila 1: 2 protectores, 1 bio
+      const row1 = [protectors[0] || null, protectors[1] || null, bio[0] || null];
+      // Fila 2: Rots (4 columnas, múltiples filas)
+      const rotsRows = [];
+      for (let i = 0; i < rots.length; i += 4) rotsRows.push(rots.slice(i, i + 4));
+      // Fila 3: Ixim (3 columnas, múltiples filas)
+      const iximRows = [];
+      for (let i = 0; i < ixims.length; i += 3) iximRows.push(ixims.slice(i, i + 3));
+      // Fila 4: Adendei/Rava (3 columnas, múltiples filas)
+      const adendeiRows = [];
+      for (let i = 0; i < adendeis.length; i += 3) adendeiRows.push(adendeis.slice(i, i + 3));
+      return (
+        <div className="space-y-4">
+          <DeckCardRow cards={row1} columns={3} onCardClick={setSelectedCard} selectedCardId={selectedCard?.id} />
+          {rotsRows.map((row, idx) => (
+            <DeckCardRow key={`rots-row-${idx}`} cards={row} columns={4} onCardClick={setSelectedCard} selectedCardId={selectedCard?.id} />
+          ))}
+          {iximRows.map((row, idx) => (
+            <DeckCardRow key={`ixim-row-${idx}`} cards={row} columns={3} onCardClick={setSelectedCard} selectedCardId={selectedCard?.id} />
+          ))}
+          {adendeiRows.map((row, idx) => (
+            <DeckCardRow key={`adendei-row-${idx}`} cards={row} columns={3} onCardClick={setSelectedCard} selectedCardId={selectedCard?.id} />
+          ))}
+        </div>
+      );
     };
-    
-    // Renderizar la vista de lista de cartas con orden específico
+
+    // Refactor del renderCardList usando DeckCard
     const renderCardList = () => {
-        const orderedCards = getOrderedCards();
-        if (orderedCards.length === 0) {
-            return (
-                <div className="text-center p-6 bg-muted/20 rounded-lg">
-                    <p className="text-muted-foreground">Este mazo no contiene cartas</p>
-                </div>
-            );
-        }
+      const orderedCards = getOrderedCards();
+      if (orderedCards.length === 0) {
         return (
-            <Card>
-                <CardContent className="p-0">
-                    <div className="divide-y divide-border">
-                        {orderedCards.map(card => (
-                            <div
-                                key={card.id}
-                                className={`flex items-center p-3 hover:bg-muted/50 cursor-pointer ${selectedCard?.id === card.id ? 'bg-muted' : ''}`}
-                                onClick={() => setSelectedCard(card)}
-                            >
-                                <span className="w-24 text-start font-mono text-xs text-muted-foreground overflow-hidden">{card.fullId || 'ID-???'}</span>
-                                <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 mr-3">
-                                    <img
-                                        src={card.imageUrl}
-                                        alt={card.name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-medium">{card.name}</p>
-                                    <p className="text-xs text-muted-foreground flex items-center">
-                                        <span>{card.type}</span>
-                                        {card.energy && <span className="mx-1">•</span>}
-                                        {card.energy && <span>{card.energy}</span>}
-                                        <span className="ml-auto italic text-xs text-slate-500">{card.setName || card.cardSet || 'Sin set'}</span>
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
+          <div className="text-center p-6 bg-muted/20 rounded-lg">
+            <p className="text-muted-foreground">Este mazo no contiene cartas</p>
+          </div>
         );
+      }
+      return (
+        <Card>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {orderedCards.map(card => (
+                <div
+                  key={card.id}
+                  className={`flex items-center p-3 hover:bg-muted/50 cursor-pointer ${selectedCard?.id === card.id ? 'bg-muted' : ''}`}
+                  onClick={() => setSelectedCard(card)}
+                  tabIndex={0}
+                  role="button"
+                  aria-pressed={selectedCard?.id === card.id}
+                >
+                  <span className="w-24 text-start font-mono text-xs text-muted-foreground overflow-hidden">{card.fullId || 'ID-???'}</span>
+                  <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 mr-3">
+                    <img
+                      src={card.imageUrl}
+                      alt={card.name}
+                      className="w-full h-full object-cover"
+                      draggable={false}
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{card.name}</p>
+                    <p className="text-xs text-muted-foreground flex items-center">
+                      <span>{card.type}</span>
+                      {card.energy && <span className="mx-1">•</span>}
+                      {card.energy && <span>{card.energy}</span>}
+                      <span className="ml-auto italic text-xs text-slate-500">{card.setName || card.cardSet || 'Sin set'}</span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      );
     };
 
     // Mejorar getGridFromDeckSlots para rellenar huecos correctamente
