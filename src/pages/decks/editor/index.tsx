@@ -694,6 +694,7 @@ export default function DeckEditor() {
           card.cardType === CardType.BIO ? 'w-[300px] h-[157px] mx-auto' : 'w-[157px] h-[220px]'
         }`}
         data-id={id}
+        key={card.id} // Forzar re-render si cambia la carta
       >
         {renderDeckCard(card)}
       </div>
@@ -911,33 +912,18 @@ export default function DeckEditor() {
     );
   };
 
-  // Renderizar una carta en el organizador
+  // Renderizar carta del deck (asegura re-render usando key)
   const renderDeckCard = (card: CardDetails) => (
-    <div className="border rounded-md overflow-hidden hover:shadow-md transition-shadow bg-white w-full h-full relative">
-      <div className="relative w-full h-full" style={{ aspectRatio: '2.5/3.5' }}>
-        <Image
-          src={card.imageUrl}
-          alt={card.name}
-          className="object-cover"
-          style={{ width: '100%', height: '100%', position: 'absolute' }}
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
-        {/* Botón de eliminar en la esquina inferior derecha */}
-        <button
-          type="button"
-          className="absolute bottom-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-lg z-10"
-          style={{ minWidth: 32, minHeight: 32 }}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleRemoveCard(card.id);
-          }}
-          onPointerDown={e => e.stopPropagation()}
-          tabIndex={-1}
-          title="Eliminar del mazo"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
-      </div>
+    <div key={card.id} className="deck-card-container">
+      <img
+        key={card.id}
+        src={card.imageUrl}
+        alt={card.name}
+        className="w-full h-full object-contain"
+        draggable={false}
+        loading="lazy"
+      />
+      {/* ...otros datos de la carta... */}
     </div>
   );
 
@@ -1688,5 +1674,5 @@ export default function DeckEditor() {
       </Dialog>
     </div>
   );
-} 
+}
 

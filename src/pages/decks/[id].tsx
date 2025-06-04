@@ -89,6 +89,8 @@ const DeckDetail: React.FC = () => {
                 setIsLoading(true);
                 const deckData = await getDeckWithCards(id);
                 if (deckData) {
+                    // Limpiar la carta seleccionada antes de actualizar el deck para forzar re-render
+                    setSelectedCard(null);
                     setDeck(deckData);
                     // Seleccionar la primera carta para mostrarla
                     if (deckData.cards.length > 0) {
@@ -116,6 +118,18 @@ const DeckDetail: React.FC = () => {
             document.removeEventListener('visibilitychange', handleVisibility);
         };
     }, [id]);
+
+    // Sincronizar selectedCard con el deck cargado
+    useEffect(() => {
+        if (deck && deck.cards && deck.cards.length > 0) {
+            // Si la carta seleccionada no existe en el nuevo deck, seleccionar la primera
+            if (!selectedCard || !deck.cards.some(card => card.id === selectedCard.id)) {
+                setSelectedCard(deck.cards[0]);
+            }
+        } else {
+            setSelectedCard(null);
+        }
+    }, [deck]);
 
     // Helpers y lógica de negocio
 
