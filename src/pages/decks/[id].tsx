@@ -85,11 +85,9 @@ const DeckDetail: React.FC = () => {
                 setIsLoading(false);
                 return;
             }
-
             try {
                 setIsLoading(true);
                 const deckData = await getDeckWithCards(id);
-
                 if (deckData) {
                     setDeck(deckData);
                     // Seleccionar la primera carta para mostrarla
@@ -106,8 +104,17 @@ const DeckDetail: React.FC = () => {
                 setIsLoading(false);
             }
         };
-
         loadDeckData();
+        // Forzar recarga al volver de la edición (cuando la pestaña se vuelve visible)
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') {
+                loadDeckData();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
     }, [id]);
 
     // Helpers y lógica de negocio
