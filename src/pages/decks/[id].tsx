@@ -1030,48 +1030,43 @@ const DeckDetail: React.FC = () => {
     
     // Renderizar la vista de lista de cartas con orden específico
     const renderCardList = () => {
-        if (getCardsInVisualOrder().length === 0) {
+        const orderedCards = getOrderedCards();
+        if (orderedCards.length === 0) {
             return (
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
                     <p className="text-muted-foreground">Este mazo no contiene cartas</p>
                 </div>
             );
         }
-        
-        // Obtener cartas ordenadas
-        const orderedCards = getOrderedCards();
-        
         return (
             <Card>
                 <CardContent className="p-0">
                     <div className="divide-y divide-border">
-                        {orderedCards.map(card => {
-                            return (
-                                <div
-                                    key={card.id}
-                                    className={`flex items-center p-3 hover:bg-muted/50 cursor-pointer ${selectedCard?.id === card.id ? 'bg-muted' : ''}`}
-                                    onClick={() => setSelectedCard(card)}
-                                >
-                                    <span className="w-24 text-start font-mono text-xs text-muted-foreground overflow-hidden">{card.fullId || 'ID-???'}</span>
-                                    <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 mr-3">
-                                        <img
-                                            src={card.imageUrl}
-                                            alt={card.name}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium">{card.name}</p>
-                                        <p className="text-xs text-muted-foreground flex items-center">
-                                            <span>{card.type}</span>
-                                            {card.energy && <span className="mx-1">•</span>}
-                                            {card.energy && <span>{card.energy}</span>}
-                                            <span className="ml-auto italic text-xs text-slate-500">{card.setName || card.cardSet || 'Sin set'}</span>
-                                        </p>
-                                    </div>
+                        {orderedCards.map(card => (
+                            <div
+                                key={card.id}
+                                className={`flex items-center p-3 hover:bg-muted/50 cursor-pointer ${selectedCard?.id === card.id ? 'bg-muted' : ''}`}
+                                onClick={() => setSelectedCard(card)}
+                            >
+                                <span className="w-24 text-start font-mono text-xs text-muted-foreground overflow-hidden">{card.fullId || 'ID-???'}</span>
+                                <div className="w-12 h-12 rounded overflow-hidden flex-shrink-0 mr-3">
+                                    <img
+                                        src={card.imageUrl}
+                                        alt={card.name}
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
-                            );
-                        })}
+                                <div className="flex-1">
+                                    <p className="font-medium">{card.name}</p>
+                                    <p className="text-xs text-muted-foreground flex items-center">
+                                        <span>{card.type}</span>
+                                        {card.energy && <span className="mx-1">•</span>}
+                                        {card.energy && <span>{card.energy}</span>}
+                                        <span className="ml-auto italic text-xs text-slate-500">{card.setName || card.cardSet || 'Sin set'}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </CardContent>
             </Card>
