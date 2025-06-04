@@ -1168,6 +1168,8 @@ export default function DeckEditor() {
       addCardsToSlots(organizedDeck.otherCards);
 
       // Guardar el mazo con deckSlots
+      // Nuevo: generar cardIds a partir de deckSlots
+      const cardIds = deckSlots.map(slot => slot.cardId);
       const deckData: Omit<Deck, 'id'> & { deckSlots: DeckCardSlot[] } = {
         name: deckName.trim(),
         userUid: user!.id,
@@ -1175,7 +1177,7 @@ export default function DeckEditor() {
         userAvatar: user!.avatarUrl || undefined,
         isPublic,
         description: deckDescription.trim() || "",
-        cardIds: [], // Ya no se usa, pero requerido por el tipo
+        cardIds, // Ahora siempre sincronizado con deckSlots
         deckSlots // Nuevo campo
       };
 

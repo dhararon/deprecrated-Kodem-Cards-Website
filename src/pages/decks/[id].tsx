@@ -159,6 +159,13 @@ const DeckDetail: React.FC = () => {
         }).format(date);
     };
 
+    // Obtener la cantidad real de cartas en el mazo
+    const getDeckCardCount = (): number => {
+        if (deck?.deckSlots) return deck.deckSlots.length;
+        if (deck?.cardIds) return deck.cardIds.length;
+        return deck?.cards?.length || 0;
+    };
+
     // Copiar lista de mazo al portapapeles
     const copyDeckList = () => {
         if (!deck) return;
@@ -167,7 +174,7 @@ const DeckDetail: React.FC = () => {
         const orderedCards = getOrderedCards();
 
         let deckText = `# ${deck.name}\n\n`;
-        deckText += `## Lista de cartas en orden estratégico (${deck.cards.length})\n`;
+        deckText += `## Lista de cartas en orden estratégico (${getDeckCardCount()})\n`;
 
         // Añadir cada carta con su información
         orderedCards.forEach(card => {
@@ -178,89 +185,92 @@ const DeckDetail: React.FC = () => {
         alert('Lista de mazo copiada al portapapeles');
     };
 
+    // Obtener las cartas en el orden visual (prioridad: deckSlots > cardIds > cards)
+    const getCardsInVisualOrder = (): CardDetails[] => {
+        if (deck?.deckSlots && deck.cards) {
+            // Ordenar slots por fila y columna
+            const cardMap = new Map(deck.cards.map(card => [card.id, card]));
+            const sortedSlots = [...deck.deckSlots].sort((a, b) =>
+                a.row !== b.row ? a.row - b.row : a.col - b.col
+            );
+            return sortedSlots
+                .map(slot => cardMap.get(slot.cardId))
+                .filter((card): card is CardDetails => !!card);
+        }
+        if (deck?.cardIds && deck.cards) {
+            return deck.cardIds
+                .map(cardId => deck.cards.find(card => card.id === cardId))
+                .filter((card): card is CardDetails => !!card);
+        }
+        return deck?.cards || [];
+    };
+
     // Obtener las cartas en el orden específico de la vista de lista
     const getOrderedCards = (): CardDetails[] => {
-        if (!deck?.cards) return [];
-        
+        // Usar el orden visual como base
+        const visualCards = getCardsInVisualOrder();
+        if (!visualCards.length) return [];
+
         // Filtrar cartas por tipo
-        const protectorCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Protector');
-        const adendeiCards = deck.cards.filter(card => normalizeCardType(card.type).toLowerCase().includes('adendei'));
-        const bioCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Bio');
-        const iximCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Ixim');
-        const rotCards = deck.cards.filter(card => normalizeCardType(card.type) === 'Rot');
-        const otherCards = deck.cards.filter(card => 
-            normalizeCardType(card.type) !== 'Protector' && 
+        const protectorCards = visualCards.filter(card => normalizeCardType(card.type) === 'Protector');
+        const adendeiCards = visualCards.filter(card => normalizeCardType(card.type).toLowerCase().includes('adendei'));
+        const bioCards = visualCards.filter(card => normalizeCardType(card.type) === 'Bio');
+        const iximCards = visualCards.filter(card => normalizeCardType(card.type) === 'Ixim');
+        const rotCards = visualCards.filter(card => normalizeCardType(card.type) === 'Rot');
+        const otherCards = visualCards.filter(card =>
+            normalizeCardType(card.type) !== 'Protector' &&
             !normalizeCardType(card.type).toLowerCase().includes('adendei') &&
             normalizeCardType(card.type) !== 'Bio' &&
             normalizeCardType(card.type) !== 'Ixim' &&
             normalizeCardType(card.type) !== 'Rot'
         );
-        
+
         // Crear una lista ordenada según las especificaciones
         const orderedCards: CardDetails[] = [];
-        
+
         // 1. Protector principal y 3 adendei principales
         if (protectorCards.length > 0) {
             orderedCards.push(protectorCards[0]);
         }
-        
-        // Añadir los 3 primeros adendei
         for (let i = 0; i < 3; i++) {
             if (adendeiCards.length > i) {
                 orderedCards.push(adendeiCards[i]);
             }
         }
-        
         // 2. Segundo protector y bio
         if (protectorCards.length > 1) {
             orderedCards.push(protectorCards[1]);
         }
-        
         if (bioCards.length > 0) {
             orderedCards.push(bioCards[0]);
         }
-        
         // 3. Cartas Ixim
         iximCards.forEach(card => {
             if (!orderedCards.some(c => c.id === card.id)) {
                 orderedCards.push(card);
             }
         });
-        
         // 4. Cartas Rot
         rotCards.forEach(card => {
             if (!orderedCards.some(c => c.id === card.id)) {
                 orderedCards.push(card);
             }
         });
-        
         // 5. Resto de adendei y otras cartas
         const remainingAdendeis = adendeiCards.slice(3);
         const combinedOtherCards = [...remainingAdendeis, ...otherCards];
-        
         combinedOtherCards.forEach(card => {
             if (!orderedCards.some(c => c.id === card.id)) {
                 orderedCards.push(card);
             }
         });
-        
         // Agregar cualquier carta que no haya sido incluida aún
-        deck.cards.forEach(card => {
+        visualCards.forEach(card => {
             if (!orderedCards.some(c => c.id === card.id)) {
                 orderedCards.push(card);
             }
         });
-        
         return orderedCards;
-    };
-
-    // Obtener las cartas en el orden original del mazo
-    const getCardsInOriginalOrder = (): CardDetails[] => {
-        if (!deck?.cardIds || !deck.cards) return [];
-        // Mapear cada ID a su carta correspondiente
-        return deck.cardIds
-            .map(cardId => deck.cards.find(card => card.id === cardId))
-            .filter((card): card is CardDetails => !!card);
     };
 
     // Imprimir el mazo
@@ -390,7 +400,7 @@ const DeckDetail: React.FC = () => {
                 
                 <h1>${deck.name}</h1>
                 <div class="deck-info">
-                    ${deck.cards.length} cartas • Creado por ${deck.userName || 'Usuario anónimo'} • ${formatDate(deck.createdAt)}
+                    ${getDeckCardCount()} cartas • Creado por ${deck.userName || 'Usuario anónimo'} • ${formatDate(deck.createdAt)}
                 </div>
                 
                 <div class="section-title">Lista de cartas en orden estratégico</div>
@@ -576,7 +586,7 @@ const DeckDetail: React.FC = () => {
             // Subtítulo
             ctx.font = `${12 * scaleFactor}px Arial`;
             ctx.fillStyle = selectedBackground === 'dark' ? '#cbd5e1' : '#555555';
-            ctx.fillText(`${deck.cards.length} cartas • Creado por ${deck.userName || 'Usuario anónimo'} • ${formatDate(deck.createdAt)}`, padding, padding + 40 * scaleFactor);
+            ctx.fillText(`${getDeckCardCount()} cartas • Creado por ${deck.userName || 'Usuario anónimo'} • ${formatDate(deck.createdAt)}`, padding, padding + 40 * scaleFactor);
             
             // Función para cargar una imagen y dibujarla en el canvas
             const loadAndDrawImage = (url: string, x: number, y: number, width: number, height: number): Promise<void> => {
@@ -722,7 +732,7 @@ const DeckDetail: React.FC = () => {
                     const cardSpacing = 16 * scaleFactor;
                     const cardHeight = 180 * scaleFactor;
                     const cardWidth3 = (canvasWidth - marginX - (cardSpacing * 2)) / 3;
-                    const orderedCards = getCardsInOriginalOrder();
+                    const orderedCards = getCardsInVisualOrder();
 
                     // Título de sección
                     ctx.fillStyle = selectedBackground === 'dark' ? '#ffffff' : '#000000';
@@ -841,7 +851,7 @@ const DeckDetail: React.FC = () => {
             // Subtítulo
             ctx.font = '16px Arial';
             ctx.fillStyle = selectedBackground === 'dark' ? '#cbd5e1' : '#555555';
-            ctx.fillText(`${deck.cards.length} cartas • Creado por ${deck.userName || 'Usuario anónimo'} • ${formatDate(deck.createdAt)}`, 50, 110);
+            ctx.fillText(`${getDeckCardCount()} cartas • Creado por ${deck.userName || 'Usuario anónimo'} • ${formatDate(deck.createdAt)}`, 50, 110);
             
             // Separador
             ctx.strokeStyle = '#cccccc';
@@ -1067,29 +1077,9 @@ const DeckDetail: React.FC = () => {
         );
     };
 
-    // Renderizar grid visual usando deckSlots si existen
+    // Renderizar grid visual personalizado según la estructura solicitada
     const renderCardGrid = () => {
-        if (deck?.deckSlots && deck.deckSlots.length > 0) {
-            const grid = getGridFromDeckSlots();
-            return (
-                <div className="space-y-4">
-                    {grid.map((row, rowIdx) => (
-                        <div key={rowIdx} className="grid grid-cols-3 gap-3">
-                            {row.map((card, colIdx) => (
-                                <div key={colIdx} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors">
-                                    {card ? (
-                                        <img src={card.imageUrl} alt={card.name} className="object-cover w-full h-full" />
-                                    ) : null}
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-            );
-        }
-        // Fallback: lógica anterior
-        const orderedCards = getCardsInOriginalOrder();
-        if (!orderedCards.length) {
+        if (!deck?.cards || deck.cards.length === 0) {
             return (
                 <EmptyState
                     title="No hay cartas"
@@ -1098,34 +1088,90 @@ const DeckDetail: React.FC = () => {
                 />
             );
         }
+
+        // Filtrar cartas por tipo
+        const protectors = deck.cards.filter(card => normalizeCardType(card.type) === 'Protector');
+        const bio = deck.cards.filter(card => normalizeCardType(card.type) === 'Bio');
+        const rots = deck.cards.filter(card => normalizeCardType(card.type) === 'Rot');
+        const ixims = deck.cards.filter(card => normalizeCardType(card.type) === 'Ixim');
+        const adendeis = deck.cards.filter(card => normalizeCardType(card.type).toLowerCase().includes('adendei') || normalizeCardType(card.type).toLowerCase().includes('rava'));
+
+        // Fila 1: 2 protectores, 1 bio
+        const row1 = [protectors[0] || null, protectors[1] || null, bio[0] || null];
+
         return (
-            <div className="space-y-8">
-                {Array.from({ length: Math.ceil(orderedCards.length / 3) }).map((_, rowIdx) => (
-                    <div key={`row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
-                        {orderedCards.slice(rowIdx * 3, rowIdx * 3 + 3).map((card, idx) => (
-                            <Card
-                                key={`card-${rowIdx * 3 + idx}`}
-                                className="cursor-pointer transition-transform hover:scale-105 group relative"
-                                onClick={() => setSelectedCard(card)}
-                            >
-                                <CardContent className="p-0 relative">
-                                    <img
-                                        src={card.imageUrl}
-                                        alt={card.name}
-                                        className="w-full h-auto rounded-lg"
-                                    />
-                                </CardContent>
-                            </Card>
+            <div className="space-y-4">
+                {/* Fila 1: 3 columnas (2 protectores, 1 bio) */}
+                <div className="grid grid-cols-3 gap-3">
+                    {row1.map((card, idx) => (
+                        <div key={`row1-col${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white">
+                            {card ? (
+                                <img
+                                    src={card.imageUrl}
+                                    alt={card.name}
+                                    className="w-full h-full object-contain"
+                                    style={{ maxHeight: 200 }}
+                                    onClick={() => setSelectedCard(card)}
+                                />
+                            ) : null}
+                        </div>
+                    ))}
+                </div>
+                {/* Fila 2: Rots (4 columnas, todas las cartas, múltiples filas si es necesario) */}
+                {rots.length > 0 && (
+                    <div className="grid grid-cols-4 gap-3">
+                        {rots.map((card, idx) => (
+                            <div key={`row2-rot-${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white">
+                                <img
+                                    src={card.imageUrl}
+                                    alt={card.name}
+                                    className="w-full h-full object-contain"
+                                    style={{ maxHeight: 200 }}
+                                    onClick={() => setSelectedCard(card)}
+                                />
+                            </div>
                         ))}
                     </div>
-                ))}
+                )}
+                {/* Fila 3: Ixim (3 columnas, todas las cartas, múltiples filas si es necesario) */}
+                {ixims.length > 0 && (
+                    <div className="grid grid-cols-3 gap-3">
+                        {ixims.map((card, idx) => (
+                            <div key={`row3-ixim-${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white">
+                                <img
+                                    src={card.imageUrl}
+                                    alt={card.name}
+                                    className="w-full h-full object-contain"
+                                    style={{ maxHeight: 200 }}
+                                    onClick={() => setSelectedCard(card)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {/* Fila 4: Adendei o Rava (3 columnas, todas las cartas, múltiples filas si es necesario) */}
+                {adendeis.length > 0 && (
+                    <div className="grid grid-cols-3 gap-3">
+                        {adendeis.map((card, idx) => (
+                            <div key={`row4-adendei-${idx}`} className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors bg-white">
+                                <img
+                                    src={card.imageUrl}
+                                    alt={card.name}
+                                    className="w-full h-full object-contain"
+                                    style={{ maxHeight: 200 }}
+                                    onClick={() => setSelectedCard(card)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         );
     };
     
     // Renderizar la vista de lista de cartas con orden específico
     const renderCardList = () => {
-        if (!deck?.cards || deck.cards.length === 0) {
+        if (getCardsInVisualOrder().length === 0) {
             return (
                 <div className="text-center p-6 bg-muted/20 rounded-lg">
                     <p className="text-muted-foreground">Este mazo no contiene cartas</p>
@@ -1173,24 +1219,19 @@ const DeckDetail: React.FC = () => {
         );
     };
 
-    // Utilidad: obtener matriz de cartas por fila y columna desde deckSlots
+    // Mejorar getGridFromDeckSlots para rellenar huecos correctamente
     const getGridFromDeckSlots = () => {
         if (!deck?.deckSlots || !deck.cards) return [];
-        // Crear un mapa de id -> CardDetails
         const cardMap = new Map(deck.cards.map(card => [card.id, card]));
-        // Agrupar por fila
-        const rows: CardDetails[][] = [];
+        // Determinar dimensiones máximas
+        const maxRow = Math.max(...deck.deckSlots.map(s => s.row));
+        const maxCol = Math.max(...deck.deckSlots.map(s => s.col));
+        // Inicializar matriz
+        const rows: (CardDetails | null)[][] = Array.from({ length: maxRow + 1 }, () => Array(maxCol + 1).fill(null));
         deck.deckSlots.forEach(slot => {
-            if (!rows[slot.row]) rows[slot.row] = [];
             rows[slot.row][slot.col] = cardMap.get(slot.cardId) || null;
         });
-        // Rellenar huecos con null para mantener la estructura
-        const maxCols = Math.max(...rows.map(r => r.length));
-        return rows.map(row => {
-            const filled = Array(maxCols).fill(null);
-            row.forEach((card, idx) => { filled[idx] = card; });
-            return filled;
-        });
+        return rows;
     };
 
     // Renderizado de estados de carga y error
@@ -1259,7 +1300,7 @@ const DeckDetail: React.FC = () => {
                     <div>
                         <h1 className="text-xl font-bold">{deck.name}</h1>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>{deck.cards.length} cartas</span>
+                            <span>{getDeckCardCount()} cartas</span>
                             {deck.isPublic ? (
                                 <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
                                     <Eye className="h-3 w-3 mr-1" />
@@ -1439,4 +1480,4 @@ const DeckDetail: React.FC = () => {
     );
 };
 
-export default DeckDetail; 
+export default DeckDetail;
