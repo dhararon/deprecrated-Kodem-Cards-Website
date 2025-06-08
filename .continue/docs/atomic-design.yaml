@@ -1,0 +1,6 @@
+name: Atomic Design
+version: 0.0.1
+schema: v1
+docs:
+  - name: Atomic Design
+    startUrl: https://github.com/danilowoz/react-atomic-design

@@ -12,7 +12,8 @@ export enum CardSet {
     GUERRA_ROJA = "guerra roja",
     TITANES_DE_LA_CORTEZA = "titanes de la corteza (Mazo)",
     MINI_FLORES_Y_TUMBAS = "mini flores y tumbas",
-    TITANES_DE_LA_CORTEZA_Y_OJOS_DEL_OCEANO = "titanes de la corteza y ojos del oceano"
+    TITANES_DE_LA_CORTEZA_Y_OJOS_DEL_OCEANO = "titanes de la corteza y ojos del oceano",
+    OJOS_DEL_OCEANO = "ojos del oceano (Mazo)"
 }
 
 // Tipos de cartas
