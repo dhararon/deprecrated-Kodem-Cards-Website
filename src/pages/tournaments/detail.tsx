@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRoute } from 'wouter';
+import { useRoute, useParams, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { 
 	Calendar, 
@@ -12,17 +12,25 @@ import {
 	UserPlus,
 	Crown,
 	Medal,
-	Award
+	Award,
+	ArrowLeft,
+	User,
+	Check,
+	X,
+	AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/atoms/Card';
 import { Badge } from '@/components/atoms/Badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/atoms/Avatar';
+import { Separator } from '@/components/atoms/Separator';
 import { toast } from 'sonner';
-import { Tournament, TournamentParticipant, TournamentMatch } from '@/types/tournament';
+import { Tournament, TournamentParticipant, TournamentMatch, TournamentBan, BanType } from '@/types/tournament';
+import { CardDetails } from '@/types/card';
+import { getAllCards } from '@/lib/firebase/services/cardService';
 
 // Mock data para desarrollo
-const get_mock_tournament = (id: string): Tournament => ({
+const get_mock_tournament = (id: string, realCards: CardDetails[] = []): Tournament => ({
 	id,
 	name: 'Torneo Regional Kódem - Primavera 2024',
 	description: 'Torneo oficial de temporada con premios en efectivo y clasificación para el campeonato nacional.',
@@ -36,6 +44,8 @@ const get_mock_tournament = (id: string): Tournament => ({
 	end_date: '2024-03-15T18:00:00Z',
 	registration_deadline: '2024-03-14T23:59:59Z',
 	created_by: 'admin',
+	organizer_id: 'org123',
+	organizer_name: 'Liga Kódem Oficial',
 	created_at: '2024-02-15T10:00:00Z',
 	updated_at: '2024-03-10T15:30:00Z',
 	participants: [
@@ -63,6 +73,70 @@ const get_mock_tournament = (id: string): Tournament => ({
 	min_deck_size: 40,
 	max_deck_size: 60,
 	banned_cards: ['carta-prohibida-1', 'carta-prohibida-2'],
+	banned_items: [
+		{
+			id: 'ban1',
+			type: 'card_type',
+			name: 'Adendei Legendarios',
+			description: 'Todos los Adendei de rareza Legendaria',
+			reason: 'Balance competitivo'
+		},
+		{
+			id: 'ban2',
+			type: 'set',
+			name: 'Set Primordial',
+			description: 'Cartas del set de lanzamiento',
+			reason: 'Poder desbalanceado'
+		},
+		{
+			id: 'ban3',
+			type: 'protector',
+			name: realCards[0]?.name || 'Guardián Ancestral',
+			description: 'Protector con habilidad de robo excesivo',
+			reason: 'Ventaja injusta',
+			icon: realCards[0]?.imageUrl || '/images/cards/protector/guardian-ancestral.jpg'
+		},
+		{
+			id: 'ban4',
+			type: 'ixim',
+			name: realCards[1]?.name || 'Espada del Vacío',
+			description: 'Equipamiento que otorga inmunidad',
+			reason: 'Rompe mecánicas base',
+			icon: realCards[1]?.imageUrl || '/images/cards/ixim/espada-del-vacio.jpg'
+		},
+		{
+			id: 'ban5',
+			type: 'bio',
+			name: realCards[2]?.name || 'Esencia Corrupta',
+			description: 'Bio que permite múltiples invocaciones',
+			reason: 'Acelera excesivamente el juego',
+			icon: realCards[2]?.imageUrl || '/images/cards/bio/esencia-corrupta.jpg'
+		},
+		{
+			id: 'ban6',
+			type: 'specific_card',
+			name: realCards[3]?.name || 'Tormenta Eterna',
+			description: 'Carta específica que causa loops infinitos',
+			reason: 'Partidas sin fin',
+			icon: realCards[3]?.imageUrl || '/images/cards/adendei/tormenta-eterna.jpg'
+		},
+		{
+			id: 'ban7',
+			type: 'protector',
+			name: realCards[4]?.name || 'Alma de Hierro',
+			description: 'Protector defensivo indestructible',
+			reason: 'Partidas extremadamente largas',
+			icon: realCards[4]?.imageUrl || '/images/cards/protector/alma-de-hierro.jpg'
+		},
+		{
+			id: 'ban8',
+			type: 'ixim',
+			name: realCards[5]?.name || 'Anillo del Tiempo',
+			description: 'Equipamiento que manipula turnos',
+			reason: 'Mecánica no balanceada',
+			icon: realCards[5]?.imageUrl || '/images/cards/ixim/anillo-del-tiempo.jpg'
+		}
+	],
 	location: 'Centro de Convenciones',
 	online: false
 });
@@ -126,26 +200,99 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, round_number }) => {
 	);
 };
 
+interface BannedCardImageProps {
+	ban: TournamentBan;
+}
+
+const BannedCardImage: React.FC<BannedCardImageProps> = ({ ban }) => {
+	const [image_error, set_image_error] = useState(false);
+
+	return (
+		<div className="relative group cursor-pointer transition-transform duration-200 hover:scale-105">
+			{/* Imagen de la carta */}
+			<div className="relative overflow-hidden rounded-lg border-2 border-red-500 shadow-lg bg-gray-100">
+				{!image_error ? (
+					<img
+						src={ban.icon || '/images/cards/placeholder.jpg'}
+						alt={ban.name}
+						className="w-full h-48 object-cover transition-all duration-300 grayscale hover:grayscale-0"
+						onError={() => set_image_error(true)}
+					/>
+				) : (
+					<div className="w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+						<div className="text-center text-gray-500">
+							<XCircle className="h-8 w-8 mx-auto mb-2" />
+							<p className="text-xs font-medium">{ban.name}</p>
+						</div>
+					</div>
+				)}
+				
+				{/* Overlay de prohibido */}
+				<div className="absolute inset-0 bg-red-500 bg-opacity-30 flex items-center justify-center opacity-90 group-hover:opacity-100 transition-opacity">
+					<div className="bg-red-600 text-white px-2 py-1 rounded-full font-bold text-xs shadow-lg transform rotate-12 border border-red-400">
+						PROHIBIDO
+					</div>
+				</div>
+
+				{/* Icono X en la esquina */}
+				<div className="absolute top-2 right-2 bg-red-600 rounded-full p-1">
+					<XCircle className="h-4 w-4 text-white" />
+				</div>
+			</div>
+			
+			{/* Información de la carta */}
+			<div className="mt-2 text-center">
+				<h5 className="font-medium text-red-600 text-sm truncate" title={ban.name}>
+					{ban.name}
+				</h5>
+				{ban.reason && (
+					<p className="text-xs text-muted-foreground mt-1 line-clamp-2" title={ban.reason}>
+						{ban.reason}
+					</p>
+				)}
+			</div>
+		</div>
+	);
+};
+
 const TournamentDetail: React.FC = () => {
-	const [, params] = useRoute('/tournaments/:id');
+	const { id } = useParams<{ id: string }>();
+	const [, setLocation] = useLocation();
 	const { user } = useAuth();
 	const [tournament, set_tournament] = useState<Tournament | null>(null);
 	const [all_matches, set_all_matches] = useState<TournamentMatch[]>([]);
 	const [is_registering, set_is_registering] = useState(false);
 	const [loading, set_loading] = useState(true);
-
-	const tournament_id = params?.id || '';
+	const [realCards, setRealCards] = useState<CardDetails[]>([]);
 
 	useEffect(() => {
-		if (tournament_id) {
+		if (id) {
 			// Simular carga de datos
 			setTimeout(() => {
-				set_tournament(get_mock_tournament(tournament_id));
+				set_tournament(get_mock_tournament(id, realCards));
 				set_all_matches(get_mock_matches());
 				set_loading(false);
 			}, 500);
 		}
-	}, [tournament_id]);
+	}, [id, realCards]);
+
+	// Obtener cartas reales de Firestore
+	useEffect(() => {
+		const fetchRealCards = async () => {
+			try {
+				const cards = await getAllCards();
+				// Tomar solo unas pocas cartas como ejemplo
+				const sampleCards = cards.slice(0, 6);
+				setRealCards(sampleCards);
+			} catch (error) {
+				console.error('Error al obtener cartas reales:', error);
+				// Mantener las imágenes mock como fallback
+				setRealCards([]);
+			}
+		};
+
+		fetchRealCards();
+	}, []);
 
 	const can_register = tournament && 
 		tournament.status === 'upcoming' && 
@@ -226,6 +373,32 @@ const TournamentDetail: React.FC = () => {
 			custom: 'Personalizado'
 		};
 		return labels[format as keyof typeof labels] || format;
+	};
+
+	const get_ban_type_info = (type: BanType) => {
+		const ban_types = {
+			card_type: { label: 'Tipo de Carta', icon: '🃏', color: 'bg-blue-100 text-blue-800' },
+			set: { label: 'Set', icon: '📦', color: 'bg-purple-100 text-purple-800' },
+			protector: { label: 'Protector', icon: '🛡️', color: 'bg-green-100 text-green-800' },
+			ixim: { label: 'Ixim', icon: '⚔️', color: 'bg-yellow-100 text-yellow-800' },
+			bio: { label: 'Bio', icon: '🧬', color: 'bg-red-100 text-red-800' },
+			specific_card: { label: 'Carta Específica', icon: '🎯', color: 'bg-gray-100 text-gray-800' }
+		};
+		return ban_types[type] || ban_types.specific_card;
+	};
+
+	const get_bans_by_type = (bans: TournamentBan[]) => {
+		return bans.reduce((acc, ban) => {
+			if (!acc[ban.type]) {
+				acc[ban.type] = [];
+			}
+			acc[ban.type].push(ban);
+			return acc;
+		}, {} as Record<BanType, TournamentBan[]>);
+	};
+
+	const should_show_card_image = (type: BanType) => {
+		return ['protector', 'ixim', 'bio', 'specific_card'].includes(type);
 	};
 
 	if (loading) {
@@ -445,6 +618,75 @@ const TournamentDetail: React.FC = () => {
 				</CardContent>
 			</Card>
 
+			{/* Sección de Baneos */}
+			{tournament.banned_items && tournament.banned_items.length > 0 && (
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<XCircle className="h-5 w-5 text-red-500" />
+							Elementos Prohibidos
+						</CardTitle>
+						<CardDescription>
+							Los siguientes elementos están prohibidos en este torneo
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{(() => {
+							const bans_by_type = get_bans_by_type(tournament.banned_items!);
+							return (
+								<div className="space-y-6">
+									{Object.entries(bans_by_type).map(([type, bans]) => {
+										const type_info = get_ban_type_info(type as BanType);
+										return (
+											<div key={type} className="space-y-3">
+												<div className="flex items-center gap-2">
+													<span className="text-lg">{type_info.icon}</span>
+													<h4 className="font-semibold text-lg">{type_info.label}</h4>
+													<Badge className={type_info.color}>
+														{bans.length} {bans.length === 1 ? 'elemento' : 'elementos'}
+													</Badge>
+												</div>
+												{should_show_card_image(type as BanType) ? (
+													<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+														{bans.map((ban) => (
+															<BannedCardImage key={ban.id} ban={ban} />
+														))}
+													</div>
+												) : (
+													<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+														{bans.map((ban) => (
+															<div key={ban.id} className="border rounded-lg p-4 space-y-2">
+																<div className="flex items-start justify-between">
+																	<h5 className="font-medium text-red-600">{ban.name}</h5>
+																	<Badge variant="destructive" className="text-xs">
+																		PROHIBIDO
+																	</Badge>
+																</div>
+																{ban.description && (
+																	<p className="text-sm text-muted-foreground">
+																		{ban.description}
+																	</p>
+																)}
+																{ban.reason && (
+																	<div className="flex items-center gap-2 text-xs">
+																		<span className="font-medium text-orange-600">Razón:</span>
+																		<span className="text-muted-foreground">{ban.reason}</span>
+																	</div>
+																)}
+															</div>
+														))}
+													</div>
+												)}
+											</div>
+										);
+									})}
+								</div>
+							);
+						})()}
+					</CardContent>
+				</Card>
+			)}
+
 			{/* Reglas del torneo */}
 			<Card>
 				<CardHeader>
@@ -455,7 +697,7 @@ const TournamentDetail: React.FC = () => {
 					
 					{tournament.banned_cards && tournament.banned_cards.length > 0 && (
 						<div className="mt-4">
-							<h4 className="font-medium mb-2">Cartas Prohibidas:</h4>
+							<h4 className="font-medium mb-2">Cartas Prohibidas (Legado):</h4>
 							<div className="flex flex-wrap gap-2">
 								{tournament.banned_cards.map((card, index) => (
 									<Badge key={index} variant="destructive">

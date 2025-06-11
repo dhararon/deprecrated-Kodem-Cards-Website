@@ -9,6 +9,23 @@ export type TournamentStatus = 'upcoming' | 'active' | 'completed' | 'cancelled'
 export type TournamentFormat = 'standard' | 'sealed' | 'draft' | 'custom';
 
 /**
+ * Ban types for tournaments
+ */
+export type BanType = 'card_type' | 'set' | 'protector' | 'ixim' | 'bio' | 'specific_card';
+
+/**
+ * Tournament ban item
+ */
+export interface TournamentBan {
+	id: string;
+	type: BanType;
+	name: string;
+	description?: string;
+	icon?: string;
+	reason?: string;
+}
+
+/**
  * Tournament participant information
  */
 export interface TournamentParticipant {
@@ -74,6 +91,8 @@ export interface Tournament {
 	end_date?: string;
 	registration_deadline: string;
 	created_by: string;
+	organizer_id: string;
+	organizer_name: string;
 	created_at: string;
 	updated_at: string;
 	participants: TournamentParticipant[];
@@ -85,6 +104,7 @@ export interface Tournament {
 	min_deck_size?: number;
 	max_deck_size?: number;
 	banned_cards?: string[];
+	banned_items?: TournamentBan[];
 	location?: string;
 	online: boolean;
 }
