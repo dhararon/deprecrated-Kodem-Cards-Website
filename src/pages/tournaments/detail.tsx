@@ -17,13 +17,21 @@ import {
 	User,
 	Check,
 	X,
-	AlertTriangle
+	AlertTriangle,
+	Settings,
+	Play,
+	Pause,
+	Plus,
+	ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/atoms/Card';
 import { Badge } from '@/components/atoms/Badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/atoms/Avatar';
 import { Separator } from '@/components/atoms/Separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/atoms/Dialog';
+import { Input } from '@/components/atoms/Input';
+import { Label } from '@/components/atoms/Label';
 import { toast } from 'sonner';
 import { Tournament, TournamentParticipant, TournamentMatch, TournamentBan, BanType } from '@/types/tournament';
 import { CardDetails } from '@/types/card';
@@ -65,7 +73,25 @@ const get_mock_tournament = (id: string, realCards: CardDetails[] = []): Tournam
 			wins: 3, losses: 1, draws: 0, points: 9, rank: 3
 		}
 	],
-	rounds: [],
+	rounds: [
+		{
+			id: 'round_1',
+			round_number: 1,
+			name: 'Ronda 1 - Clasificatoria',
+			matches: [],
+			status: 'completed',
+			created_at: '2024-03-15T10:00:00Z',
+			completed_at: '2024-03-15T11:30:00Z'
+		},
+		{
+			id: 'round_2',
+			round_number: 2,
+			name: 'Ronda 2 - Eliminatorias',
+			matches: [],
+			status: 'active',
+			created_at: '2024-03-15T11:45:00Z'
+		}
+	],
 	rules: 'Formato estándar. Prohibido el uso de cartas proxy. Mazos deben ser verificados antes del inicio.',
 	banner_url: '/banners/tournament-spring.jpg',
 	is_public: true,
@@ -264,6 +290,10 @@ const TournamentDetail: React.FC = () => {
 	const [is_registering, set_is_registering] = useState(false);
 	const [loading, set_loading] = useState(true);
 	const [realCards, setRealCards] = useState<CardDetails[]>([]);
+	const [show_manage_dialog, set_show_manage_dialog] = useState(false);
+	const [current_round, set_current_round] = useState(3);
+	const [round_name, set_round_name] = useState('');
+	const [is_managing, set_is_managing] = useState(false);
 
 	useEffect(() => {
 		if (id) {
@@ -300,6 +330,15 @@ const TournamentDetail: React.FC = () => {
 		tournament.current_participants < tournament.max_participants;
 
 	const is_registered = tournament?.participants.some(p => p.user_id === user?.id);
+	const is_organizer = user && tournament && (user.id === tournament.created_by || user.role === 'admin');
+	
+	// Debug logs
+	console.log('Debug gestión torneo:', {
+		user_id: user?.id,
+		user_role: user?.role,
+		tournament_created_by: tournament?.created_by,
+		is_organizer
+	});
 
 	const handle_register = async () => {
 		if (!user || !tournament) return;
@@ -333,6 +372,90 @@ const TournamentDetail: React.FC = () => {
 			toast.error('Error al registrarse al torneo');
 		} finally {
 			set_is_registering(false);
+		}
+	};
+
+	const handle_start_round = async () => {
+		if (!tournament) return;
+
+		set_is_managing(true);
+		try {
+			// Simular inicio de ronda
+			await new Promise(resolve => setTimeout(resolve, 1000));
+			
+			const new_round = {
+				id: `round_${current_round}`,
+				round_number: current_round,
+				name: round_name || `Ronda ${current_round}`,
+				status: 'active' as const,
+				matches: [],
+				created_at: new Date().toISOString()
+			};
+
+			set_tournament(prev => prev ? {
+				...prev,
+				rounds: [...prev.rounds, new_round],
+				status: 'active'
+			} : null);
+
+			set_current_round(prev => prev + 1);
+			set_round_name('');
+			set_show_manage_dialog(false);
+			toast.success(`Ronda ${new_round.round_number} iniciada exitosamente!`);
+		} catch (error) {
+			toast.error('Error al iniciar la ronda');
+		} finally {
+			set_is_managing(false);
+		}
+	};
+
+	const handle_close_round = async (round_id: string) => {
+		if (!tournament) return;
+
+		set_is_managing(true);
+		try {
+			// Simular cierre de ronda
+			await new Promise(resolve => setTimeout(resolve, 1000));
+			
+			set_tournament(prev => prev ? {
+				...prev,
+				rounds: prev.rounds.map(round => 
+					round.id === round_id 
+						? { ...round, status: 'completed' as const, completed_at: new Date().toISOString() }
+						: round
+				)
+			} : null);
+
+			toast.success('Ronda cerrada exitosamente!');
+		} catch (error) {
+			toast.error('Error al cerrar la ronda');
+		} finally {
+			set_is_managing(false);
+		}
+	};
+
+	const handle_reopen_round = async (round_id: string) => {
+		if (!tournament) return;
+
+		set_is_managing(true);
+		try {
+			// Simular reapertura de ronda
+			await new Promise(resolve => setTimeout(resolve, 1000));
+			
+			set_tournament(prev => prev ? {
+				...prev,
+				rounds: prev.rounds.map(round => 
+					round.id === round_id 
+						? { ...round, status: 'active' as const, completed_at: undefined }
+						: round
+				)
+			} : null);
+
+			toast.success('Ronda reabierta exitosamente!');
+		} catch (error) {
+			toast.error('Error al reabrir la ronda');
+		} finally {
+			set_is_managing(false);
 		}
 	};
 
@@ -441,23 +564,118 @@ const TournamentDetail: React.FC = () => {
 							)}
 						</div>
 					</div>
-					{can_register && !is_registered && (
-						<Button 
-							size="lg" 
-							onClick={handle_register}
-							disabled={is_registering}
-							className="flex items-center gap-2"
-						>
-							<UserPlus className="h-4 w-4" />
-							{is_registering ? 'Registrando...' : 'Registrarse'}
-						</Button>
-					)}
-					{is_registered && (
-						<div className="flex items-center gap-2 text-green-600">
-							<CheckCircle className="h-5 w-5" />
-							<span className="font-medium">Registrado</span>
-						</div>
-					)}
+					<div className="flex items-center gap-3">
+						{can_register && !is_registered && (
+							<Button 
+								size="lg" 
+								onClick={handle_register}
+								disabled={is_registering}
+								className="flex items-center gap-2"
+							>
+								<UserPlus className="h-4 w-4" />
+								{is_registering ? 'Registrando...' : 'Registrarse'}
+							</Button>
+						)}
+						{is_registered && (
+							<div className="flex items-center gap-2 text-green-600">
+								<CheckCircle className="h-5 w-5" />
+								<span className="font-medium">Registrado</span>
+							</div>
+						)}
+						{is_organizer && (
+							<Dialog open={show_manage_dialog} onOpenChange={set_show_manage_dialog}>
+								<DialogTrigger asChild>
+									<Button 
+										variant="outline" 
+										size="lg"
+										className="flex items-center gap-2"
+									>
+										<Settings className="h-4 w-4" />
+										Gestionar Torneo
+									</Button>
+								</DialogTrigger>
+								<DialogContent className="sm:max-w-md bg-white">
+									<DialogHeader>
+										<DialogTitle>Gestión del Torneo</DialogTitle>
+									</DialogHeader>
+									<div className="space-y-6">
+										{/* Iniciar nueva ronda */}
+										<div className="space-y-4">
+											<h3 className="font-medium flex items-center gap-2">
+												<Plus className="h-4 w-4" />
+												Iniciar Nueva Ronda
+											</h3>
+											<div className="space-y-3">
+												<div>
+													<Label htmlFor="round-name">Nombre de la ronda (opcional)</Label>
+													<Input
+														id="round-name"
+														value={round_name}
+														onChange={(e) => set_round_name(e.target.value)}
+														placeholder={`Ronda ${current_round}`}
+													/>
+												</div>
+												<Button 
+													onClick={handle_start_round}
+													disabled={is_managing}
+													className="w-full flex items-center gap-2"
+												>
+													<Play className="h-4 w-4" />
+													{is_managing ? 'Iniciando...' : `Iniciar Ronda ${current_round}`}
+												</Button>
+											</div>
+										</div>
+
+										<Separator />
+
+										{/* Gestionar rondas existentes */}
+										{tournament.rounds.length > 0 && (
+											<div className="space-y-4">
+												<h3 className="font-medium">Rondas Activas</h3>
+												<div className="space-y-2">
+													{tournament.rounds.map((round) => (
+														<div key={round.id} className="flex items-center justify-between p-3 border rounded-lg">
+															<div>
+																<p className="font-medium">{round.name}</p>
+																<p className="text-sm text-muted-foreground">
+																	{round.status === 'active' ? 'Activa' : 'Completada'}
+																</p>
+															</div>
+															<div className="flex gap-2">
+																{round.status === 'active' ? (
+																	<Button
+																		size="sm"
+																		variant="outline"
+																		onClick={() => handle_close_round(round.id)}
+																		disabled={is_managing}
+																		className="flex items-center gap-1"
+																	>
+																		<Pause className="h-3 w-3" />
+																		Cerrar
+																	</Button>
+																) : (
+																	<Button
+																		size="sm"
+																		variant="outline"
+																		onClick={() => handle_reopen_round(round.id)}
+																		disabled={is_managing}
+																		className="flex items-center gap-1"
+																	>
+																		<Play className="h-3 w-3" />
+																		Reabrir
+																	</Button>
+																)}
+															</div>
+														</div>
+													))}
+												</div>
+											</div>
+										)}
+									</div>
+								</DialogContent>
+							</Dialog>
+						)}
+					</div>
 				</div>
 			</div>
 

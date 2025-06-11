@@ -50,6 +50,7 @@ export interface TournamentParticipant {
 export interface TournamentRound {
 	id: string;
 	round_number: number;
+	name: string;
 	matches: TournamentMatch[];
 	status: 'pending' | 'active' | 'completed';
 	created_at: string;
