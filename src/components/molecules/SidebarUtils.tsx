@@ -9,6 +9,7 @@ import {
     Zap as LightningBoltIcon,
     Library as LibraryIcon,
     Heart as HeartIcon,
+    Trophy as TrophyIcon,
 } from 'lucide-react';
 
 // Tipos exportados
@@ -37,7 +38,8 @@ export const sidebarIcons = {
     lightning: <LightningBoltIcon className="h-4 w-4" />,
     library: <LibraryIcon className="h-4 w-4" />,
     heart: <HeartIcon className="h-4 w-4" />,
-    feed: <RocketIcon className="h-4 w-4" />
+    feed: <RocketIcon className="h-4 w-4" />,
+    tournament: <TrophyIcon className="h-4 w-4" />
 };
 
 export const createDefaultSections = (badgeCount?: number): SidebarSection[] => [
@@ -74,6 +76,16 @@ export const createDefaultSections = (badgeCount?: number): SidebarSection[] => 
                 "text": "Explorar Mazos",
                 "href": "/decks/feed",
                 "icon": sidebarIcons.feed
+            }
+        ]
+    },
+    {
+        "title": "Competencia",
+        "links": [
+            {
+                "text": "Torneos",
+                "href": "/tournaments",
+                "icon": sidebarIcons.tournament
             }
         ]
     }

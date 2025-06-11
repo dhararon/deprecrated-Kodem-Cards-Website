@@ -41,6 +41,10 @@ const WishlistDetail = lazy(() => import(/* webpackChunkName: "wishlists" */ '@/
 // Páginas de administración
 const CardsManager = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/cards/index'));
 
+// Páginas de torneos
+const Tournaments = lazy(() => import(/* webpackChunkName: "tournaments" */ '@/pages/tournaments'));
+const TournamentCreate = lazy(() => import(/* webpackChunkName: "tournaments" */ '@/pages/tournaments/create'));
+
 // Componente para envolver en CollectionProvider y WishlistProvider
 const WithProviders = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -178,6 +182,19 @@ function App() {
                       <WishlistDetail />
                     </AuthenticatedRoute>
                   )}
+                </Route>
+
+                {/* Rutas para torneos */}
+                <Route path="/tournaments">
+                  <AuthenticatedRoute>
+                    <Tournaments />
+                  </AuthenticatedRoute>
+                </Route>
+
+                <Route path="/tournaments/create">
+                  <AuthenticatedRoute>
+                    <TournamentCreate />
+                  </AuthenticatedRoute>
                 </Route>
 
                 <Route path="/profile">
