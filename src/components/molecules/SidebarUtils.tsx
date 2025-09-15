@@ -53,11 +53,6 @@ export const createDefaultSections = (badgeCount?: number): SidebarSection[] => 
                 badge: badgeCount
             },
             {
-                text: 'Listas de Deseos',
-                href: '/wishlists',
-                icon: sidebarIcons.heart
-            },
-            {
                 text: 'Cartas Proxy',
                 href: '/cards/selector',
                 icon: sidebarIcons.new
@@ -71,21 +66,6 @@ export const createDefaultSections = (badgeCount?: number): SidebarSection[] => 
                 "text": "Mis Mazos",
                 "href": "/decks",
                 "icon": sidebarIcons.decks
-            },
-            {
-                "text": "Explorar Mazos",
-                "href": "/decks/feed",
-                "icon": sidebarIcons.feed
-            }
-        ]
-    },
-    {
-        "title": "Competencia",
-        "links": [
-            {
-                "text": "Torneos",
-                "href": "/tournaments",
-                "icon": sidebarIcons.tournament
             }
         ]
     }

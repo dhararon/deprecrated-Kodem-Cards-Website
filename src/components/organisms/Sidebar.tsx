@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSidebarContext } from '@/hooks/useSidebar';
 import { Database } from 'lucide-react';
-import { Sidebar as SidebarComponent } from '@/components/molecules/Sidebar';
 import { createDefaultSections } from '@/components/molecules/SidebarUtils';
 
 /**

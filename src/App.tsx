@@ -34,17 +34,8 @@ const DeckEditor = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/de
 const DeckDetail = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks/[id]'));
 const DecksFeed = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks/feed'));
 
-// Páginas de listas de deseos
-const Wishlists = lazy(() => import(/* webpackChunkName: "wishlists" */ '@/pages/wishlist'));
-const WishlistDetail = lazy(() => import(/* webpackChunkName: "wishlists" */ '@/pages/wishlist/[id]'));
-
 // Páginas de administración
 const CardsManager = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/cards/index'));
-
-// Páginas de torneos
-const Tournaments = lazy(() => import(/* webpackChunkName: "tournaments" */ '@/pages/tournaments'));
-const TournamentCreate = lazy(() => import(/* webpackChunkName: "tournaments" */ '@/pages/tournaments/create'));
-const TournamentDetail = lazy(() => import(/* webpackChunkName: "tournaments" */ '@/pages/tournaments/detail'));
 
 // Componente para envolver en CollectionProvider y WishlistProvider
 const WithProviders = ({ children }: { children: ReactNode }) => {
@@ -166,42 +157,6 @@ function App() {
                   {() => (
                     <AuthenticatedRoute>
                       <DeckDetail />
-                    </AuthenticatedRoute>
-                  )}
-                </Route>
-
-                {/* Rutas para listas de deseos */}
-                <Route path="/wishlists">
-                  <AuthenticatedRoute>
-                    <Wishlists />
-                  </AuthenticatedRoute>
-                </Route>
-
-                <Route path="/wishlist/:id">
-                  {() => (
-                    <AuthenticatedRoute>
-                      <WishlistDetail />
-                    </AuthenticatedRoute>
-                  )}
-                </Route>
-
-                {/* Rutas para torneos */}
-                <Route path="/tournaments">
-                  <AuthenticatedRoute>
-                    <Tournaments />
-                  </AuthenticatedRoute>
-                </Route>
-
-                <Route path="/tournaments/create">
-                  <AuthenticatedRoute>
-                    <TournamentCreate />
-                  </AuthenticatedRoute>
-                </Route>
-
-                <Route path="/tournaments/:id">
-                  {() => (
-                    <AuthenticatedRoute>
-                      <TournamentDetail />
                     </AuthenticatedRoute>
                   )}
                 </Route>
