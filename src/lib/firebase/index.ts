@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, connectAuthEmulator, getIdTokenResult } from 'firebase/auth';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { firebaseConfig, emulatorConfig, shouldUseEmulators } from './config';
@@ -8,7 +8,11 @@ import { firebaseConfig, emulatorConfig, shouldUseEmulators } from './config';
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Obtener servicios
-export const db = getFirestore(app);
+export const db = initializeFirestore(app, {
+	// Mitiga problemas de redes/proxies/extensiones (Unknown SID / ClearURLs)
+	experimentalAutoDetectLongPolling: true,
+	ignoreUndefinedProperties: true
+});
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 
