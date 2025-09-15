@@ -76,7 +76,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock para TextEncoder/TextDecoder
-global.TextEncoder = TextEncoder;
+global.TextEncoder = TextEncoder as any;
 global.TextDecoder = TextDecoder as any;
 
 // Silenciar las advertencias de console.error y console.warn en los tests
