@@ -56,7 +56,13 @@ export default function DeckEditor() {
   const deckId = !isNew && urlSegments.length > 0 ? urlSegments[urlSegments.length - 1] : '';
   
   const { user } = useAuth();
-  
+
+  const MAX_ROT_CARDS = 5;
+  const MAX_IXIM_CARDS = 5;
+  const MAX_RAVA_CARDS = 1;
+  const MAX_BIO_CARDS = 1;
+  const MAX_PROTECTOR_CARDS = 2;
+
   // Estados para el mazo
   const [deck, setDeck] = useState<Deck | null>(null);
   const [deckName, setDeckName] = useState('Nuevo Mazo');
@@ -783,7 +789,7 @@ export default function DeckEditor() {
           {/* Fila 2: Cartas Rot */}
           <div>
             <h3 className="font-medium text-sm mb-2">Cartas Rot</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               {Array(5).fill(null).map((_, idx) => (
                 <div key={`rot-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
                   isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
@@ -809,7 +815,7 @@ export default function DeckEditor() {
           {/* Fila 3: Cartas Ixim */}
           <div>
             <h3 className="font-medium text-sm mb-2">Cartas Ixim</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               {Array(5).fill(null).map((_, idx) => (
                 <div key={`ixim-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
                   isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
@@ -983,6 +989,8 @@ export default function DeckEditor() {
         case CardType.ADENDEI_EQUINO:
         case CardType.ADENDEI_ABISMAL:
         case CardType.ADENDEI_INFECTADO:
+        case CardType.ADENDEI_GUARDIAN_CATRIN:
+        case CardType.ADENDEI_RESURRECTO:
           adendeiCount += quantity;
           break;
       }
@@ -996,23 +1004,23 @@ export default function DeckEditor() {
     }
     
     // Validar límites por tipo
-    if (rotCount > 4) {
+    if (rotCount > MAX_ROT_CARDS) {
       return { isValid: false, error: `Máximo 4 cartas Rot permitidas (tienes ${rotCount})` };
     }
     
-    if (iximCount > 4) {
+    if (iximCount > MAX_IXIM_CARDS) {
       return { isValid: false, error: `Máximo 4 cartas Ixim permitidas (tienes ${iximCount})` };
     }
     
-    if (ravaCount > 1) {
+    if (ravaCount > MAX_RAVA_CARDS) {
       return { isValid: false, error: `Máximo 1 carta Rava permitida (tienes ${ravaCount})` };
     }
     
-    if (bioCount > 1) {
+    if (bioCount > MAX_BIO_CARDS) {
       return { isValid: false, error: `Máximo 1 carta Bio permitida (tienes ${bioCount})` };
     }
     
-    if (protectorCount > 2) {
+    if (protectorCount > MAX_PROTECTOR_CARDS) {
       return { isValid: false, error: `Máximo 2 Protectores permitidos (tienes ${protectorCount})` };
     }
     
@@ -1066,6 +1074,8 @@ export default function DeckEditor() {
         case CardType.ADENDEI_EQUINO:
         case CardType.ADENDEI_ABISMAL:
         case CardType.ADENDEI_INFECTADO:
+        case CardType.ADENDEI_GUARDIAN_CATRIN:
+        case CardType.ADENDEI_RESURRECTO:
           adendeiCount += quantity;
           break;
       }
@@ -1344,6 +1354,8 @@ export default function DeckEditor() {
         case CardType.ADENDEI_ABISMAL:
         case CardType.ADENDEI_INFECTADO:
         case CardType.RAVA:
+        case CardType.ADENDEI_RESURRECTO:
+          case CardType.ADENDEI_GUARDIAN_CATRIN:
           if (!newOrder.adendeis.includes(card.id)) {
             newOrder.adendeis = [...newOrder.adendeis, card.id];
           }
