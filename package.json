@@ -7,6 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "tsc && vite build",
     "build:production": "export NODE_ENV=production && tsc && vite build --mode production",
+    "deploy:hosting": "firebase deploy --only hosting",
     "analyze:deps": "node scripts/analyze-dependencies.cjs --strategy major --bun",
     "lint": "bun eslint 'src/**/*.{ts,tsx}' --max-warnings=0",
     "lint:fix": "bun eslint 'src/**/*.{ts,tsx}' --fix",

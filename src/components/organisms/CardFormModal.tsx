@@ -311,7 +311,7 @@ export const CardFormModal: React.FC<CardFormModalProps> = ({
             artist: formData.artist || [''],
             languages: formData.languages || [],
             standardLegal: formData.standardLegal !== undefined ? formData.standardLegal : true,
-            prices: { amount: 0, currency: 'MXN', lastUpdate: new Date().toISOString() },
+            prices: { high: 0, market: 0, low: 0 },
             type: formData.cardType || CardType.ADENDEI,
             energy: formData.cardEnergy || undefined
         };
@@ -360,7 +360,7 @@ export const CardFormModal: React.FC<CardFormModalProps> = ({
                     rules: [''],
                     artist: [''],
                     fullId: '',
-                    prices: { amount: 0, currency: 'MXN', lastUpdate: new Date().toISOString() },
+                    prices: { high: 0, market: 0, low: 0 },
                     languages: [],
                     standardLegal: true,
                 });

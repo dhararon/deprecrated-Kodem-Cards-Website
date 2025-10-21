@@ -42,9 +42,7 @@ export const CollectionCard = memo(function CollectionCard({
     };
 
     // Asegurarse de que prices existe antes de acceder a sus propiedades
-    const displayPrice = card.prices
-        ? formatPrice(card.prices.amount, card.prices.currency)
-        : formatPrice(undefined, undefined);
+    const displayPrice = card.prices ? formatPrice(card.prices.market, 'MXN') : formatPrice(undefined, undefined);
 
     return (
         <Card

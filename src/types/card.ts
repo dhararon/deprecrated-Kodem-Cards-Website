@@ -13,19 +13,23 @@ export enum CardSet {
     TITANES_DE_LA_CORTEZA = "titanes de la corteza (Mazo)",
     MINI_FLORES_Y_TUMBAS = "mini flores y tumbas",
     TITANES_DE_LA_CORTEZA_Y_OJOS_DEL_OCEANO = "titanes de la corteza y ojos del oceano",
-    OJOS_DEL_OCEANO = "ojos del oceano (Mazo)"
+    OJOS_DEL_OCEANO = "ojos del oceano (Mazo)",
+    RAICES_MISTICAS_DECK = "raices misticas (Mazo)",
+    FLORES_Y_TUMBAS = "flores y tumbas",
 }
 
 // Tipos de cartas
 export enum CardType {
-    ADENDEI_INFECTADO = "adendei infectado",
-    ADENDEI_ABISMAL = "adendei abismal",
-    ADENDEI_EQUINO = "adendei equino",
-    ADENDEI_KOSMICO = "adendei kósmico",
-    ADENDEI_CATRIN = "adendei catrin",
-    ADENDEI_GUARDIAN = "adendei guardian",
-    ADENDEI_TITAN = "adendei titán",
     ADENDEI = "adendei",
+    ADENDEI_ABISMAL = "adendei abisal",
+    ADENDEI_CATRIN = "adendei catrin",
+    ADENDEI_EQUINO = "adendei equino",
+    ADENDEI_GUARDIAN = "adendei guardian",
+    ADENDEI_GUARDIAN_CATRIN = "adendei guardian catrin",
+    ADENDEI_INFECTADO = "adendei infectado",
+    ADENDEI_KOSMICO = "adendei kósmico",
+    ADENDEI_RESURRECTO = "adendei resurrecto",
+    ADENDEI_TITAN = "adendei titán",
     ROT = "rot",
     PROTECTOR = "protector",
     BIO = "bio",
@@ -36,14 +40,14 @@ export enum CardType {
 
 // Elementos de cartas
 export enum CardEnergy {
-    PIRICA = "pírica",
-    CHAAKTICA = "cháaktica",
     ATLICA = "átlica",
+    CHAAKTICA = "cháaktica",
+    DEMOTICA = "demótica",
     FERAL = "feral",
-    LITICA = "lítica",
-    HUUMICA = "húumica",
     GELIDA = "gélida",
-    DEMOTICA = "demótica"
+    HUUMICA = "húumica",
+    LITICA = "lítica",
+    PIRICA = "pírica",
 }
 
 // Rarezas de cartas
@@ -60,9 +64,9 @@ export enum CardRarity {
 }
 
 export interface Prices {
-    amount: number;
-    currency: string;
-    lastUpdate: string;
+    high: number;
+    market: number;
+    low: number;
 }
 
 // Tipo base para una carta con propiedades mínimas

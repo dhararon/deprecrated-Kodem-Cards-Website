@@ -384,16 +384,16 @@ export default function DeckEditor() {
     // Organizar cartas respetando el orden personalizado
     const organizedProtectors = protectors.slice(0, 2);
     const organizedBio = bioCards.slice(0, 1);
-    const organizedRot = rotCards.slice(0, 4);
-    const organizedIxim = iximCards.slice(0, 4);
+    const organizedRot = rotCards.slice(0, 5);
+    const organizedIxim = iximCards.slice(0, 5);
     const allAdendeis = adendeiCards.slice(0, 24);
     
     // Cartas adicionales que exceden los límites
     const additionalCards = [
       ...protectors.slice(2),
       ...bioCards.slice(1),
-      ...rotCards.slice(4),
-      ...iximCards.slice(4),
+      ...rotCards.slice(5),
+      ...iximCards.slice(5),
       ...adendeiCards.slice(24),
       ...otherCards
     ];
@@ -784,7 +784,7 @@ export default function DeckEditor() {
           <div>
             <h3 className="font-medium text-sm mb-2">Cartas Rot</h3>
             <div className="grid grid-cols-4 gap-3">
-              {Array(4).fill(null).map((_, idx) => (
+              {Array(5).fill(null).map((_, idx) => (
                 <div key={`rot-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
                   isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
                 }`} data-droppable-id={`rot-${idx}}`}>
@@ -810,7 +810,7 @@ export default function DeckEditor() {
           <div>
             <h3 className="font-medium text-sm mb-2">Cartas Ixim</h3>
             <div className="grid grid-cols-4 gap-3">
-              {Array(4).fill(null).map((_, idx) => (
+              {Array(5).fill(null).map((_, idx) => (
                 <div key={`ixim-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
                   isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
                 }`} data-droppable-id={`ixim-${idx}`}> 

@@ -65,9 +65,9 @@ interface FirestoreCardDocument {
     languages?: string[];
     artists?: string[];
     prices?: {
-        amount: number;
-        currency: string;
-        lastUpdate: string;
+        high: number;
+        market: number;
+        low: number;
     };
     createdAt?: Timestamp;
     updatedAt?: Timestamp;
@@ -125,7 +125,7 @@ export const convertDocToCardDetails = (docSnapshot: DocumentSnapshot): CardDeta
         standardLegal: data.standardLegal ?? false,
         languages: data.languages || undefined, // Asumiendo que existe en schema si es necesario
         artist: data.artists || [], // Lee artists
-        prices: data.prices || { amount: 0, currency: 'MXN', lastUpdate: new Date().toISOString() },
+        prices: data.prices || { high: 0, market: 0, low: 0 },
         
         // Campos de auditoría - manejar diferentes formatos de fecha con seguridad
         createdAt: formatTimestamp(data.createdAt),

@@ -19,9 +19,9 @@ export function catalogCardToBaseCard(card: Record<string, unknown>): Card {
         cardSet: (card.cardSet as string || card.set as string) as CardSet,
         fullId: card.fullId as string || card.id as string,
         prices: card.prices as Prices || {
-            amount: 0,
-            currency: 'MXN',
-            lastUpdate: new Date().toISOString()
+            high: 0,
+            market: 0,
+            low: 0
         },
         // Campos legacy para compatibilidad
         type: cardType,
@@ -77,9 +77,9 @@ export function transformCard(card: Record<string, unknown>): Card {
     const safeEnergy = toSafeCardEnergy((card.energy || card.cardEnergy) as string);
     
     const prices = card.prices as Prices || {
-        amount: 0,
-        currency: 'MXN',
-        lastUpdate: new Date().toISOString()
+        high: 0,
+        market: 0,
+        low: 0
     };
     
     return {
