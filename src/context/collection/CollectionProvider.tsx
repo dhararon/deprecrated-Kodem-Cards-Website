@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ReactNode, useCallback } from 'react';
-import { collection, query, getDocs, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, getDocs, doc, getDoc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Card, CardDetails, CardSet } from '@/types/card';
 import { CardWithQuantity, ProcessedCollection } from '@/types/collection';
@@ -224,14 +224,15 @@ const CollectionProvider: React.FC<CollectionProviderProps> = ({ children }) => 
                 });
             } else {
                 // Crear un nuevo documento con la estructura correcta
-                await updateDoc(userCollectionRef, {
+                await setDoc(userCollectionRef, {
                     cards: {
-                        [cardId]: {
-                            quantity,
-                            updatedAt: serverTimestamp()
-                        }
+                    [cardId]: {
+                        quantity,
+                        updatedAt: serverTimestamp()
+                    }
                     },
                     userId: user.id,
+                    createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
                 });
             }
