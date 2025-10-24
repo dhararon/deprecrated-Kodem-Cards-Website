@@ -902,27 +902,26 @@ export default function DeckEditor() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-medium text-sm">Cartas Rot {organizedDeck.rotCards.length > 0 && `(${organizedDeck.rotCards.length})`}</h3>
-              {(organizedDeck.rotCards.length === 0 || !isRotExpanded) && (
-                <button
-                  type="button"
-                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                  onClick={() => setIsRotExpanded(!isRotExpanded)}
-                >
-                  {isRotExpanded ? (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-                      Contraer
-                    </>
-                  ) : (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                      Expandir
-                    </>
-                  )}
-                </button>
-              )}
+              {/* Siempre mostrar el botón de expandir/contraer para permitir colapsar aunque haya cartas */}
+              <button
+                type="button"
+                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                onClick={() => setIsRotExpanded(!isRotExpanded)}
+              >
+                {isRotExpanded ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                    Contraer
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    Expandir
+                  </>
+                )}
+              </button>
             </div>
-            {(organizedDeck.rotCards.length > 0 || isRotExpanded) && (
+            {isRotExpanded && (
               <div className="grid grid-cols-5 gap-3">
                 {Array(5).fill(null).map((_, idx) => (
                   <div key={`rot-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
@@ -964,27 +963,26 @@ export default function DeckEditor() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-medium text-sm">Cartas Ixim {organizedDeck.iximCards.length > 0 && `(${organizedDeck.iximCards.length})`}</h3>
-              {(organizedDeck.iximCards.length === 0 || !isIximExpanded) && (
-                <button
-                  type="button"
-                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                  onClick={() => setIsIximExpanded(!isIximExpanded)}
-                >
-                  {isIximExpanded ? (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-                      Contraer
-                    </>
-                  ) : (
-                    <>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                      Expandir
-                    </>
-                  )}
-                </button>
-              )}
+              {/* Siempre mostrar el botón de expandir/contraer para Ixim */}
+              <button
+                type="button"
+                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                onClick={() => setIsIximExpanded(!isIximExpanded)}
+              >
+                {isIximExpanded ? (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                    Contraer
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    Expandir
+                  </>
+                )}
+              </button>
             </div>
-            {(organizedDeck.iximCards.length > 0 || isIximExpanded) && (
+            {isIximExpanded && (
               <div className="grid grid-cols-5 gap-3">
                 {Array(5).fill(null).map((_, idx) => (
                   <div key={`ixim-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
