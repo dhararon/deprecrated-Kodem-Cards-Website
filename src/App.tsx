@@ -9,7 +9,6 @@ import PrivateLayout from '@/components/templates/PrivateLayout.tsx';
 import LoadingFallback from '@/components/templates/LoadingFallback.tsx';
 import { NotFound } from '@/components/templates/NotFound.tsx';
 import { CollectionProvider } from '@/context/collection';
-import { WishlistProvider } from '@/context/wishlist';
 import { UserDataProvider } from '@/context/userData';
 import { verifyAuthClaims } from '@/lib/firebase';
 import { GalleryDemo } from './pages/GalleryDemo';
@@ -52,9 +51,7 @@ const WithProviders = ({ children }: { children: ReactNode }) => {
 
   return (
     <CollectionProvider>
-      <WishlistProvider>
         {children}
-      </WishlistProvider>
     </CollectionProvider>
   );
 };
@@ -179,9 +176,6 @@ function App() {
                     <Collection />
                   </AuthenticatedRoute>
                 </Route>
-
-                <Route path="/gallery-demo" component={GalleryDemo} />
-                <Route path="/card-grid-demo" component={CardGridDemo} />
 
                 {/* Ruta para selector de cartas */}
                 <Route path="/cards/selector">
