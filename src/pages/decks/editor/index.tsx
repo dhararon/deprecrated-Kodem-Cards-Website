@@ -1081,30 +1081,51 @@ export default function DeckEditor() {
   // Renderizar carta del deck (asegura re-render usando key)
   const renderDeckCard = (card: CardDetails) => (
     <div key={card.id} className="deck-card-container relative group">
-      <img
-        key={card.id}
-        src={card.imageUrl}
-        alt={card.name}
-        className="w-full h-full object-contain"
-        draggable={false}
-        loading="lazy"
-      />
+      <div className="relative">
+        <img
+          key={card.id}
+          src={card.imageUrl}
+          alt={card.name}
+          className="w-full h-full object-contain"
+          draggable={false}
+          loading="lazy"
+        />
+        
+        {/* Preview ampliado al hacer hover */}
+        <div className="fixed z-[9999] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+             style={{
+               top: '50%',
+               left: '50%',
+               transform: 'translate(-50%, -50%)',
+               width: '300px',
+               height: '420px'
+             }}>
+          <div className="bg-white rounded-lg shadow-2xl p-2">
+            <img
+              src={card.imageUrl}
+              alt={card.name}
+              className="w-full h-full object-contain rounded"
+              loading="lazy"
+            />
+          </div>
+        </div>
 
-      {/* Botón de eliminar (bote de basura) en overlay - visible al hacer hover o siempre accesible por teclado */}
-      <div className={`absolute top-2 right-2 transition-opacity ${isDragging ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}>
-        <Button
-          variant="danger"
-          size="sm"
-          className="h-8 w-8 p-1"
-          onClick={(e) => {
-            // Evitar que el click dispare el drag o eventos parent
-            e.stopPropagation();
-            handleRemoveCard(card.id);
-          }}
-          aria-label={`Eliminar ${card.name} del mazo`}
-        >
-          <Trash2 size={14} />
-        </Button>
+        {/* Botón de eliminar (bote de basura) en overlay - visible al hacer hover o siempre accesible por teclado */}
+        <div className={`absolute top-2 right-2 transition-opacity ${isDragging ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}>
+          <Button
+            variant="danger"
+            size="sm"
+            className="h-8 w-8 p-1"
+            onClick={(e) => {
+              // Evitar que el click dispare el drag o eventos parent
+              e.stopPropagation();
+              handleRemoveCard(card.id);
+            }}
+            aria-label={`Eliminar ${card.name} del mazo`}
+          >
+            <Trash2 size={14} />
+          </Button>
+        </div>
       </div>
 
       {/* ...otros datos de la carta... */}
