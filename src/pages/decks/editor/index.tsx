@@ -776,6 +776,10 @@ export default function DeckEditor() {
     );
   };
 
+  // Estados para controlar las secciones colapsables
+  const [isRotExpanded, setIsRotExpanded] = useState(true);
+  const [isIximExpanded, setIsIximExpanded] = useState(true);
+
   // Renderizar el organizador
   const renderDeckOrganizer = () => {
     // Obtener la carta que se está arrastrando para el DragOverlay
@@ -896,80 +900,126 @@ export default function DeckEditor() {
 
           {/* Fila 2: Cartas Rot */}
           <div>
-            <h3 className="font-medium text-sm mb-2">Cartas Rot</h3>
-            <div className="grid grid-cols-5 gap-3">
-                {Array(5).fill(null).map((_, idx) => (
-                <div key={`rot-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                  isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-                }`} data-droppable-id={`rot-${idx}}`}>
-                  {organizedDeck.rotCards[idx] ? (
-                    <div className="relative w-full h-full">
-                      <SortableCard 
-                        card={organizedDeck.rotCards[idx]} 
-                        id={`rot-${idx}`} 
-                      />
-                      <div className="absolute top-2 right-2 z-50">
-                        <button
-                          type="button"
-                          className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
-                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                          onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.rotCards[idx].id); }}
-                          aria-label={`Eliminar ${organizedDeck.rotCards[idx].name} del mazo`}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-medium text-sm">Cartas Rot {organizedDeck.rotCards.length > 0 && `(${organizedDeck.rotCards.length})`}</h3>
+              {(organizedDeck.rotCards.length === 0 || !isRotExpanded) && (
+                <button
+                  type="button"
+                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                  onClick={() => setIsRotExpanded(!isRotExpanded)}
+                >
+                  {isRotExpanded ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                      Contraer
+                    </>
                   ) : (
-                    <div className="text-center text-sm text-muted-foreground">
-                      <div className="mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                      </div>
-                      Rot {idx + 1}
-                    </div>
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                      Expandir
+                    </>
                   )}
-                </div>
-              ))}
+                </button>
+              )}
             </div>
+            {(organizedDeck.rotCards.length > 0 || isRotExpanded) && (
+              <div className="grid grid-cols-5 gap-3">
+                {Array(5).fill(null).map((_, idx) => (
+                  <div key={`rot-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                    isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+                  }`} data-droppable-id={`rot-${idx}}`}>
+                    {organizedDeck.rotCards[idx] ? (
+                      <div className="relative w-full h-full">
+                        <SortableCard 
+                          card={organizedDeck.rotCards[idx]} 
+                          id={`rot-${idx}`} 
+                        />
+                        <div className="absolute top-2 right-2 z-50">
+                          <button
+                            type="button"
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+                            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.rotCards[idx].id); }}
+                            aria-label={`Eliminar ${organizedDeck.rotCards[idx].name} del mazo`}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center text-sm text-muted-foreground">
+                        <div className="mb-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                        </div>
+                        Rot {idx + 1}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Fila 3: Cartas Ixim */}
           <div>
-            <h3 className="font-medium text-sm mb-2">Cartas Ixim</h3>
-            <div className="grid grid-cols-5 gap-3">
-                {Array(5).fill(null).map((_, idx) => (
-                <div key={`ixim-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                  isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-                }`} data-droppable-id={`ixim-${idx}`}> 
-                  {organizedDeck.iximCards[idx] ? (
-                    <div className="relative w-full h-full">
-                      <SortableCard 
-                        card={organizedDeck.iximCards[idx]} 
-                        id={`ixim-${idx}`} 
-                      />
-                      <div className="absolute top-2 right-2 z-50">
-                        <button
-                          type="button"
-                          className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
-                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                          onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.iximCards[idx].id); }}
-                          aria-label={`Eliminar ${organizedDeck.iximCards[idx].name} del mazo`}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-medium text-sm">Cartas Ixim {organizedDeck.iximCards.length > 0 && `(${organizedDeck.iximCards.length})`}</h3>
+              {(organizedDeck.iximCards.length === 0 || !isIximExpanded) && (
+                <button
+                  type="button"
+                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                  onClick={() => setIsIximExpanded(!isIximExpanded)}
+                >
+                  {isIximExpanded ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+                      Contraer
+                    </>
                   ) : (
-                    <div className="text-center text-sm text-muted-foreground">
-                      <div className="mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                      </div>
-                      Ixim {idx + 1}
-                    </div>
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                      Expandir
+                    </>
                   )}
-                </div>
-              ))}
+                </button>
+              )}
             </div>
+            {(organizedDeck.iximCards.length > 0 || isIximExpanded) && (
+              <div className="grid grid-cols-5 gap-3">
+                {Array(5).fill(null).map((_, idx) => (
+                  <div key={`ixim-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                    isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
+                  }`} data-droppable-id={`ixim-${idx}`}> 
+                    {organizedDeck.iximCards[idx] ? (
+                      <div className="relative w-full h-full">
+                        <SortableCard 
+                          card={organizedDeck.iximCards[idx]} 
+                          id={`ixim-${idx}`} 
+                        />
+                        <div className="absolute top-2 right-2 z-50">
+                          <button
+                            type="button"
+                            className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+                            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.iximCards[idx].id); }}
+                            aria-label={`Eliminar ${organizedDeck.iximCards[idx].name} del mazo`}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center text-sm text-muted-foreground">
+                        <div className="mb-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                        </div>
+                        Ixim {idx + 1}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Filas 4-8: Adendeis y Rava (5 filas de 3 columnas = 15 slots mínimos) */}
