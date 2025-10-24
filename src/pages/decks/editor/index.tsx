@@ -34,10 +34,10 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/atoms/Select';
-import { Search, Plus, Minus, Save, ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, Plus, Minus, Save, ArrowLeft, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/atoms/Dialog';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, pointerWithin, rectIntersection } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, pointerWithin, rectIntersection, useDroppable } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { restrictToParentElement } from '@dnd-kit/modifiers';
@@ -309,6 +309,7 @@ export default function DeckEditor() {
       CardType.ADENDEI_TITAN,
       CardType.ADENDEI_GUARDIAN,
       CardType.ADENDEI_CATRIN,
+      CardType.ADENDEI_RESURRECTO,
       CardType.ADENDEI_KOSMICO,
       CardType.ADENDEI_EQUINO,
       CardType.ADENDEI_ABISMAL,
@@ -434,6 +435,7 @@ export default function DeckEditor() {
     CardType.ADENDEI_TITAN,
     CardType.ADENDEI_GUARDIAN,
     CardType.ADENDEI_CATRIN,
+    CardType.ADENDEI_RESURRECTO,
     CardType.ADENDEI_KOSMICO,
     CardType.ADENDEI_EQUINO,
     CardType.ADENDEI_ABISMAL,
@@ -453,6 +455,47 @@ export default function DeckEditor() {
     setActiveId(null);
     setIsDragging(false);
     if (!over) return;
+
+    // Si se soltó sobre la zona de basura, eliminar la carta correspondiente
+    if (over.id === 'trash-dropzone') {
+      // Determinar el id de la carta activa a partir de active.id
+      const activeIdStr = String(active.id);
+      const [section, indexStr] = activeIdStr.split('-');
+      const idx = parseInt(indexStr);
+
+      let cardIdToRemove: string | undefined;
+      switch (section) {
+        case 'mainAdendei':
+          cardIdToRemove = organizedDeck.mainAdendeis[idx]?.id;
+          break;
+        case 'rot':
+          cardIdToRemove = organizedDeck.rotCards[idx]?.id;
+          break;
+        case 'ixim':
+          cardIdToRemove = organizedDeck.iximCards[idx]?.id;
+          break;
+        case 'other':
+          cardIdToRemove = organizedDeck.otherCards[idx]?.id;
+          break;
+        case 'protector1':
+          cardIdToRemove = organizedDeck.protector1?.id;
+          break;
+        case 'protector2':
+          cardIdToRemove = organizedDeck.protector2?.id;
+          break;
+        case 'bio':
+          cardIdToRemove = organizedDeck.bio?.id;
+          break;
+        default:
+          cardIdToRemove = undefined;
+      }
+
+      if (cardIdToRemove) {
+        handleRemoveCard(cardIdToRemove);
+      }
+
+      return; // evitar demás lógica de reordenamiento
+    }
 
     if (active.id !== over.id) {
       const [activeSection, activeIndexStr] = String(active.id).split('-');
@@ -707,6 +750,32 @@ export default function DeckEditor() {
     );
   };
 
+  // Zona droppable grande para eliminar cartas
+  const DroppableTrash: React.FC<{ visible: boolean }> = ({ visible }) => {
+    const { isOver, setNodeRef } = useDroppable({ id: 'trash-dropzone' });
+
+    if (!visible) return null;
+
+    return (
+      <div
+        ref={setNodeRef}
+        className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-[900px] w-[90%] pointer-events-auto transition-all ${isOver ? 'scale-105' : ''}`}
+        aria-hidden={!visible}
+      >
+        <div className={`w-full flex items-center justify-center p-4 rounded-md shadow-lg ${isOver ? 'bg-red-600 text-white' : 'bg-red-100 text-red-800'}`}>
+          <div className="flex items-center gap-3">
+            <div className="bg-red-500 rounded-full p-3 shadow-lg">
+              <Trash2 size={28} className="text-white" />
+            </div>
+            <div className="text-sm font-medium">
+              {isOver ? 'Suelta aquí para eliminar' : 'Arrastra aquí para eliminar carta'}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Renderizar el organizador
   const renderDeckOrganizer = () => {
     // Obtener la carta que se está arrastrando para el DragOverlay
@@ -736,10 +805,23 @@ export default function DeckEditor() {
                 isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
               }`}>
                 {organizedDeck.protector1 ? (
-                  <SortableCard 
-                    card={organizedDeck.protector1} 
-                    id="protector1-0" 
-                  />
+                  <div className="relative w-full h-full">
+                    <SortableCard 
+                      card={organizedDeck.protector1} 
+                      id="protector1-0" 
+                    />
+                    <div className="absolute top-2 right-2 z-50">
+                      <button
+                        type="button"
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.protector1!.id); }}
+                        aria-label={`Eliminar ${organizedDeck.protector1.name} del mazo`}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -753,10 +835,23 @@ export default function DeckEditor() {
                 isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
               }`}>
                 {organizedDeck.protector2 ? (
-                  <SortableCard 
-                    card={organizedDeck.protector2} 
-                    id="protector2-0" 
-                  />
+                  <div className="relative w-full h-full">
+                    <SortableCard 
+                      card={organizedDeck.protector2} 
+                      id="protector2-0" 
+                    />
+                    <div className="absolute top-2 right-2 z-50">
+                      <button
+                        type="button"
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.protector2!.id); }}
+                        aria-label={`Eliminar ${organizedDeck.protector2.name} del mazo`}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -770,10 +865,23 @@ export default function DeckEditor() {
                 isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
               }`}>
                 {organizedDeck.bio ? (
-                  <SortableCard 
-                    card={organizedDeck.bio} 
-                    id="bio-0" 
-                  />
+                  <div className="relative w-full h-full">
+                    <SortableCard 
+                      card={organizedDeck.bio} 
+                      id="bio-0" 
+                    />
+                    <div className="absolute top-2 right-2 z-50">
+                      <button
+                        type="button"
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.bio!.id); }}
+                        aria-label={`Eliminar ${organizedDeck.bio.name} del mazo`}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -790,15 +898,28 @@ export default function DeckEditor() {
           <div>
             <h3 className="font-medium text-sm mb-2">Cartas Rot</h3>
             <div className="grid grid-cols-5 gap-3">
-              {Array(5).fill(null).map((_, idx) => (
+                {Array(5).fill(null).map((_, idx) => (
                 <div key={`rot-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
                   isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
                 }`} data-droppable-id={`rot-${idx}}`}>
                   {organizedDeck.rotCards[idx] ? (
-                    <SortableCard 
-                      card={organizedDeck.rotCards[idx]} 
-                      id={`rot-${idx}`} 
-                    />
+                    <div className="relative w-full h-full">
+                      <SortableCard 
+                        card={organizedDeck.rotCards[idx]} 
+                        id={`rot-${idx}`} 
+                      />
+                      <div className="absolute top-2 right-2 z-50">
+                        <button
+                          type="button"
+                          className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.rotCards[idx].id); }}
+                          aria-label={`Eliminar ${organizedDeck.rotCards[idx].name} del mazo`}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
                   ) : (
                     <div className="text-center text-sm text-muted-foreground">
                       <div className="mb-2">
@@ -816,15 +937,28 @@ export default function DeckEditor() {
           <div>
             <h3 className="font-medium text-sm mb-2">Cartas Ixim</h3>
             <div className="grid grid-cols-5 gap-3">
-              {Array(5).fill(null).map((_, idx) => (
+                {Array(5).fill(null).map((_, idx) => (
                 <div key={`ixim-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
                   isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
                 }`} data-droppable-id={`ixim-${idx}`}> 
                   {organizedDeck.iximCards[idx] ? (
-                    <SortableCard 
-                      card={organizedDeck.iximCards[idx]} 
-                      id={`ixim-${idx}`} 
-                    />
+                    <div className="relative w-full h-full">
+                      <SortableCard 
+                        card={organizedDeck.iximCards[idx]} 
+                        id={`ixim-${idx}`} 
+                      />
+                      <div className="absolute top-2 right-2 z-50">
+                        <button
+                          type="button"
+                          className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.iximCards[idx].id); }}
+                          aria-label={`Eliminar ${organizedDeck.iximCards[idx].name} del mazo`}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
                   ) : (
                     <div className="text-center text-sm text-muted-foreground">
                       <div className="mb-2">
@@ -858,10 +992,23 @@ export default function DeckEditor() {
                         isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
                       }`} data-droppable-id={`mainAdendei-${cardIndex}`}>
                         {organizedDeck.mainAdendeis[cardIndex] ? (
-                          <SortableCard 
-                            card={organizedDeck.mainAdendeis[cardIndex]} 
-                            id={`mainAdendei-${cardIndex}`} 
-                          />
+                          <div className="relative w-full h-full">
+                            <SortableCard 
+                              card={organizedDeck.mainAdendeis[cardIndex]} 
+                              id={`mainAdendei-${cardIndex}`} 
+                            />
+                            <div className="absolute top-2 right-2 z-50">
+                              <button
+                                type="button"
+                                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+                                onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.mainAdendeis[cardIndex].id); }}
+                                aria-label={`Eliminar ${organizedDeck.mainAdendeis[cardIndex].name} del mazo`}
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </div>
                         ) : (
                           <div className="text-center text-sm text-muted-foreground">
                             <div className="mb-2">
@@ -884,13 +1031,26 @@ export default function DeckEditor() {
               <h3 className="font-medium text-sm mb-2">Cartas adicionales</h3>
               <div className="grid grid-cols-3 gap-3">
                 {organizedDeck.otherCards.map((card, idx) => (
-                  <div key={`other-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
+                    <div key={`other-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
                     isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
                   }`} data-droppable-id={`other-${idx}`}>
-                    <SortableCard 
-                      card={card} 
-                      id={`other-${idx}`} 
-                    />
+                    <div className="relative w-full h-full">
+                      <SortableCard 
+                        card={card} 
+                        id={`other-${idx}`} 
+                      />
+                      <div className="absolute top-2 right-2 z-50">
+                        <button
+                          type="button"
+                          className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
+                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          onClick={(e) => { e.stopPropagation(); handleRemoveCard(card.id); }}
+                          aria-label={`Eliminar ${card.name} del mazo`}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -920,7 +1080,7 @@ export default function DeckEditor() {
 
   // Renderizar carta del deck (asegura re-render usando key)
   const renderDeckCard = (card: CardDetails) => (
-    <div key={card.id} className="deck-card-container">
+    <div key={card.id} className="deck-card-container relative group">
       <img
         key={card.id}
         src={card.imageUrl}
@@ -929,6 +1089,24 @@ export default function DeckEditor() {
         draggable={false}
         loading="lazy"
       />
+
+      {/* Botón de eliminar (bote de basura) en overlay - visible al hacer hover o siempre accesible por teclado */}
+      <div className={`absolute top-2 right-2 transition-opacity ${isDragging ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}>
+        <Button
+          variant="danger"
+          size="sm"
+          className="h-8 w-8 p-1"
+          onClick={(e) => {
+            // Evitar que el click dispare el drag o eventos parent
+            e.stopPropagation();
+            handleRemoveCard(card.id);
+          }}
+          aria-label={`Eliminar ${card.name} del mazo`}
+        >
+          <Trash2 size={14} />
+        </Button>
+      </div>
+
       {/* ...otros datos de la carta... */}
     </div>
   );
@@ -1355,7 +1533,7 @@ export default function DeckEditor() {
         case CardType.ADENDEI_INFECTADO:
         case CardType.RAVA:
         case CardType.ADENDEI_RESURRECTO:
-          case CardType.ADENDEI_GUARDIAN_CATRIN:
+        case CardType.ADENDEI_GUARDIAN_CATRIN:
           if (!newOrder.adendeis.includes(card.id)) {
             newOrder.adendeis = [...newOrder.adendeis, card.id];
           }
