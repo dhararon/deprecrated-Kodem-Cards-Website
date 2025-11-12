@@ -17,7 +17,7 @@ import {
 import { db } from '@/lib/firebase';
 import { cacheService } from '@/lib/cache-service';
 import { logError } from '@/lib/error-handler';
-import { Deck, DeckFilters, DeckWithCards } from '@/types/deck';
+import { Deck, DeckFilters, DeckWithCards, DeckCardSlot } from '@/types/deck';
 import { getCardsByIds } from './cardService';
 
 // Nombre de la colección en Firestore
@@ -59,6 +59,8 @@ const convertDocToDeck = (docSnapshot: unknown): Deck => {
         userName: data.userName as string,
         userAvatar: data.userAvatar as string,
         cardIds: (data.cardIds as string[]) || [],
+        // Incluir deckSlots si existen (posiciones y estructura del mazo)
+        deckSlots: (data.deckSlots as DeckCardSlot[]) || [],
         isPublic: (data.isPublic as boolean) || false,
         description: (data.description as string) || '',
         likes: (data.likes as number) || 0,
