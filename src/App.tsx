@@ -161,11 +161,12 @@ function App() {
                   </AuthenticatedRoute>
                 </Route>
 
+                {/* Ruta pública para ver mazos (valida permisos dentro del componente) */}
                 <Route path="/decks/:id">
                   {() => (
-                    <AuthenticatedRoute>
+                    <Suspense fallback={<LoadingFallback />}>
                       <DeckDetail />
-                    </AuthenticatedRoute>
+                    </Suspense>
                   )}
                 </Route>
 

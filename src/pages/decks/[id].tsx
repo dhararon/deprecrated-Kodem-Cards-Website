@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useRoute } from 'wouter';
+import { Link, useRoute, useLocation } from 'wouter';
 import {
     ChevronLeft,
     Copy,
@@ -20,13 +20,14 @@ import { Badge } from '@/components/atoms/Badge';
 import { Spinner } from '@/components/atoms/Spinner';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { Separator } from '@/components/atoms/Separator';
-import { getDeckWithCards } from '@/lib/firebase/services/deckService';
+import { getDeckWithCards, getDeckById } from '@/lib/firebase/services/deckService';
 import { DeckWithCards } from '@/types/deck';
 import { CardDetails } from '@/types/card';
 import DeckCard from '@/components/atoms/DeckCard';
 import DeckCardRow from '@/components/molecules/DeckCardRow';
 import DeckDetailHeader from '@/components/organisms/DeckDetailHeader';
 import DeckSelectedCard from '@/components/organisms/DeckSelectedCard';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Página para visualizar un mazo existente
@@ -35,6 +36,8 @@ const DeckDetail: React.FC = () => {
     // Obtener el ID del mazo de la URL
     const [match, params] = useRoute<{ id: string }>('/decks/:id');
     const id = match && params ? params.id : '';
+    const [, navigate] = useLocation();
+    const { user } = useAuth();
 
     // Estados
     const [deck, setDeck] = useState<DeckWithCards | null>(null);
@@ -87,12 +90,31 @@ const DeckDetail: React.FC = () => {
             }
             try {
                 setIsLoading(true);
+                
+                // Primero obtener el deck básico para verificar si es público
+                const basicDeck = await getDeckById(id);
+                if (!basicDeck) {
+                    setError('No se pudo encontrar el mazo');
+                    setIsLoading(false);
+                    return;
+                }
+                
+                // Verificar permisos: si es privado, solo el propietario o usuario autenticado puede verlo
+                if (!basicDeck.isPublic && (!user || user.id !== basicDeck.userUid)) {
+                    setError('Este mazo es privado. Debes iniciar sesión para verlo.');
+                    setIsLoading(false);
+                    // Redirigir a login después de 2 segundos
+                    setTimeout(() => {
+                        navigate('/login');
+                    }, 2000);
+                    return;
+                }
+                
+                // Si tiene permiso, obtener el deck completo con cartas
                 const deckData = await getDeckWithCards(id);
                 if (deckData) {
-                    // Limpiar la carta seleccionada antes de actualizar el deck para forzar re-render
                     setSelectedCard(null);
                     setDeck(deckData);
-                    // Seleccionar la primera carta para mostrarla
                     if (deckData.cards.length > 0) {
                         setSelectedCard(deckData.cards[0]);
                     }
@@ -117,7 +139,7 @@ const DeckDetail: React.FC = () => {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibility);
         };
-    }, [id]);
+    }, [id, user]);
 
     // Sincronizar selectedCard con el deck cargado
     useEffect(() => {
@@ -1015,11 +1037,28 @@ const DeckDetail: React.FC = () => {
                     description={error || 'Información no disponible'}
                     icon={<Eye className="h-10 w-10 text-red-500" />}
                     action={
-                        <Link href="/decks">
-                            <Button className="mt-4">
-                                Volver a mis mazos
-                            </Button>
-                        </Link>
+                        <div className="flex gap-2 mt-4">
+                            {error?.includes('privado') ? (
+                                <>
+                                    <Link href="/login">
+                                        <Button>
+                                            Iniciar sesión
+                                        </Button>
+                                    </Link>
+                                    <Link href="/">
+                                        <Button variant="outline">
+                                            Volver al inicio
+                                        </Button>
+                                    </Link>
+                                </>
+                            ) : (
+                                <Link href="/decks">
+                                    <Button>
+                                        Volver a mis mazos
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     }
                 />
             </div>
