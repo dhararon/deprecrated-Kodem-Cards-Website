@@ -37,7 +37,7 @@ const DeckDetail: React.FC = () => {
     const [match, params] = useRoute<{ id: string }>('/decks/:id');
     const id = match && params ? params.id : '';
     const [, navigate] = useLocation();
-    const { user } = useAuth();
+    const { user, isLoading: authLoading } = useAuth();
 
     // Estados
     const [deck, setDeck] = useState<DeckWithCards | null>(null);
@@ -48,6 +48,7 @@ const DeckDetail: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [showBackgroundModal, setShowBackgroundModal] = useState(false);
     const [selectedBackground, setSelectedBackground] = useState<string>('default');
+    const [deckLoaded, setDeckLoaded] = useState(false);
     
     // Estados para la generación de imagen
     const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -83,9 +84,19 @@ const DeckDetail: React.FC = () => {
     // Cargar datos del mazo
     useEffect(() => {
         const loadDeckData = async () => {
+            if (!id || deckLoaded) {
+                return;
+            }
+            
+            if (authLoading) {
+                // Todavía estamos cargando la autenticación
+                return;
+            }
+
             if (!id) {
                 setError('ID de mazo no válido');
                 setIsLoading(false);
+                setDeckLoaded(true);
                 return;
             }
             try {
@@ -96,6 +107,7 @@ const DeckDetail: React.FC = () => {
                 if (!basicDeck) {
                     setError('No se pudo encontrar el mazo');
                     setIsLoading(false);
+                    setDeckLoaded(true);
                     return;
                 }
                 
@@ -103,6 +115,7 @@ const DeckDetail: React.FC = () => {
                 if (!basicDeck.isPublic && (!user || user.id !== basicDeck.userUid)) {
                     setError('Este mazo es privado. Debes iniciar sesión para verlo.');
                     setIsLoading(false);
+                    setDeckLoaded(true);
                     // Redirigir a login después de 2 segundos
                     setTimeout(() => {
                         navigate('/login');
@@ -126,20 +139,24 @@ const DeckDetail: React.FC = () => {
                 setError('Error al cargar el mazo');
             } finally {
                 setIsLoading(false);
+                setDeckLoaded(true);
             }
         };
         loadDeckData();
-        // Forzar recarga al volver de la edición (cuando la pestaña se vuelve visible)
+    }, [id, authLoading, user, deckLoaded]);
+
+    // Forzar recarga al volver de la edición (cuando la pestaña se vuelve visible)
+    useEffect(() => {
         const handleVisibility = () => {
             if (document.visibilityState === 'visible') {
-                loadDeckData();
+                setDeckLoaded(false);
             }
         };
         document.addEventListener('visibilitychange', handleVisibility);
         return () => {
             document.removeEventListener('visibilitychange', handleVisibility);
         };
-    }, [id, user]);
+    }, []);
 
     // Sincronizar selectedCard con el deck cargado
     useEffect(() => {
