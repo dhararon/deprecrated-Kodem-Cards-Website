@@ -69,4 +69,15 @@ export const createDefaultSections = (badgeCount?: number): SidebarSection[] => 
             }
         ]
     }
+    ,
+    {
+        title: 'Información',
+        links: [
+            {
+                text: 'Política de Privacidad',
+                href: '/privacy',
+                icon: sidebarIcons.heart
+            }
+        ]
+    }
 ]; 

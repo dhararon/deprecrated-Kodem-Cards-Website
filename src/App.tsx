@@ -61,6 +61,7 @@ const WithProviders = ({ children }: { children: ReactNode }) => {
 
 // Lazy loading para la página de selector de cartas
 const CardSelectorPage = lazy(() => import(/* webpackChunkName: "cards" */ '@/pages/cards/selector'));
+const Privacy = lazy(() => import(/* webpackChunkName: "legal" */ '@/pages/privacy'));
 
 function App() {
   // Verificar claims de Firebase al cargar la app
@@ -104,6 +105,13 @@ function App() {
                 <Route path="/register">
                   <Suspense fallback={<LoadingFallback />}>
                     <Register />
+                  </Suspense>
+                </Route>
+
+                {/* Página pública de privacidad/términos */}
+                <Route path="/privacy">
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Privacy />
                   </Suspense>
                 </Route>
 
