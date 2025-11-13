@@ -1,4 +1,2 @@
-// Re-exportar todos los componentes del contexto de wishlist
-export * from './WishlistContext';
-export * from './WishlistProvider';
-export { default as useWishlist } from '@/hooks/useWishlist'; 
+// Wishlist feature removed: no re-exports. Keeping this file as a marker so imports don't break
+// If you need to fully delete this feature later, remove this file and the folder.

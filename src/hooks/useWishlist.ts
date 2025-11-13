@@ -1,16 +1,33 @@
 import { useContext } from 'react';
-import { WishlistContext, WishlistContextType } from '@/context/wishlist/WishlistContext';
+import { WishlistContext } from '@/context/wishlist/WishlistContext';
 
 /**
- * Hook para acceder al contexto de listas de deseos
- * @returns El contexto de listas de deseos
+ * Hook para acceder al contexto de listas de deseos.
+ * Si el provider fue removido, devolvemos una implementación segura (no hace llamadas).
  */
-export const useWishlist = (): WishlistContextType => {
-    const context = useContext(WishlistContext);
+export const useWishlist = () => {
+    const context = useContext(WishlistContext as any);
     if (!context) {
-        throw new Error('useWishlist debe ser usado dentro de un WishlistProvider');
+        // Retornamos un objeto seguro con funciones no-op para que los componentes no fallen
+        return {
+            userWishlists: [],
+            selectedWishlist: null,
+            enrichedCards: {},
+            loading: false,
+            error: null,
+            createWishlist: async () => { throw new Error('Wishlist feature removed'); },
+            updateWishlist: async () => {},
+            deleteWishlist: async () => {},
+            selectWishlist: async () => {},
+            addCardToWishlist: async () => {},
+            removeCardFromWishlist: async () => {},
+            updateCardInWishlist: async () => {},
+            isCardInWishlists: () => ({ inWishlist: false, wishlists: [] }),
+            getEnrichedCards: async () => [] as any,
+            refreshWishlists: async () => {}
+        } as any;
     }
     return context;
 };
 
-export default useWishlist; 
+export default useWishlist;

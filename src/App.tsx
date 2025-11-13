@@ -9,7 +9,7 @@ import PrivateLayout from '@/components/templates/PrivateLayout.tsx';
 import LoadingFallback from '@/components/templates/LoadingFallback.tsx';
 import { NotFound } from '@/components/templates/NotFound.tsx';
 import { CollectionProvider } from '@/context/collection';
-import { WishlistProvider } from '@/context/wishlist';
+// Wishlist feature removed: no provider imported
 import { UserDataProvider } from '@/context/userData';
 import { verifyAuthClaims } from '@/lib/firebase';
 import { GalleryDemo } from './pages/GalleryDemo';
@@ -52,9 +52,7 @@ const WithProviders = ({ children }: { children: ReactNode }) => {
 
   return (
     <CollectionProvider>
-      <WishlistProvider>
-        {children}
-      </WishlistProvider>
+      {children}
     </CollectionProvider>
   );
 };
