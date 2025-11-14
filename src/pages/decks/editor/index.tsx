@@ -1,43 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import { toast } from 'sonner';
-import { Card, CardDetails, CardType, CardEnergy, CardRarity, CardSet } from '@/types/card';
-import { Deck, DeckCardSlot } from '@/types/deck';
+import { CardDetails } from '@/types/card';
 import useDeckEditor from '@/hooks/useDeckEditor';
 import { useAuth } from '@/hooks/useAuth';
 import { Spinner } from '@/components/atoms/Spinner';
 import { Button } from '@/components/atoms/Button';
-import { Input } from '@/components/atoms/Input';
-import { Textarea } from '@/components/atoms/Textarea';
-import { Checkbox } from '@/components/atoms/Checkbox';
-import { Label } from '@/components/atoms/Label';
 import { Image } from '@/components/atoms/Image';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/atoms/Select';
-import { Search, Plus, Minus, Save, ArrowLeft, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { Plus, Minus, Trash2 } from 'lucide-react';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/atoms/Dialog';
 import DeckEditorHeader from '@/components/organisms/DeckEditorHeader';
 import DeckEditorCatalog from '@/components/organisms/DeckEditorCatalog';
-import DeckEditorOrganizer from '@/components/organisms/DeckEditorOrganizer';
 import useDeckOrganizer from '@/hooks/useDeckOrganizer';
 import SortableDeckCard from '@/components/molecules/SortableDeckCard';
-import DroppableTrash from '@/components/molecules/DroppableTrash';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, pointerWithin, rectIntersection, useDroppable } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy, rectSortingStrategy } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { restrictToParentElement } from '@dnd-kit/modifiers';
+import { DndContext, DragOverlay, rectIntersection } from '@dnd-kit/core';
 
 /**
  * Editor de Mazos - Componente para crear y editar mazos
@@ -55,8 +31,6 @@ export default function DeckEditorPage() {
   const {
     deckName,
     setDeckName,
-    deckDescription,
-    setDeckDescription,
     isPublic,
     setIsPublic,
     isLoading,
@@ -68,10 +42,8 @@ export default function DeckEditorPage() {
     isLoadingCards,
     deckCards,
     deckCardOrder,
-    setDeckCardOrder,
     activeId,
     isDragging,
-    customOrder,
     setCustomOrder,
     organizedDeck,
     searchTerm,
@@ -80,17 +52,10 @@ export default function DeckEditorPage() {
     setSelectedType,
     selectedEnergy,
     setSelectedEnergy,
-    selectedRarity,
-    setSelectedRarity,
-    selectedSet,
-    setSelectedSet,
     nameError,
     setNameError,
     typeOptions,
     energyOptions,
-    rarityOptions,
-    setOptions,
-    totalCards,
   handleSaveDeck,
   handleDeleteDeck,
   handleAddCard,
@@ -611,31 +576,6 @@ export default function DeckEditorPage() {
     </div>
   );
 
-  // Renderizar lista de cartas del mazo
-  const renderDeckCardsList = () => {
-    // Si no hay cartas, mostrar estado vacío
-    if (deckCardOrder.length === 0) {
-      return (
-        <EmptyState
-          title="No hay cartas en el mazo"
-          description="Agrega cartas desde el catálogo"
-          icon="cards"
-        />
-      );
-    }
-
-    // Obtener detalles de las cartas en el mazo usando el orden explícito
-    const deckCardDetails = deckCardOrder
-      .filter(cardId => deckCards[cardId]) // Solo cartas que aún están en el mazo
-      .map(cardId => allCards.find(card => card.id === cardId))
-      .filter(card => card !== undefined) as CardDetails[];
-
-    return (
-      <div className="space-y-2">
-        {deckCardDetails.map(card => renderCardForDeck(card, deckCards[card.id]))}
-      </div>
-    );
-  };
 
   // Si no hay usuario autenticado, mostrar mensaje
   if (!user) {
