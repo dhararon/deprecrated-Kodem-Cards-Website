@@ -8,6 +8,7 @@ import { Spinner } from '@/components/atoms/Spinner';
 import { Button } from '@/components/atoms/Button';
 import { Image } from '@/components/atoms/Image';
 import { Plus, Minus, Trash2 } from 'lucide-react';
+import DeleteCardButton from '@/components/atoms/DeleteCardButton';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/atoms/Dialog';
 import DeckEditorHeader from '@/components/organisms/DeckEditorHeader';
@@ -350,22 +351,12 @@ export default function DeckEditorPage() {
           </div>
         </div>
 
-        {/* Botón de eliminar (bote de basura) en overlay - visible al hacer hover o siempre accesible por teclado */}
-        <div className={`absolute top-2 right-2 transition-opacity ${isDragging ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}>
-          <Button
-            variant="danger"
-            size="sm"
-            className="h-8 w-8 p-1"
-            onClick={(e) => {
-              // Evitar que el click dispare el drag o eventos parent
-              e.stopPropagation();
-              handleRemoveCard(card.id);
-            }}
-            aria-label={`Eliminar ${card.name} del mazo`}
-          >
-            <Trash2 size={14} />
-          </Button>
-        </div>
+        {/* Botón de eliminar (bote de basura) - ATOM DeleteCardButton */}
+        <DeleteCardButton 
+          cardName={card.name}
+          onDelete={() => handleRemoveCard(card.id)}
+          isDragging={isDragging}
+        />
       </div>
 
       {/* ...otros datos de la carta... */}
