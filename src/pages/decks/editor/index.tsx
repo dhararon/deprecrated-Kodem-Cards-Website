@@ -37,6 +37,8 @@ import {
 import { Search, Plus, Minus, Save, ArrowLeft, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/atoms/Dialog';
+import DeckEditorHeader from '@/components/organisms/DeckEditorHeader';
+import DeckEditorCatalog from '@/components/organisms/DeckEditorCatalog';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, pointerWithin, rectIntersection, useDroppable } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -62,6 +64,7 @@ export default function DeckEditor() {
   const MAX_RAVA_CARDS = 2;
   const MAX_BIO_CARDS = 1;
   const MAX_PROTECTOR_CARDS = 2;
+  const MAX_ADENDEI_CARDS = 24;
 
   // Estados para el mazo
   const [deck, setDeck] = useState<Deck | null>(null);
@@ -1252,27 +1255,27 @@ export default function DeckEditor() {
     
     // Validar límites por tipo
     if (rotCount > MAX_ROT_CARDS) {
-      return { isValid: false, error: `Máximo 4 cartas Rot permitidas (tienes ${rotCount})` };
+      return { isValid: false, error: `Máximo ${MAX_ROT_CARDS} cartas Rot permitidas (tienes ${rotCount})` };
     }
     
     if (iximCount > MAX_IXIM_CARDS) {
-      return { isValid: false, error: `Máximo 4 cartas Ixim permitidas (tienes ${iximCount})` };
+      return { isValid: false, error: `Máximo ${MAX_IXIM_CARDS} cartas Ixim permitidas (tienes ${iximCount})` };
     }
     
     if (ravaCount > MAX_RAVA_CARDS) {
-      return { isValid: false, error: `Máximo 1 carta Rava permitida (tienes ${ravaCount})` };
+      return { isValid: false, error: `Máximo ${MAX_RAVA_CARDS} carta Rava permitida (tienes ${ravaCount})` };
     }
     
     if (bioCount > MAX_BIO_CARDS) {
-      return { isValid: false, error: `Máximo 1 carta Bio permitida (tienes ${bioCount})` };
+      return { isValid: false, error: `Máximo ${MAX_BIO_CARDS} carta Bio permitida (tienes ${bioCount})` };
     }
     
     if (protectorCount > MAX_PROTECTOR_CARDS) {
-      return { isValid: false, error: `Máximo 2 Protectores permitidos (tienes ${protectorCount})` };
+      return { isValid: false, error: `Máximo ${MAX_PROTECTOR_CARDS} Protectores permitidos (tienes ${protectorCount})` };
     }
     
-    if (adendeiCount > 24) {
-      return { isValid: false, error: `Máximo 24 Adendeis permitidos (tienes ${adendeiCount})` };
+    if (adendeiCount > MAX_ADENDEI_CARDS) {
+      return { isValid: false, error: `Máximo ${MAX_ADENDEI_CARDS} Adendeis permitidos (tienes ${adendeiCount})` };
     }
     
     return { isValid: true };
@@ -1793,62 +1796,19 @@ export default function DeckEditor() {
       <div className="block md:hidden bg-yellow-100 text-yellow-800 text-center py-3 px-4 font-semibold border-b border-yellow-300">
         La creación de mazos solo está disponible en escritorio
       </div>
-      {/* Cabecera solo visible en escritorio */}
-      <div className="hidden md:flex border-b px-4 py-3 items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="md" 
-            className="h-8 w-8" 
-            onClick={() => navigate('/decks')}
-          >
-            <ArrowLeft size={18} />
-          </Button>
-          <div className="text-sm text-muted-foreground">Nuevo mazo</div>
-          <Input
-            value={deckName}
-            onChange={(e) => {
-              setDeckName(e.target.value);
-              setNameError('');
-            }}
-            placeholder="Nombre del mazo"
-            className={`w-60 ${nameError ? 'border-destructive' : ''}`}
-          />
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            className={`flex items-center gap-1 ${isPublic ? '' : 'bg-red-50'}`}
-            onClick={() => setIsPublic(!isPublic)}
-          >
-            {isPublic ? 
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg> : 
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-lock text-red-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            }
-            {isPublic ? 'Público' : 'Privado'}
-          </Button>
-          <Button 
-            onClick={handleSaveDeck}
-            disabled={isSaving}
-            className="flex items-center gap-1"
-          >
-            {isSaving ? (
-              <Spinner size="sm" className="mr-1" />
-            ) : (
-              <Save size={16} className="mr-1" />
-            )}
-            Guardar
-          </Button>
-          <Button
-            variant="outline"
-            className="flex items-center gap-1"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
-            Compartir
-          </Button>
-        </div>
-      </div>
+      {/* Cabecera (organism) */}
+      <DeckEditorHeader
+        navigate={navigate}
+        deckName={deckName}
+        setDeckName={setDeckName}
+        nameError={nameError}
+        setNameError={setNameError}
+        isPublic={isPublic}
+        setIsPublic={setIsPublic}
+        isSaving={isSaving}
+        handleSaveDeck={handleSaveDeck}
+        setConfirmDeleteDialogOpen={setConfirmDeleteDialogOpen}
+      />
       {/* Contenido principal - solo visible en escritorio */}
       <div className="hidden md:flex flex-1 overflow-hidden">
         {/* Columna 1: Organizador de mazos */}
@@ -1857,81 +1817,20 @@ export default function DeckEditor() {
             {renderDeckOrganizer()}
           </div>
         </div>
-        {/* Columna 2: Catálogo de cartas */}
-        <div className="w-[40%] border-l overflow-y-auto">
-          <div className="p-4">
-            {/* Buscador */}
-            <div className="flex mb-6">
-              <Input
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                }}
-                placeholder="Buscar carta"
-                className="w-full"
-              />
-            </div>
-
-            {/* Filtros */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              <Select
-                value={selectedType}
-                onValueChange={(value) => {
-                  setSelectedType(value);
-                }}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all_types">Tipo</SelectItem>
-                  {typeOptions.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={selectedEnergy}
-                onValueChange={(value) => {
-                  setSelectedEnergy(value);
-                }}
-              >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Energía" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all_energies">Energía</SelectItem>
-                  {energyOptions.map((energy) => (
-                    <SelectItem key={energy} value={energy}>
-                      {energy}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Lista de cartas */}
-            {isLoadingCards ? (
-              <div className="flex justify-center items-center min-h-[200px]">
-                <Spinner size="md" />
-              </div>
-            ) : filteredCards.length === 0 ? (
-              <div className="border border-dashed rounded-lg p-6 text-center">
-                <div className="flex justify-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                </div>
-                <h3 className="font-semibold">Busca cartas para tu mazo</h3>
-                <p className="text-sm text-muted-foreground mt-1">Introduce un término de búsqueda para encontrar cartas</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {filteredCards.map(card => renderCardForCatalog(card))}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Catálogo (organism) */}
+        <DeckEditorCatalog
+          filteredCards={filteredCards}
+          isLoadingCards={isLoadingCards}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedType={selectedType}
+          setSelectedType={setSelectedType}
+          selectedEnergy={selectedEnergy}
+          setSelectedEnergy={setSelectedEnergy}
+          typeOptions={typeOptions}
+          energyOptions={energyOptions}
+          renderCardForCatalog={renderCardForCatalog}
+        />
       </div>
       
       {/* Diálogo de confirmación para eliminar */}
