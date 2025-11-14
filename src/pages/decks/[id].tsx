@@ -20,7 +20,7 @@ import { Badge } from '@/components/atoms/Badge';
 import { Spinner } from '@/components/atoms/Spinner';
 import { EmptyState } from '@/components/molecules/EmptyState';
 import { Separator } from '@/components/atoms/Separator';
-import { getDeckWithCards, getDeckById } from '@/lib/firebase/services/deckService';
+import { getDeckWithCards, getDeckById, incrementDeckViews } from '@/lib/firebase/services/deckService';
 import { DeckWithCards } from '@/types/deck';
 import { CardDetails } from '@/types/card';
 import DeckCard from '@/components/atoms/DeckCard';
@@ -102,41 +102,35 @@ const DeckDetail: React.FC = () => {
             try {
                 setIsLoading(true);
                 
-                // Primero obtener el deck básico para verificar si es público
-                const basicDeck = await getDeckById(id);
-                if (!basicDeck) {
-                    setError('No se pudo encontrar el mazo');
-                    setIsLoading(false);
-                    setDeckLoaded(true);
-                    return;
-                }
-                
-                // Verificar permisos: si es privado, solo el propietario o usuario autenticado puede verlo
-                if (!basicDeck.isPublic && (!user || user.id !== basicDeck.userUid)) {
-                    setError('Este mazo es privado. Debes iniciar sesión para verlo.');
-                    setIsLoading(false);
-                    setDeckLoaded(true);
-                    // Redirigir a login después de 2 segundos
-                    setTimeout(() => {
-                        navigate('/login');
-                    }, 2000);
-                    return;
-                }
-                
-                // Si tiene permiso, obtener el deck completo con cartas
+                // Obtener el deck completo con cartas
+                // Las reglas de Firestore ya manejan los permisos:
+                // - Mazos públicos: accesibles para todos
+                // - Mazos privados: solo para el propietario
                 const deckData = await getDeckWithCards(id);
-                if (deckData) {
-                    setSelectedCard(null);
-                    setDeck(deckData);
-                    if (deckData.cards.length > 0) {
-                        setSelectedCard(deckData.cards[0]);
+                if (!deckData) {
+                    setError('No se pudo encontrar el mazo. Puede ser privado o no existir.');
+                    setIsLoading(false);
+                    setDeckLoaded(true);
+                    return;
+                }
+                
+                setSelectedCard(null);
+                setDeck(deckData);
+                if (deckData.cards.length > 0) {
+                    setSelectedCard(deckData.cards[0]);
+                }
+                
+                // Incrementar contador de vistas si es público
+                if (deckData.isPublic) {
+                    try {
+                        await incrementDeckViews(id);
+                    } catch (err) {
+                        console.warn('No se pudo incrementar vistas:', err);
                     }
-                } else {
-                    setError('No se pudo encontrar el mazo');
                 }
             } catch (err) {
                 console.error('Error al cargar el mazo:', err);
-                setError('Error al cargar el mazo');
+                setError('Error al cargar el mazo. Verifica que sea público o que tengas permiso para verlo.');
             } finally {
                 setIsLoading(false);
                 setDeckLoaded(true);
