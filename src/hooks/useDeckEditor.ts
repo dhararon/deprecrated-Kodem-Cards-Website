@@ -526,6 +526,18 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
         case CardType.IXIM:
           if (!newOrder.ixim.includes(card.id)) newOrder.ixim = [...newOrder.ixim, card.id];
           break;
+        case CardType.ADENDEI:
+        case CardType.ADENDEI_TITAN:
+        case CardType.ADENDEI_GUARDIAN:
+        case CardType.ADENDEI_CATRIN:
+        case CardType.ADENDEI_KOSMICO:
+        case CardType.ADENDEI_EQUINO:
+        case CardType.ADENDEI_ABISMAL:
+        case CardType.ADENDEI_INFECTADO:
+        case CardType.ADENDEI_RESURRECTO:
+        case CardType.RAVA:
+          if (!newOrder.adendeis.includes(card.id)) newOrder.adendeis = [...newOrder.adendeis, card.id];
+          break;
         default:
           if (!newOrder.others.includes(card.id)) newOrder.others = [...newOrder.others, card.id];
           break;

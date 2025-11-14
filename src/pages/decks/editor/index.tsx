@@ -226,12 +226,27 @@ export default function DeckEditorPage() {
             <h3 className="font-medium text-sm mb-2">Adendeis y Rava (mínimo 15)</h3>
             {/* Calcular el número de filas necesarias basado en las cartas existentes */}
             {(() => {
+              // Mezclar Adendeis y Rava en el slot principal
+              const adendeiAndRava = organizedDeck.mainAdendeis.filter(card =>
+                card && (
+                  card.cardType === 'adendei' ||
+                  card.cardType === 'adendei abisal' ||
+                  card.cardType === 'adendei catrin' ||
+                  card.cardType === 'adendei equino' ||
+                  card.cardType === 'adendei guardian' ||
+                  card.cardType === 'adendei guardian catrin' ||
+                  card.cardType === 'adendei infectado' ||
+                  card.cardType === 'adendei kósmico' ||
+                  card.cardType === 'adendei resurrecto' ||
+                  card.cardType === 'adendei titán' ||
+                  card.cardType === 'rava'
+                )
+              );
               const minRows = 5; // Mínimo 5 filas (15 slots)
-              const cardsCount = organizedDeck.mainAdendeis.length;
+              const cardsCount = adendeiAndRava.length;
               const maxRows = Math.ceil(24 / 3); // Máximo 8 filas (24 slots)
               const neededRows = Math.max(minRows, Math.ceil(cardsCount / 3));
               const totalRows = Math.min(neededRows, maxRows);
-              
               return Array(totalRows).fill(null).map((_, rowIdx) => (
                 <div key={`adendei-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
                   {Array(3).fill(null).map((_, colIdx) => {
@@ -239,7 +254,7 @@ export default function DeckEditorPage() {
                     return (
                       <DeckSlot
                         key={`adendei-${cardIndex}`}
-                        card={organizedDeck.mainAdendeis[cardIndex]}
+                        card={adendeiAndRava[cardIndex]}
                         isDragging={isDragging}
                         onRemove={handleRemoveCard}
                       >
@@ -247,7 +262,7 @@ export default function DeckEditorPage() {
                           <div className="mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                           </div>
-                          Adendei {cardIndex + 1}
+                          {adendeiAndRava[cardIndex]?.cardType === 'rava' ? `Rava ${cardIndex + 1}` : `Adendei ${cardIndex + 1}`}
                         </div>
                       </DeckSlot>
                     );
