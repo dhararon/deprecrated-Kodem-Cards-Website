@@ -1,3 +1,4 @@
+import DeckSlot from '@/components/molecules/DeckSlot';
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { CardDetails } from '@/types/card';
@@ -105,60 +106,30 @@ export default function DeckEditorPage() {
           <div>
             <h3 className="font-medium text-sm mb-2">Protectores y Bio</h3>
             <div className="grid grid-cols-3 gap-3">
-              <div className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-              }`}>
-                {organizedDeck.protector1 ? (
-                  <SortableDeckCard
-                    card={organizedDeck.protector1}
-                    id="protector1-0"
-                    renderDeckCard={card => <DeckCard card={card} onRemove={handleRemoveCard} />}
-                  />
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground">
-                    <div className="mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                    </div>
-                    Protector Principal
+              <DeckSlot card={organizedDeck.protector1} isDragging={isDragging} onRemove={handleRemoveCard}>
+                <div className="text-center text-sm text-muted-foreground">
+                  <div className="mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                   </div>
-                )}
-              </div>
-              <div className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-              }`}>
-                {organizedDeck.protector2 ? (
-                  <SortableDeckCard
-                    card={organizedDeck.protector2}
-                    id="protector2-0"
-                    renderDeckCard={card => <DeckCard card={card} onRemove={handleRemoveCard} />}
-                  />
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground">
-                    <div className="mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                    </div>
-                    Protector Secundario
+                  Protector Principal
+                </div>
+              </DeckSlot>
+              <DeckSlot card={organizedDeck.protector2} isDragging={isDragging} onRemove={handleRemoveCard}>
+                <div className="text-center text-sm text-muted-foreground">
+                  <div className="mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                   </div>
-                )}
-              </div>
-              <div className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-              }`}>
-                {organizedDeck.bio ? (
-                  <SortableDeckCard
-                    card={organizedDeck.bio}
-                    id="bio-0"
-                    renderDeckCard={card => <DeckCard card={card} onRemove={handleRemoveCard} />}
-                  />
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground">
-                    <div className="mb-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                    </div>
-                    Bio
+                  Protector Secundario
+                </div>
+              </DeckSlot>
+              <DeckSlot card={organizedDeck.bio} isDragging={isDragging} onRemove={handleRemoveCard}>
+                <div className="text-center text-sm text-muted-foreground">
+                  <div className="mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                   </div>
-                )}
-              </div>
+                  Bio
+                </div>
+              </DeckSlot>
             </div>
           </div>
 
@@ -186,41 +157,23 @@ export default function DeckEditorPage() {
               </button>
             </div>
             {isRotExpanded && (
-              <div className="grid grid-cols-5 gap-3">
-                {Array(5).fill(null).map((_, idx) => (
-                  <div key={`rot-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                    isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-                  }`} data-droppable-id={`rot-${idx}}`}>
-                    {organizedDeck.rotCards[idx] ? (
-                      <div className="relative w-full h-full">
-                        <SortableDeckCard
-                          card={organizedDeck.rotCards[idx]}
-                          id={`rot-${idx}`}
-                          renderDeckCard={(card) => renderDeckCard(card)}
-                        />
-                        <div className="absolute top-2 right-2 z-50">
-                          <button
-                            type="button"
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
-                            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                            onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.rotCards[idx].id); }}
-                            aria-label={`Eliminar ${organizedDeck.rotCards[idx].name} del mazo`}
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
+                <div className="grid grid-cols-5 gap-3">
+                  {Array(5).fill(null).map((_, idx) => (
+                    <DeckSlot
+                      key={`rot-${idx}`}
+                      card={organizedDeck.rotCards[idx]}
+                      isDragging={isDragging}
+                      onRemove={handleRemoveCard}
+                    >
                       <div className="text-center text-sm text-muted-foreground">
                         <div className="mb-2">
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                         </div>
                         Rot {idx + 1}
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                    </DeckSlot>
+                  ))}
+                </div>
             )}
           </div>
 
@@ -248,41 +201,23 @@ export default function DeckEditorPage() {
               </button>
             </div>
             {isIximExpanded && (
-              <div className="grid grid-cols-5 gap-3">
-                {Array(5).fill(null).map((_, idx) => (
-                  <div key={`ixim-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                    isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-                  }`} data-droppable-id={`ixim-${idx}`}> 
-                    {organizedDeck.iximCards[idx] ? (
-                      <div className="relative w-full h-full">
-                        <SortableDeckCard
-                          card={organizedDeck.iximCards[idx]}
-                          id={`ixim-${idx}`}
-                          renderDeckCard={(card) => renderDeckCard(card)}
-                        />
-                        <div className="absolute top-2 right-2 z-50">
-                          <button
-                            type="button"
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
-                            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                            onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.iximCards[idx].id); }}
-                            aria-label={`Eliminar ${organizedDeck.iximCards[idx].name} del mazo`}
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
+                <div className="grid grid-cols-5 gap-3">
+                  {Array(5).fill(null).map((_, idx) => (
+                    <DeckSlot
+                      key={`ixim-${idx}`}
+                      card={organizedDeck.iximCards[idx]}
+                      isDragging={isDragging}
+                      onRemove={handleRemoveCard}
+                    >
                       <div className="text-center text-sm text-muted-foreground">
                         <div className="mb-2">
                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                         </div>
                         Ixim {idx + 1}
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                    </DeckSlot>
+                  ))}
+                </div>
             )}
           </div>
 
@@ -302,37 +237,19 @@ export default function DeckEditorPage() {
                   {Array(3).fill(null).map((_, colIdx) => {
                     const cardIndex = rowIdx * 3 + colIdx;
                     return (
-                      <div key={`adendei-${cardIndex}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                        isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-                      }`} data-droppable-id={`mainAdendei-${cardIndex}`}>
-                        {organizedDeck.mainAdendeis[cardIndex] ? (
-                          <div className="relative w-full h-full">
-                            <SortableDeckCard
-                              card={organizedDeck.mainAdendeis[cardIndex]}
-                              id={`mainAdendei-${cardIndex}`}
-                              renderDeckCard={(card) => renderDeckCard(card)}
-                            />
-                            <div className="absolute top-2 right-2 z-50">
-                              <button
-                                type="button"
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
-                                onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.mainAdendeis[cardIndex].id); }}
-                                aria-label={`Eliminar ${organizedDeck.mainAdendeis[cardIndex].name} del mazo`}
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
+                      <DeckSlot
+                        key={`adendei-${cardIndex}`}
+                        card={organizedDeck.mainAdendeis[cardIndex]}
+                        isDragging={isDragging}
+                        onRemove={handleRemoveCard}
+                      >
+                        <div className="text-center text-sm text-muted-foreground">
+                          <div className="mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                           </div>
-                        ) : (
-                          <div className="text-center text-sm text-muted-foreground">
-                            <div className="mb-2">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                            </div>
-                            Adendei {cardIndex + 1}
-                          </div>
-                        )}
-                      </div>
+                          Adendei {cardIndex + 1}
+                        </div>
+                      </DeckSlot>
                     );
                   })}
                 </div>
@@ -346,28 +263,19 @@ export default function DeckEditorPage() {
               <h3 className="font-medium text-sm mb-2">Cartas adicionales</h3>
               <div className="grid grid-cols-3 gap-3">
                 {organizedDeck.otherCards.map((card, idx) => (
-                    <div key={`other-${idx}`} className={`border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors ${
-                    isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
-                  }`} data-droppable-id={`other-${idx}`}>
-                    <div className="relative w-full h-full">
-                      <SortableDeckCard
-                        card={card}
-                        id={`other-${idx}`}
-                        renderDeckCard={(card) => renderDeckCard(card)}
-                      />
-                      <div className="absolute top-2 right-2 z-50">
-                        <button
-                          type="button"
-                          className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
-                          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                          onClick={(e) => { e.stopPropagation(); handleRemoveCard(card.id); }}
-                          aria-label={`Eliminar ${card.name} del mazo`}
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                  <DeckSlot
+                    key={`other-${idx}`}
+                    card={card}
+                    isDragging={isDragging}
+                    onRemove={handleRemoveCard}
+                  >
+                    <div className="text-center text-sm text-muted-foreground">
+                      <div className="mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
                       </div>
+                      Adicional {idx + 1}
                     </div>
-                  </div>
+                  </DeckSlot>
                 ))}
               </div>
             </div>
