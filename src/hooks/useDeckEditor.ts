@@ -306,6 +306,8 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
         iximCount += quantity;
       } else if (card.cardType === CardType.RAVA) {
         ravaCount += quantity;
+        // Rava también cuenta como Adendei para el mínimo de 15
+        adendeiCount += quantity;
       } else if (isBio(card.cardType)) {
         bioCount += quantity;
       } else if (isProtector(card.cardType)) {
@@ -324,7 +326,7 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
     if (ravaCount > MAX_RAVA_CARDS) return { isValid: false, error: `Máximo ${MAX_RAVA_CARDS} carta Rava permitida (tienes ${ravaCount})` };
     if (bioCount > MAX_BIO_CARDS) return { isValid: false, error: `Máximo ${MAX_BIO_CARDS} carta Bio permitida (tienes ${bioCount})` };
     if (protectorCount > MAX_PROTECTOR_CARDS) return { isValid: false, error: `Máximo ${MAX_PROTECTOR_CARDS} Protectores permitidos (tienes ${protectorCount})` };
-    if (adendeiCount > MAX_ADENDEI_CARDS) return { isValid: false, error: `Máximo ${MAX_ADENDEI_CARDS} Adendeis permitidos (tienes ${adendeiCount})` };
+    if (adendeiCount > MAX_ADENDEI_CARDS) return { isValid: false, error: `Máximo ${MAX_ADENDEI_CARDS} Adendeis + Rava permitidos (tienes ${adendeiCount})` };
 
     return { isValid: true };
   };
@@ -344,6 +346,8 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
         iximCount += quantity;
       } else if (card.cardType === CardType.RAVA) {
         ravaCount += quantity;
+        // Rava también cuenta como Adendei para el mínimo de 15
+        adendeiCount += quantity;
       } else if (isBio(card.cardType)) {
         bioCount += quantity;
       } else if (isProtector(card.cardType)) {
