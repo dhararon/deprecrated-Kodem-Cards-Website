@@ -11,20 +11,36 @@ type Props = {
  * Botón de eliminar carta (ATOM)
  * Aparece en hover en la esquina superior derecha de una carta
  * Diseño: botón circular rojo con icono de basura
+ * Nota: pointer-events-auto asegura que el click no sea capturado por DND
  */
 export const DeleteCardButton: React.FC<Props> = ({ cardName, onDelete, isDragging = false }) => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Detener propagación del evento para evitar que DND lo capture
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Ejecutar la acción de eliminar
+    onDelete();
+  };
+
   return (
     <div 
-      className={`absolute top-2 right-2 z-10 transition-opacity duration-150 ${
+      className={`absolute top-2 right-2 z-20 transition-opacity duration-150 pointer-events-auto ${
         isDragging ? 'opacity-0 pointer-events-none' : 'opacity-0 hover:opacity-100 group-hover:opacity-100'
       }`}
     >
       <button
         type="button"
-        className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center h-10 w-10 transition-colors"
-        onClick={(e) => {
+        className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center h-10 w-10 transition-colors active:bg-red-800"
+        onClick={handleClick}
+        onMouseDown={(e) => {
+          // Asegurarse de que el mouseDown también se detiene
           e.stopPropagation();
-          onDelete();
+          e.preventDefault();
+        }}
+        onTouchStart={(e) => {
+          // Para dispositivos táctiles
+          e.stopPropagation();
         }}
         aria-label={`Eliminar ${cardName} del mazo`}
         title={`Eliminar ${cardName}`}
