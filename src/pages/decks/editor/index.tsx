@@ -31,6 +31,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import DeckEditorHeader from '@/components/organisms/DeckEditorHeader';
 import DeckEditorCatalog from '@/components/organisms/DeckEditorCatalog';
 import DeckEditorOrganizer from '@/components/organisms/DeckEditorOrganizer';
+import SortableDeckCard from '@/components/molecules/SortableDeckCard';
+import DroppableTrash from '@/components/molecules/DroppableTrash';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, pointerWithin, rectIntersection, useDroppable } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -390,72 +392,7 @@ export default function DeckEditorPage() {
     }
   };
 
-  // Componente Sortable Card con mejor manejo de eventos
-  const SortableCard = ({ card, id }: { card: CardDetails, id: string }) => {
-    const { 
-      attributes, 
-      listeners, 
-      setNodeRef, 
-      transform, 
-      transition,
-      isDragging 
-    } = useSortable({ 
-      id,
-      data: { card },
-    });
-    
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      // Ocultar la carta original durante el drag
-      opacity: isDragging ? 0 : 1,
-      touchAction: 'none',
-      width: card.cardType === CardType.BIO ? '300px' : '157px',
-      height: '220px',
-    };
-    
-    return (
-      <div 
-        ref={setNodeRef} 
-        style={style} 
-        {...attributes} 
-        {...listeners}
-        className={`cursor-grab active:cursor-grabbing touch-manipulation ${
-          card.cardType === CardType.BIO ? 'w-[300px] h-[157px] mx-auto' : 'w-[157px] h-[220px]'
-        }`}
-        data-id={id}
-        key={card.id} // Forzar re-render si cambia la carta
-      >
-        {renderDeckCard(card)}
-      </div>
-    );
-  };
-
-  // Zona droppable grande para eliminar cartas
-  const DroppableTrash: React.FC<{ visible: boolean }> = ({ visible }) => {
-    const { isOver, setNodeRef } = useDroppable({ id: 'trash-dropzone' });
-
-    if (!visible) return null;
-
-    return (
-      <div
-        ref={setNodeRef}
-        className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-[900px] w-[90%] pointer-events-auto transition-all ${isOver ? 'scale-105' : ''}`}
-        aria-hidden={!visible}
-      >
-        <div className={`w-full flex items-center justify-center p-4 rounded-md shadow-lg ${isOver ? 'bg-red-600 text-white' : 'bg-red-100 text-red-800'}`}>
-          <div className="flex items-center gap-3">
-            <div className="bg-red-500 rounded-full p-3 shadow-lg">
-              <Trash2 size={28} className="text-white" />
-            </div>
-            <div className="text-sm font-medium">
-              {isOver ? 'Suelta aquí para eliminar' : 'Arrastra aquí para eliminar carta'}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // Using shared molecules for sortable card and droppable trash to avoid duplication
 
   // Estados para controlar las secciones colapsables
   const [isRotExpanded, setIsRotExpanded] = useState(true);
@@ -491,9 +428,10 @@ export default function DeckEditorPage() {
               }`}>
                 {organizedDeck.protector1 ? (
                   <div className="relative w-full h-full">
-                    <SortableCard 
-                      card={organizedDeck.protector1} 
-                      id="protector1-0" 
+                    <SortableDeckCard
+                      card={organizedDeck.protector1}
+                      id="protector1-0"
+                      renderDeckCard={(card) => renderDeckCard(card)}
                     />
                     <div className="absolute top-2 right-2 z-50">
                       <button
@@ -521,9 +459,10 @@ export default function DeckEditorPage() {
               }`}>
                 {organizedDeck.protector2 ? (
                   <div className="relative w-full h-full">
-                    <SortableCard 
-                      card={organizedDeck.protector2} 
-                      id="protector2-0" 
+                    <SortableDeckCard
+                      card={organizedDeck.protector2}
+                      id="protector2-0"
+                      renderDeckCard={(card) => renderDeckCard(card)}
                     />
                     <div className="absolute top-2 right-2 z-50">
                       <button
@@ -551,9 +490,10 @@ export default function DeckEditorPage() {
               }`}>
                 {organizedDeck.bio ? (
                   <div className="relative w-full h-full">
-                    <SortableCard 
-                      card={organizedDeck.bio} 
-                      id="bio-0" 
+                    <SortableDeckCard
+                      card={organizedDeck.bio}
+                      id="bio-0"
+                      renderDeckCard={(card) => renderDeckCard(card)}
                     />
                     <div className="absolute top-2 right-2 z-50">
                       <button
@@ -610,9 +550,10 @@ export default function DeckEditorPage() {
                   }`} data-droppable-id={`rot-${idx}}`}>
                     {organizedDeck.rotCards[idx] ? (
                       <div className="relative w-full h-full">
-                        <SortableCard 
-                          card={organizedDeck.rotCards[idx]} 
-                          id={`rot-${idx}`} 
+                        <SortableDeckCard
+                          card={organizedDeck.rotCards[idx]}
+                          id={`rot-${idx}`}
+                          renderDeckCard={(card) => renderDeckCard(card)}
                         />
                         <div className="absolute top-2 right-2 z-50">
                           <button
@@ -671,9 +612,10 @@ export default function DeckEditorPage() {
                   }`} data-droppable-id={`ixim-${idx}`}> 
                     {organizedDeck.iximCards[idx] ? (
                       <div className="relative w-full h-full">
-                        <SortableCard 
-                          card={organizedDeck.iximCards[idx]} 
-                          id={`ixim-${idx}`} 
+                        <SortableDeckCard
+                          card={organizedDeck.iximCards[idx]}
+                          id={`ixim-${idx}`}
+                          renderDeckCard={(card) => renderDeckCard(card)}
                         />
                         <div className="absolute top-2 right-2 z-50">
                           <button
@@ -722,9 +664,10 @@ export default function DeckEditorPage() {
                       }`} data-droppable-id={`mainAdendei-${cardIndex}`}>
                         {organizedDeck.mainAdendeis[cardIndex] ? (
                           <div className="relative w-full h-full">
-                            <SortableCard 
-                              card={organizedDeck.mainAdendeis[cardIndex]} 
-                              id={`mainAdendei-${cardIndex}`} 
+                            <SortableDeckCard
+                              card={organizedDeck.mainAdendeis[cardIndex]}
+                              id={`mainAdendei-${cardIndex}`}
+                              renderDeckCard={(card) => renderDeckCard(card)}
                             />
                             <div className="absolute top-2 right-2 z-50">
                               <button
@@ -764,9 +707,10 @@ export default function DeckEditorPage() {
                     isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
                   }`} data-droppable-id={`other-${idx}`}>
                     <div className="relative w-full h-full">
-                      <SortableCard 
-                        card={card} 
-                        id={`other-${idx}`} 
+                      <SortableDeckCard
+                        card={card}
+                        id={`other-${idx}`}
+                        renderDeckCard={(card) => renderDeckCard(card)}
                       />
                       <div className="absolute top-2 right-2 z-50">
                         <button
