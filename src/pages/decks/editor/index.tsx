@@ -16,6 +16,7 @@ import useDeckOrganizer from '@/hooks/useDeckOrganizer';
 import SortableDeckCard from '@/components/molecules/SortableDeckCard';
 import DeckCard from '@/components/molecules/DeckCard';
 import { DndContext, DragOverlay, rectIntersection } from '@dnd-kit/core';
+import { isAdendeiOrRava } from '@/lib/card-utils';
 
 /**
  * Editor de Mazos - Componente para crear y editar mazos
@@ -75,8 +76,6 @@ export default function DeckEditorPage() {
     setActiveId,
     setIsDragging
   });
-
-  // Using shared molecules for sortable card and droppable trash to avoid duplication
 
   // Estados para controlar las secciones colapsables
   const [isRotExpanded, setIsRotExpanded] = useState(true);
@@ -159,19 +158,23 @@ export default function DeckEditorPage() {
             {isRotExpanded && (
                 <div className="grid grid-cols-5 gap-3">
                   {Array(5).fill(null).map((_, idx) => (
-                    <DeckSlot
-                      key={`rot-${idx}`}
-                      card={organizedDeck.rotCards[idx]}
-                      isDragging={isDragging}
-                      onRemove={handleRemoveCard}
-                    >
-                      <div className="text-center text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                    organizedDeck.rotCards[idx] ? (
+                      <SortableDeckCard
+                        key={`rot-${idx}`}
+                        card={organizedDeck.rotCards[idx]}
+                        id={`rot-${idx}`}
+                        renderDeckCard={renderDeckCard}
+                      />
+                    ) : (
+                      <div className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors border-muted-foreground/20">
+                        <div className="text-center text-sm text-muted-foreground">
+                          <div className="mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                          </div>
+                          Rot {idx + 1}
                         </div>
-                        Rot {idx + 1}
                       </div>
-                    </DeckSlot>
+                    )
                   ))}
                 </div>
             )}
@@ -203,19 +206,23 @@ export default function DeckEditorPage() {
             {isIximExpanded && (
                 <div className="grid grid-cols-5 gap-3">
                   {Array(5).fill(null).map((_, idx) => (
-                    <DeckSlot
-                      key={`ixim-${idx}`}
-                      card={organizedDeck.iximCards[idx]}
-                      isDragging={isDragging}
-                      onRemove={handleRemoveCard}
-                    >
-                      <div className="text-center text-sm text-muted-foreground">
-                        <div className="mb-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                    organizedDeck.iximCards[idx] ? (
+                      <SortableDeckCard
+                        key={`ixim-${idx}`}
+                        card={organizedDeck.iximCards[idx]}
+                        id={`ixim-${idx}`}
+                        renderDeckCard={renderDeckCard}
+                      />
+                    ) : (
+                      <div className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors border-muted-foreground/20">
+                        <div className="text-center text-sm text-muted-foreground">
+                          <div className="mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                          </div>
+                          Ixim {idx + 1}
                         </div>
-                        Ixim {idx + 1}
                       </div>
-                    </DeckSlot>
+                    )
                   ))}
                 </div>
             )}
@@ -228,19 +235,7 @@ export default function DeckEditorPage() {
             {(() => {
               // Mezclar Adendeis y Rava en el slot principal
               const adendeiAndRava = organizedDeck.mainAdendeis.filter(card =>
-                card && (
-                  card.cardType === 'adendei' ||
-                  card.cardType === 'adendei abisal' ||
-                  card.cardType === 'adendei catrin' ||
-                  card.cardType === 'adendei equino' ||
-                  card.cardType === 'adendei guardian' ||
-                  card.cardType === 'adendei guardian catrin' ||
-                  card.cardType === 'adendei infectado' ||
-                  card.cardType === 'adendei kósmico' ||
-                  card.cardType === 'adendei resurrecto' ||
-                  card.cardType === 'adendei titán' ||
-                  card.cardType === 'rava'
-                )
+                card && isAdendeiOrRava(card.cardType)
               );
               const minRows = 5; // Mínimo 5 filas (15 slots)
               const cardsCount = adendeiAndRava.length;
@@ -249,23 +244,25 @@ export default function DeckEditorPage() {
               const totalRows = Math.min(neededRows, maxRows);
               return Array(totalRows).fill(null).map((_, rowIdx) => (
                 <div key={`adendei-row-${rowIdx}`} className="grid grid-cols-3 gap-3 mb-3">
-                  {Array(3).fill(null).map((_, colIdx) => {
-                    const cardIndex = rowIdx * 3 + colIdx;
-                    return (
-                      <DeckSlot
-                        key={`adendei-${cardIndex}`}
-                        card={adendeiAndRava[cardIndex]}
-                        isDragging={isDragging}
-                        onRemove={handleRemoveCard}
-                      >
-                        <div className="text-center text-sm text-muted-foreground">
-                          <div className="mb-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                    {Array(3).fill(null).map((_, colIdx) => {
+                      const cardIndex = rowIdx * 3 + colIdx;
+                      return adendeiAndRava[cardIndex] ? (
+                        <SortableDeckCard
+                          key={`adendei-${cardIndex}`}
+                          card={adendeiAndRava[cardIndex]}
+                          id={`mainAdendei-${cardIndex}`}
+                          renderDeckCard={renderDeckCard}
+                        />
+                      ) : (
+                        <div className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors border-muted-foreground/20">
+                          <div className="text-center text-sm text-muted-foreground">
+                            <div className="mb-2">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                            </div>
+                            {`Adendei ${cardIndex + 1}`}
                           </div>
-                          {adendeiAndRava[cardIndex]?.cardType === 'rava' ? `Rava ${cardIndex + 1}` : `Adendei ${cardIndex + 1}`}
                         </div>
-                      </DeckSlot>
-                    );
+                      )
                   })}
                 </div>
               ));
@@ -278,19 +275,23 @@ export default function DeckEditorPage() {
               <h3 className="font-medium text-sm mb-2">Cartas adicionales</h3>
               <div className="grid grid-cols-3 gap-3">
                 {organizedDeck.otherCards.map((card, idx) => (
-                  <DeckSlot
-                    key={`other-${idx}`}
-                    card={card}
-                    isDragging={isDragging}
-                    onRemove={handleRemoveCard}
-                  >
-                    <div className="text-center text-sm text-muted-foreground">
-                      <div className="mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                  card ? (
+                    <SortableDeckCard
+                      key={`other-${idx}`}
+                      card={card}
+                      id={`other-${idx}`}
+                      renderDeckCard={renderDeckCard}
+                    />
+                  ) : (
+                    <div className="border-2 border-dashed rounded-md p-2 h-[220px] w-full flex items-center justify-center card-container transition-colors border-muted-foreground/20">
+                      <div className="text-center text-sm text-muted-foreground">
+                        <div className="mb-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                        </div>
+                        Adicional {idx + 1}
                       </div>
-                      Adicional {idx + 1}
                     </div>
-                  </DeckSlot>
+                  )
                 ))}
               </div>
             </div>

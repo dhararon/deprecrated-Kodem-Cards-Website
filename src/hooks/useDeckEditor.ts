@@ -9,6 +9,7 @@ import {
   checkDeckNameExists
 } from '@/lib/firebase/services/deckService';
 import { queryCards } from '@/lib/firebase/services/cardService';
+import { isAdendeiOrRava, isAdendeiOnly, isRot, isIxim, isBio, isProtector } from '@/lib/card-utils';
 
 type UserLike = { id: string; name?: string; avatarUrl?: string } | null;
 
@@ -151,22 +152,18 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
           cardOrder.forEach(cardId => {
             const card = allCards.find(c => c.id === cardId);
             if (!card) return;
-            switch (card.cardType) {
-              case CardType.PROTECTOR:
-                if (!initialCustomOrder.protectors.includes(cardId)) initialCustomOrder.protectors.push(cardId);
-                break;
-              case CardType.BIO:
-                if (!initialCustomOrder.bio.includes(cardId)) initialCustomOrder.bio.push(cardId);
-                break;
-              case CardType.ROT:
-                if (!initialCustomOrder.rot.includes(cardId)) initialCustomOrder.rot.push(cardId);
-                break;
-              case CardType.IXIM:
-                if (!initialCustomOrder.ixim.includes(cardId)) initialCustomOrder.ixim.push(cardId);
-                break;
-              default:
-                if (!initialCustomOrder.others.includes(cardId)) initialCustomOrder.others.push(cardId);
-                break;
+            if (isProtector(card.cardType)) {
+              if (!initialCustomOrder.protectors.includes(cardId)) initialCustomOrder.protectors.push(cardId);
+            } else if (isBio(card.cardType)) {
+              if (!initialCustomOrder.bio.includes(cardId)) initialCustomOrder.bio.push(cardId);
+            } else if (isRot(card.cardType)) {
+              if (!initialCustomOrder.rot.includes(cardId)) initialCustomOrder.rot.push(cardId);
+            } else if (isIxim(card.cardType)) {
+              if (!initialCustomOrder.ixim.includes(cardId)) initialCustomOrder.ixim.push(cardId);
+            } else if (isAdendeiOrRava(card.cardType)) {
+              if (!initialCustomOrder.adendeis.includes(cardId)) initialCustomOrder.adendeis.push(cardId);
+            } else {
+              if (!initialCustomOrder.others.includes(cardId)) initialCustomOrder.others.push(cardId);
             }
           });
 
@@ -303,27 +300,18 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
       const normalizedName = card.name.toLowerCase();
       nameCount.set(normalizedName, (nameCount.get(normalizedName) || 0) + quantity);
 
-      switch (card.cardType) {
-        case CardType.ROT:
-          rotCount += quantity; break;
-        case CardType.IXIM:
-          iximCount += quantity; break;
-        case CardType.RAVA:
-          ravaCount += quantity; break;
-        case CardType.BIO:
-          bioCount += quantity; break;
-        case CardType.PROTECTOR:
-          protectorCount += quantity; break;
-        case CardType.ADENDEI:
-        case CardType.ADENDEI_TITAN:
-        case CardType.ADENDEI_GUARDIAN:
-        case CardType.ADENDEI_CATRIN:
-        case CardType.ADENDEI_KOSMICO:
-        case CardType.ADENDEI_EQUINO:
-        case CardType.ADENDEI_ABISMAL:
-        case CardType.ADENDEI_INFECTADO:
-        case CardType.ADENDEI_RESURRECTO:
-          adendeiCount += quantity; break;
+      if (isRot(card.cardType)) {
+        rotCount += quantity;
+      } else if (isIxim(card.cardType)) {
+        iximCount += quantity;
+      } else if (card.cardType === CardType.RAVA) {
+        ravaCount += quantity;
+      } else if (isBio(card.cardType)) {
+        bioCount += quantity;
+      } else if (isProtector(card.cardType)) {
+        protectorCount += quantity;
+      } else if (isAdendeiOnly(card.cardType)) {
+        adendeiCount += quantity;
       }
     });
 
@@ -350,22 +338,18 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
 
     cardDetails.forEach(card => {
       const quantity = deckCardsArg[card.id];
-      switch (card.cardType) {
-        case CardType.ROT: rotCount += quantity; break;
-        case CardType.IXIM: iximCount += quantity; break;
-        case CardType.RAVA: ravaCount += quantity; break;
-        case CardType.BIO: bioCount += quantity; break;
-        case CardType.PROTECTOR: protectorCount += quantity; break;
-        case CardType.ADENDEI:
-        case CardType.ADENDEI_TITAN:
-        case CardType.ADENDEI_GUARDIAN:
-        case CardType.ADENDEI_CATRIN:
-        case CardType.ADENDEI_KOSMICO:
-        case CardType.ADENDEI_EQUINO:
-        case CardType.ADENDEI_ABISMAL:
-        case CardType.ADENDEI_INFECTADO:
-        case CardType.ADENDEI_RESURRECTO:
-          adendeiCount += quantity; break;
+      if (isRot(card.cardType)) {
+        rotCount += quantity;
+      } else if (isIxim(card.cardType)) {
+        iximCount += quantity;
+      } else if (card.cardType === CardType.RAVA) {
+        ravaCount += quantity;
+      } else if (isBio(card.cardType)) {
+        bioCount += quantity;
+      } else if (isProtector(card.cardType)) {
+        protectorCount += quantity;
+      } else if (isAdendeiOnly(card.cardType)) {
+        adendeiCount += quantity;
       }
     });
 
@@ -513,34 +497,18 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
 
     setCustomOrder(prev => {
       const newOrder = { ...prev };
-      switch (card.cardType) {
-        case CardType.PROTECTOR:
-          if (!newOrder.protectors.includes(card.id)) newOrder.protectors = [...newOrder.protectors, card.id];
-          break;
-        case CardType.BIO:
-          if (!newOrder.bio.includes(card.id)) newOrder.bio = [...newOrder.bio, card.id];
-          break;
-        case CardType.ROT:
-          if (!newOrder.rot.includes(card.id)) newOrder.rot = [...newOrder.rot, card.id];
-          break;
-        case CardType.IXIM:
-          if (!newOrder.ixim.includes(card.id)) newOrder.ixim = [...newOrder.ixim, card.id];
-          break;
-        case CardType.ADENDEI:
-        case CardType.ADENDEI_TITAN:
-        case CardType.ADENDEI_GUARDIAN:
-        case CardType.ADENDEI_CATRIN:
-        case CardType.ADENDEI_KOSMICO:
-        case CardType.ADENDEI_EQUINO:
-        case CardType.ADENDEI_ABISMAL:
-        case CardType.ADENDEI_INFECTADO:
-        case CardType.ADENDEI_RESURRECTO:
-        case CardType.RAVA:
-          if (!newOrder.adendeis.includes(card.id)) newOrder.adendeis = [...newOrder.adendeis, card.id];
-          break;
-        default:
-          if (!newOrder.others.includes(card.id)) newOrder.others = [...newOrder.others, card.id];
-          break;
+      if (isProtector(card.cardType)) {
+        if (!newOrder.protectors.includes(card.id)) newOrder.protectors = [...newOrder.protectors, card.id];
+      } else if (isBio(card.cardType)) {
+        if (!newOrder.bio.includes(card.id)) newOrder.bio = [...newOrder.bio, card.id];
+      } else if (isRot(card.cardType)) {
+        if (!newOrder.rot.includes(card.id)) newOrder.rot = [...newOrder.rot, card.id];
+      } else if (isIxim(card.cardType)) {
+        if (!newOrder.ixim.includes(card.id)) newOrder.ixim = [...newOrder.ixim, card.id];
+      } else if (isAdendeiOrRava(card.cardType)) {
+        if (!newOrder.adendeis.includes(card.id)) newOrder.adendeis = [...newOrder.adendeis, card.id];
+      } else {
+        if (!newOrder.others.includes(card.id)) newOrder.others = [...newOrder.others, card.id];
       }
       return newOrder;
     });
