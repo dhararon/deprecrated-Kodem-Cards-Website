@@ -23,9 +23,10 @@ type Props = {
   handleRemoveCard: (id: string) => void;
   onDragStart: (event: DragStartEvent) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  sensors?: any;
 };
 
-export const DeckEditorOrganizer: React.FC<Props> = ({ organizedDeck, isDragging, activeId, renderDeckCard, handleRemoveCard, onDragStart, onDragEnd }) => {
+export const DeckEditorOrganizer: React.FC<Props> = ({ organizedDeck, isDragging, activeId, renderDeckCard, handleRemoveCard, onDragStart, onDragEnd, sensors }) => {
   const activeCard = activeId ? (
     organizedDeck.mainAdendeis.find((_, idx) => `mainAdendei-${idx}` === activeId) ||
     organizedDeck.rotCards.find((_, idx) => `rot-${idx}` === activeId) ||
@@ -37,7 +38,7 @@ export const DeckEditorOrganizer: React.FC<Props> = ({ organizedDeck, isDragging
   ) : null;
 
   return (
-    <DndContext collisionDetection={rectIntersection} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={rectIntersection} onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <div className="space-y-6">
         <div>
           <h3 className="font-medium text-sm mb-2">Protectores y Bio</h3>
