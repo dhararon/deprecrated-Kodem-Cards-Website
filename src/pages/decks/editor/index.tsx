@@ -1,18 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { toast } from 'sonner';
 import { Card, CardDetails, CardType, CardEnergy, CardRarity, CardSet } from '@/types/card';
 import { Deck, DeckCardSlot } from '@/types/deck';
-import { 
-  getDeckById, 
-  createDeck, 
-  updateDeck, 
-  checkDeckNameExists 
-} from '@/lib/firebase/services/deckService';
-import { 
-  queryCards, 
-  getCardsByIds 
-} from '@/lib/firebase/services/cardService';
+import useDeckEditor from '@/hooks/useDeckEditor';
 import { useAuth } from '@/hooks/useAuth';
 import { Spinner } from '@/components/atoms/Spinner';
 import { Button } from '@/components/atoms/Button';
@@ -59,79 +50,55 @@ export default function DeckEditor() {
   
   const { user } = useAuth();
 
-  const MAX_ROT_CARDS = 5;
-  const MAX_IXIM_CARDS = 5;
-  const MAX_RAVA_CARDS = 2;
-  const MAX_BIO_CARDS = 1;
-  const MAX_PROTECTOR_CARDS = 2;
-  const MAX_ADENDEI_CARDS = 24;
-
-  // Estados para el mazo
-  const [deck, setDeck] = useState<Deck | null>(null);
-  const [deckName, setDeckName] = useState('Nuevo Mazo');
-  const [deckDescription, setDeckDescription] = useState('');
-  const [isPublic, setIsPublic] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Estados para las cartas
-  const [allCards, setAllCards] = useState<CardDetails[]>([]);
-  const [filteredCards, setFilteredCards] = useState<CardDetails[]>([]);
-  const [deckCards, setDeckCards] = useState<Record<string, number>>({});
-  const [deckCardOrder, setDeckCardOrder] = useState<string[]>([]); // Mantener orden de inserción
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [customOrder, setCustomOrder] = useState<{
-    protectors: string[];
-    bio: string[];
-    rot: string[];
-    ixim: string[];
-    adendeis: string[];
-    others: string[];
-  }>({
-    protectors: [],
-    bio: [],
-    rot: [],
-    ixim: [],
-    adendeis: [],
-    others: []
-  });
-  const [organizedDeck, setOrganizedDeck] = useState<{
-    protector1?: CardDetails;
-    mainAdendeis: CardDetails[];
-    protector2?: CardDetails;
-    bio?: CardDetails;
-    rotCards: CardDetails[];
-    iximCards: CardDetails[];
-    otherCards: CardDetails[];
-  }>({
-    mainAdendeis: [],
-    rotCards: [],
-    iximCards: [],
-    otherCards: []
-  });
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState<string>('all_types');
-  const [selectedEnergy, setSelectedEnergy] = useState<string>('all_energies');
-  const [selectedRarity, setSelectedRarity] = useState<string>('all_rarities');
-  const [selectedSet, setSelectedSet] = useState<string>('all_sets');
-  const [isLoadingCards, setIsLoadingCards] = useState(false);
-
-  // Validación y alertas
-  const [nameError, setNameError] = useState('');
-  
-  // Memoized valores para selects
-  const typeOptions = useMemo(() => Object.values(CardType), []);
-  const energyOptions = useMemo(() => Object.values(CardEnergy), []);
-  const rarityOptions = useMemo(() => Object.values(CardRarity), []);
-  const setOptions = useMemo(() => Object.values(CardSet), []);
-
-  // Total de cartas en el mazo
-  const totalCards = useMemo(() => {
-    return Object.values(deckCards).reduce((acc, qty) => acc + qty, 0);
-  }, [deckCards]);
+  const {
+    deck,
+    deckName,
+    setDeckName,
+    deckDescription,
+    setDeckDescription,
+    isPublic,
+    setIsPublic,
+    isLoading,
+    isSaving,
+    confirmDeleteDialogOpen,
+    setConfirmDeleteDialogOpen,
+    error,
+    allCards,
+    filteredCards,
+    isLoadingCards,
+    deckCards,
+    deckCardOrder,
+    setDeckCardOrder,
+    activeId,
+    isDragging,
+    customOrder,
+    setCustomOrder,
+    organizedDeck,
+    setOrganizedDeck,
+    searchTerm,
+    setSearchTerm,
+    selectedType,
+    setSelectedType,
+    selectedEnergy,
+    setSelectedEnergy,
+    selectedRarity,
+    setSelectedRarity,
+    selectedSet,
+    setSelectedSet,
+    nameError,
+    setNameError,
+    typeOptions,
+    energyOptions,
+    rarityOptions,
+    setOptions,
+    totalCards,
+  handleSaveDeck,
+  handleDeleteDeck,
+  handleAddCard,
+  handleRemoveCard,
+    setActiveId,
+    setIsDragging
+  } = useDeckEditor(user, deckId, isNew, navigate);
 
   // Estados para colapsar secciones
   const [showProtectorBio, setShowProtectorBio] = useState(true);
@@ -146,143 +113,9 @@ export default function DeckEditor() {
     }
   }, [user, navigate]);
 
-  // Cargar cartas disponibles
-  useEffect(() => {
-    const loadCards = async () => {
-      if (!user) return;
-      
-      setIsLoadingCards(true);
-      try {
-        const fetchedCards = await queryCards({});
-        setAllCards(fetchedCards);
-        setFilteredCards(fetchedCards);
-      } catch (err) {
-        console.error('Error al cargar cartas:', err);
-        toast.error('Error al cargar las cartas disponibles');
-      } finally {
-        setIsLoadingCards(false);
-      }
-    };
-    
-    loadCards();
-  }, [user]);
+  // Card loading handled by useDeckEditor hook
 
-  // Cargar mazo existente cuando se está editando
-  useEffect(() => {
-    if (!user || isNew || !deckId) return;
-    
-    const loadExistingDeck = async () => {
-      setIsLoading(true);
-      try {
-        const existingDeck = await getDeckById(deckId);
-        if (!existingDeck) {
-          toast.error('No se encontró el mazo solicitado');
-          navigate('/decks');
-          return;
-        }
-        
-        // Verificar que el mazo pertenece al usuario
-        if (existingDeck.userUid !== user.id) {
-          toast.error('No tienes permiso para editar este mazo');
-          navigate('/decks');
-          return;
-        }
-        
-        // Establecer los datos del mazo
-        setDeck(existingDeck);
-        setDeckName(existingDeck.name);
-        setDeckDescription(existingDeck.description || '');
-        setIsPublic(existingDeck.isPublic);
-        
-        // Cargar las cartas del mazo
-        if (existingDeck.deckSlots && existingDeck.deckSlots.length > 0 && allCards.length > 0) {
-          // Establecer deckCards con los conteos y el orden
-          const cardCounts: Record<string, number> = {};
-          const cardOrder: string[] = [];
-          
-          existingDeck.deckSlots.forEach(slot => {
-            cardCounts[slot.cardId] = (cardCounts[slot.cardId] || 0) + 1;
-            // Solo agregar al orden la primera vez que aparece
-            if (!cardOrder.includes(slot.cardId)) {
-              cardOrder.push(slot.cardId);
-            }
-          });
-          
-          // Establecer deckCards con los conteos y el orden
-          setDeckCards(cardCounts);
-          setDeckCardOrder(cardOrder);
-          
-          // Inicializar customOrder basado en las cartas existentes
-          const initialCustomOrder = {
-            protectors: [] as string[],
-            bio: [] as string[],
-            rot: [] as string[],
-            ixim: [] as string[],
-            adendeis: [] as string[],
-            others: [] as string[]
-          };
-          
-          cardOrder.forEach(cardId => {
-            const card = allCards.find(c => c.id === cardId);
-            if (!card) return;
-            
-            switch (card.cardType) {
-              case CardType.PROTECTOR:
-                if (!initialCustomOrder.protectors.includes(cardId)) {
-                  initialCustomOrder.protectors.push(cardId);
-                }
-                break;
-              case CardType.BIO:
-                if (!initialCustomOrder.bio.includes(cardId)) {
-                  initialCustomOrder.bio.push(cardId);
-                }
-                break;
-              case CardType.ROT:
-                if (!initialCustomOrder.rot.includes(cardId)) {
-                  initialCustomOrder.rot.push(cardId);
-                }
-                break;
-              case CardType.IXIM:
-                if (!initialCustomOrder.ixim.includes(cardId)) {
-                  initialCustomOrder.ixim.push(cardId);
-                }
-                break;
-              case CardType.ADENDEI:
-              case CardType.ADENDEI_TITAN:
-              case CardType.ADENDEI_GUARDIAN:
-              case CardType.ADENDEI_CATRIN:
-              case CardType.ADENDEI_KOSMICO:
-              case CardType.ADENDEI_EQUINO:
-              case CardType.ADENDEI_ABISMAL:
-              case CardType.ADENDEI_INFECTADO:
-              case CardType.RAVA:
-                if (!initialCustomOrder.adendeis.includes(cardId)) {
-                  initialCustomOrder.adendeis.push(cardId);
-                }
-                break;
-              default:
-                if (!initialCustomOrder.others.includes(cardId)) {
-                  initialCustomOrder.others.push(cardId);
-                }
-                break;
-            }
-          });
-          
-          setCustomOrder(initialCustomOrder);
-        }
-      } catch (err) {
-        console.error('Error al cargar mazo:', err);
-        toast.error('Error al cargar el mazo');
-        navigate('/decks');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    if (allCards.length > 0) {
-      loadExistingDeck();
-    }
-  }, [user, isNew, deckId, navigate, allCards]);
+  // Existing deck loading handled by useDeckEditor hook
 
   // Categorizar cartas por tipo para el organizador
   useEffect(() => {
@@ -1183,474 +1016,7 @@ export default function DeckEditor() {
     </div>
   );
 
-  // Función para validar las reglas del deck
-  const validateDeckRules = (currentDeckCards: Record<string, number>, newCard?: CardDetails): { isValid: boolean; error?: string } => {
-    // Obtener detalles de las cartas actuales en el mazo
-    const currentCardIds = Object.keys(currentDeckCards);
-    const currentCardDetails = allCards.filter(card => currentCardIds.includes(card.id));
-    
-    // Si estamos validando para agregar una nueva carta, incluirla temporalmente
-    let cardsToValidate = currentCardDetails;
-    if (newCard) {
-      cardsToValidate = [...currentCardDetails, newCard];
-    }
-    
-    // Contar cartas por tipo
-    let rotCount = 0;
-    let iximCount = 0;
-    let ravaCount = 0;
-    let bioCount = 0;
-    let protectorCount = 0;
-    let adendeiCount = 0;
-    
-    // Map para contar nombres únicos
-    const nameCount = new Map<string, number>();
-    
-    cardsToValidate.forEach(card => {
-      const cardId = card.id;
-      const quantity = currentDeckCards[cardId] || (newCard && newCard.id === cardId ? 1 : 0);
-      
-      // Contar nombres únicos (en minúsculas)
-      const normalizedName = card.name.toLowerCase();
-      nameCount.set(normalizedName, (nameCount.get(normalizedName) || 0) + quantity);
-      
-      // Contar por tipo
-      switch (card.cardType) {
-        case CardType.ROT:
-          rotCount += quantity;
-          break;
-        case CardType.IXIM:
-          iximCount += quantity;
-          break;
-        case CardType.RAVA:
-          ravaCount += quantity;
-          break;
-        case CardType.BIO:
-          bioCount += quantity;
-          break;
-        case CardType.PROTECTOR:
-          protectorCount += quantity;
-          break;
-        case CardType.ADENDEI:
-        case CardType.ADENDEI_TITAN:
-        case CardType.ADENDEI_GUARDIAN:
-        case CardType.ADENDEI_CATRIN:
-        case CardType.ADENDEI_KOSMICO:
-        case CardType.ADENDEI_EQUINO:
-        case CardType.ADENDEI_ABISMAL:
-        case CardType.ADENDEI_INFECTADO:
-        case CardType.ADENDEI_GUARDIAN_CATRIN:
-        case CardType.ADENDEI_RESURRECTO:
-          adendeiCount += quantity;
-          break;
-      }
-    });
-    
-    // Validar nombres únicos
-    for (const [name, count] of nameCount.entries()) {
-      if (count > 1) {
-        return { isValid: false, error: `Solo puede existir 1 carta con el nombre "${name}" en el mazo` };
-      }
-    }
-    
-    // Validar límites por tipo
-    if (rotCount > MAX_ROT_CARDS) {
-      return { isValid: false, error: `Máximo ${MAX_ROT_CARDS} cartas Rot permitidas (tienes ${rotCount})` };
-    }
-    
-    if (iximCount > MAX_IXIM_CARDS) {
-      return { isValid: false, error: `Máximo ${MAX_IXIM_CARDS} cartas Ixim permitidas (tienes ${iximCount})` };
-    }
-    
-    if (ravaCount > MAX_RAVA_CARDS) {
-      return { isValid: false, error: `Máximo ${MAX_RAVA_CARDS} carta Rava permitida (tienes ${ravaCount})` };
-    }
-    
-    if (bioCount > MAX_BIO_CARDS) {
-      return { isValid: false, error: `Máximo ${MAX_BIO_CARDS} carta Bio permitida (tienes ${bioCount})` };
-    }
-    
-    if (protectorCount > MAX_PROTECTOR_CARDS) {
-      return { isValid: false, error: `Máximo ${MAX_PROTECTOR_CARDS} Protectores permitidos (tienes ${protectorCount})` };
-    }
-    
-    if (adendeiCount > MAX_ADENDEI_CARDS) {
-      return { isValid: false, error: `Máximo ${MAX_ADENDEI_CARDS} Adendeis permitidos (tienes ${adendeiCount})` };
-    }
-    
-    return { isValid: true };
-  };
-
-  // Función para validar deck completo antes de guardar
-  const validateCompleteDeck = (deckCards: Record<string, number>): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
-    
-    // Obtener detalles de las cartas en el mazo
-    const cardIds = Object.keys(deckCards);
-    const cardDetails = allCards.filter(card => cardIds.includes(card.id));
-    
-    // Contar cartas por tipo
-    let rotCount = 0;
-    let iximCount = 0;
-    let ravaCount = 0;
-    let bioCount = 0;
-    let protectorCount = 0;
-    let adendeiCount = 0;
-    
-    cardDetails.forEach(card => {
-      const quantity = deckCards[card.id];
-      
-      switch (card.cardType) {
-        case CardType.ROT:
-          rotCount += quantity;
-          break;
-        case CardType.IXIM:
-          iximCount += quantity;
-          break;
-        case CardType.RAVA:
-          ravaCount += quantity;
-          break;
-        case CardType.BIO:
-          bioCount += quantity;
-          break;
-        case CardType.PROTECTOR:
-          protectorCount += quantity;
-          break;
-        case CardType.ADENDEI:
-        case CardType.ADENDEI_TITAN:
-        case CardType.ADENDEI_GUARDIAN:
-        case CardType.ADENDEI_CATRIN:
-        case CardType.ADENDEI_KOSMICO:
-        case CardType.ADENDEI_EQUINO:
-        case CardType.ADENDEI_ABISMAL:
-        case CardType.ADENDEI_INFECTADO:
-        case CardType.ADENDEI_GUARDIAN_CATRIN:
-        case CardType.ADENDEI_RESURRECTO:
-          adendeiCount += quantity;
-          break;
-      }
-    });
-    
-    // Validar mínimos requeridos
-    if (protectorCount < 1) {
-      errors.push('Se requiere al menos 1 Protector');
-    }
-    
-    if (adendeiCount < 15) {
-      errors.push(`Se requieren al menos 15 Adendeis (tienes ${adendeiCount})`);
-    }
-    
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  };
-
-  // Guardar el mazo
-  const handleSaveDeck = async () => {
-    // Validaciones
-    if (!deckName.trim()) {
-      setNameError('El nombre del mazo es obligatorio');
-      return;
-    }
-    
-    if (totalCards === 0) {
-      toast.error('Debes agregar al menos una carta al mazo');
-      return;
-    }
-
-    // Validar reglas del deck completo
-    const deckValidation = validateCompleteDeck(deckCards);
-    if (!deckValidation.isValid) {
-      deckValidation.errors.forEach(error => toast.error(error));
-      return;
-    }
-    
-    // Comprobar si el nombre ya existe
-    try {
-      const nameExists = await checkDeckNameExists(
-        user!.id, 
-        deckName.trim(), 
-        deckId || undefined
-      );
-      
-      if (nameExists.exists) {
-        setNameError('Ya tienes un mazo con este nombre');
-        return;
-      }
-    } catch (error) {
-      console.error('Error al verificar nombre:', error);
-      toast.error('Error al verificar el nombre del mazo');
-      return;
-    }
-    
-    setIsSaving(true);
-    try {
-      // Construir deckSlots recorriendo el grid visual (mainAdendeis, protectores, bio, rot, ixim, others)
-      const deckSlots: DeckCardSlot[] = [];
-      let currentRow = 0;
-      let currentCol = 0;
-      const maxCols = 3;
-
-      // Helper para agregar cartas a slots
-      const addCardsToSlots = (cards: CardDetails[]) => {
-        cards.forEach(card => {
-          deckSlots.push({ cardId: card.id, row: currentRow, col: currentCol });
-          currentCol++;
-          if (currentCol >= maxCols) {
-            currentCol = 0;
-            currentRow++;
-          }
-        });
-      };
-
-      // Agregar protectores, bio, rot, ixim, adendeis, others en orden visual
-      if (organizedDeck.protector1) addCardsToSlots([organizedDeck.protector1]);
-      if (organizedDeck.protector2) addCardsToSlots([organizedDeck.protector2]);
-      if (organizedDeck.bio) addCardsToSlots([organizedDeck.bio]);
-      addCardsToSlots(organizedDeck.rotCards);
-      addCardsToSlots(organizedDeck.iximCards);
-      addCardsToSlots(organizedDeck.mainAdendeis);
-      addCardsToSlots(organizedDeck.otherCards);
-
-      // Guardar el mazo con deckSlots
-      // Nuevo: generar cardIds a partir de deckSlots
-      const cardIds = deckSlots.map(slot => slot.cardId);
-      const deckData: Omit<Deck, 'id'> & { deckSlots: DeckCardSlot[] } = {
-        name: deckName.trim(),
-        userUid: user!.id,
-        userName: user!.name || 'Usuario',
-        userAvatar: user!.avatarUrl || undefined,
-        isPublic,
-        description: deckDescription.trim() || "",
-        cardIds, // Ahora siempre sincronizado con deckSlots
-        deckSlots // Nuevo campo
-      };
-
-      let newDeckId;
-      if (deckId && !isNew) {
-        try {
-          await updateDeck(deckId, {
-            name: deckData.name,
-            deckSlots: deckData.deckSlots,
-            isPublic: deckData.isPublic,
-            description: deckData.description
-          });
-          newDeckId = deckId;
-          toast.success('Mazo actualizado correctamente');
-        } catch (error) {
-          console.error('Error al actualizar, creando nuevo mazo:', error);
-          newDeckId = await createDeck(deckData);
-          toast.success('No se pudo actualizar, se ha creado un nuevo mazo');
-        }
-      } else {
-        newDeckId = await createDeck(deckData);
-        toast.success('Mazo creado correctamente');
-      }
-      navigate(`/decks/${newDeckId}`);
-    } catch (error) {
-      console.error('Error al guardar el mazo:', error);
-      toast.error('Error al guardar el mazo');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Filtrar cartas basado en los filtros seleccionados
-  useEffect(() => {
-    const applyFilters = async () => {
-      setIsLoadingCards(true);
-      try {
-        // Construir filtros para la query
-        const filters: any = {
-          searchTerm: searchTerm || undefined,
-        };
-
-        if (selectedType !== 'all_types') {
-          filters.type = selectedType as CardType;
-        }
-
-        if (selectedEnergy !== 'all_energies') {
-          filters.energy = selectedEnergy as CardEnergy;
-        }
-
-        if (selectedRarity !== 'all_rarities') {
-          filters.rarity = selectedRarity as CardRarity;
-        }
-
-        if (selectedSet !== 'all_sets') {
-          filters.set = selectedSet as CardSet;
-        }
-
-        // Si no hay filtros, mostrar todas las cartas
-        if (Object.keys(filters).length === 0) {
-          setFilteredCards(allCards);
-        } else {
-          // Obtener cartas con filtros
-          const filteredResults = await queryCards(filters);
-          setFilteredCards(filteredResults);
-        }
-      } catch (error) {
-        console.error('Error al filtrar cartas:', error);
-        toast.error('Error al filtrar las cartas');
-      } finally {
-        setIsLoadingCards(false);
-      }
-    };
-
-    // Aplicar filtros si ya se cargaron todas las cartas
-    if (allCards.length > 0) {
-      applyFilters();
-    }
-  }, [allCards, searchTerm, selectedType, selectedEnergy, selectedRarity, selectedSet]);
-
-  // Eliminar el mazo
-  const handleDeleteDeck = async () => {
-    if (!deckId || isNew) {
-      toast.error('No se puede eliminar un mazo que no ha sido guardado');
-      return;
-    }
-    
-    setIsLoading(true);
-    try {
-      // Solo intentamos eliminar si tenemos un ID válido
-      try {
-        await import('@/lib/firebase/services/deckService').then(module => {
-          return module.deleteDeck(deckId);
-        });
-        toast.success('Mazo eliminado correctamente');
-      } catch (error) {
-        console.error('Error al eliminar el mazo:', error);
-        toast.error('Error al eliminar el mazo');
-      }
-      
-      // Redireccionar al listado de mazos
-      navigate('/decks');
-    } catch (error) {
-      console.error('Error al procesar la eliminación:', error);
-      toast.error('Ocurrió un error inesperado');
-    } finally {
-      setIsLoading(false);
-      setConfirmDeleteDialogOpen(false);
-    }
-  };
-
-  // Agregar carta al mazo
-  const handleAddCard = (card: CardDetails) => {
-    // Bloquear agregar tokens
-    if (card.cardType === CardType.TOKEN) {
-      toast.warning('No se pueden agregar cartas de tipo Token al mazo');
-      return;
-    }
-
-    // Validar reglas del deck antes de agregar
-    const validation = validateDeckRules(deckCards, card);
-    if (!validation.isValid) {
-      toast.error(validation.error);
-      return;
-    }
-
-    // Verificar si la carta ya está en el deck (validación de nombre único)
-    const existingCard = deckCardOrder.find(cardId => {
-      const existingCardDetails = allCards.find(c => c.id === cardId);
-      return existingCardDetails && existingCardDetails.name.toLowerCase() === card.name.toLowerCase();
-    });
-
-    if (existingCard) {
-      toast.warning(`Ya existe una carta con el nombre "${card.name}" en el mazo`);
-      return;
-    }
-
-    // Agregar la carta al mazo y al final del orden
-    setDeckCards(prev => ({
-      ...prev,
-      [card.id]: 1
-    }));
-
-    // Agregar al final del orden de inserción
-    setDeckCardOrder(prev => [...prev, card.id]);
-
-    // Actualizar customOrder según el tipo de carta
-    setCustomOrder(prev => {
-      const newOrder = { ...prev };
-      
-      switch (card.cardType) {
-        case CardType.PROTECTOR:
-          if (!newOrder.protectors.includes(card.id)) {
-            newOrder.protectors = [...newOrder.protectors, card.id];
-          }
-          break;
-        case CardType.BIO:
-          if (!newOrder.bio.includes(card.id)) {
-            newOrder.bio = [...newOrder.bio, card.id];
-          }
-          break;
-        case CardType.ROT:
-          if (!newOrder.rot.includes(card.id)) {
-            newOrder.rot = [...newOrder.rot, card.id];
-          }
-          break;
-        case CardType.IXIM:
-          if (!newOrder.ixim.includes(card.id)) {
-            newOrder.ixim = [...newOrder.ixim, card.id];
-          }
-          break;
-        case CardType.ADENDEI:
-        case CardType.ADENDEI_TITAN:
-        case CardType.ADENDEI_GUARDIAN:
-        case CardType.ADENDEI_CATRIN:
-        case CardType.ADENDEI_KOSMICO:
-        case CardType.ADENDEI_EQUINO:
-        case CardType.ADENDEI_ABISMAL:
-        case CardType.ADENDEI_INFECTADO:
-        case CardType.RAVA:
-        case CardType.ADENDEI_RESURRECTO:
-        case CardType.ADENDEI_GUARDIAN_CATRIN:
-          if (!newOrder.adendeis.includes(card.id)) {
-            newOrder.adendeis = [...newOrder.adendeis, card.id];
-          }
-          break;
-        default:
-          if (!newOrder.others.includes(card.id)) {
-            newOrder.others = [...newOrder.others, card.id];
-          }
-          break;
-      }
-      
-      return newOrder;
-    });
-
-    toast.success(`${card.name} agregada al mazo`);
-  };
-
-  // Quitar carta del mazo
-  const handleRemoveCard = (cardId: string) => {
-    const removedCard = allCards.find(card => card.id === cardId);
-    
-    setDeckCards(prev => {
-      const newDeckCards = { ...prev };
-      delete newDeckCards[cardId];
-      return newDeckCards;
-    });
-
-    // Remover del orden de inserción
-    setDeckCardOrder(prev => prev.filter(id => id !== cardId));
-
-    // Remover de customOrder
-    setCustomOrder(prev => ({
-      protectors: prev.protectors.filter(id => id !== cardId),
-      bio: prev.bio.filter(id => id !== cardId),
-      rot: prev.rot.filter(id => id !== cardId),
-      ixim: prev.ixim.filter(id => id !== cardId),
-      adendeis: prev.adendeis.filter(id => id !== cardId),
-      others: prev.others.filter(id => id !== cardId)
-    }));
-
-    // Mostrar mensaje de confirmación
-    if (removedCard) {
-      toast.success(`${removedCard.name} eliminada del mazo`);
-    }
-  };
+  // Validation, saving and card add/remove are handled by the useDeckEditor hook
 
   // Renderizar tarjeta para el catálogo
   const renderCardForCatalog = (card: CardDetails) => (

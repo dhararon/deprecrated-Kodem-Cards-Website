@@ -638,6 +638,10 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
     handleAddCard,
     handleRemoveCard,
     handleDragStart,
-    handleDragEnd
+    handleDragEnd,
+    // setters for page-managed drag and organizer logic
+    setOrganizedDeck,
+    setActiveId,
+    setIsDragging
   } as const;
 }
