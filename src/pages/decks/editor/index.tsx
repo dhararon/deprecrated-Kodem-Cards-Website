@@ -59,7 +59,7 @@ export default function DeckEditor() {
 
   const MAX_ROT_CARDS = 5;
   const MAX_IXIM_CARDS = 5;
-  const MAX_RAVA_CARDS = 1;
+  const MAX_RAVA_CARDS = 2;
   const MAX_BIO_CARDS = 1;
   const MAX_PROTECTOR_CARDS = 2;
 
