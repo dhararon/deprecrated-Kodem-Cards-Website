@@ -30,6 +30,7 @@ import { EmptyState } from '@/components/molecules/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/atoms/Dialog';
 import DeckEditorHeader from '@/components/organisms/DeckEditorHeader';
 import DeckEditorCatalog from '@/components/organisms/DeckEditorCatalog';
+import DeckEditorOrganizer from '@/components/organisms/DeckEditorOrganizer';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, DragOverlay, pointerWithin, rectIntersection, useDroppable } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -39,19 +40,16 @@ import { restrictToParentElement } from '@dnd-kit/modifiers';
  * Editor de Mazos - Componente para crear y editar mazos
  * @returns Componente React del editor de mazos
  */
-export default function DeckEditor() {
+
+export default function DeckEditorPage() {
   const [location, navigate] = useLocation();
-  
-  // Determinar si estamos creando un nuevo deck o editando uno existente
-  const isNew = location.includes('/new');
-  // Extraer el ID del último segmento de la URL, o vacío si no hay
-  const urlSegments = location.split('/').filter(Boolean);
-  const deckId = !isNew && urlSegments.length > 0 ? urlSegments[urlSegments.length - 1] : '';
-  
   const { user } = useAuth();
+  const pathParts = location.split('/');
+  const lastSegment = pathParts[pathParts.length - 1] || '';
+  const isNew = lastSegment === 'new';
+  const deckId = isNew ? '' : lastSegment;
 
   const {
-    deck,
     deckName,
     setDeckName,
     deckDescription,
@@ -62,7 +60,6 @@ export default function DeckEditor() {
     isSaving,
     confirmDeleteDialogOpen,
     setConfirmDeleteDialogOpen,
-    error,
     allCards,
     filteredCards,
     isLoadingCards,
@@ -74,7 +71,6 @@ export default function DeckEditor() {
     customOrder,
     setCustomOrder,
     organizedDeck,
-    setOrganizedDeck,
     searchTerm,
     setSearchTerm,
     selectedType,
@@ -96,161 +92,10 @@ export default function DeckEditor() {
   handleDeleteDeck,
   handleAddCard,
   handleRemoveCard,
+    setOrganizedDeck,
     setActiveId,
     setIsDragging
   } = useDeckEditor(user, deckId, isNew, navigate);
-
-  // Estados para colapsar secciones
-  const [showProtectorBio, setShowProtectorBio] = useState(true);
-  const [showRot, setShowRot] = useState(true);
-  const [showIxim, setShowIxim] = useState(true);
-
-  // Verificar autenticación
-  useEffect(() => {
-    if (!user) {
-      toast.error('Debes iniciar sesión para editar mazos');
-      navigate('/login');
-    }
-  }, [user, navigate]);
-
-  // Card loading handled by useDeckEditor hook
-
-  // Existing deck loading handled by useDeckEditor hook
-
-  // Categorizar cartas por tipo para el organizador
-  useEffect(() => {
-    if (allCards.length === 0) return;
-    
-    // Función helper para obtener cartas en el orden personalizado
-    const getCardsInCustomOrder = (cardIds: string[], cardType: CardType | CardType[]) => {
-      return cardIds
-        .filter(cardId => deckCards[cardId]) // Solo cartas que aún están en el mazo
-        .map(cardId => allCards.find(card => card.id === cardId))
-        .filter(card => {
-          if (!card) return false;
-          if (Array.isArray(cardType)) {
-            return cardType.includes(card.cardType);
-          }
-          return card.cardType === cardType;
-        }) as CardDetails[];
-    };
-
-    // Obtener cartas en orden personalizado
-    const protectors = getCardsInCustomOrder(customOrder.protectors, CardType.PROTECTOR);
-    const bioCards = getCardsInCustomOrder(customOrder.bio, CardType.BIO);
-    const rotCards = getCardsInCustomOrder(customOrder.rot, CardType.ROT);
-    const iximCards = getCardsInCustomOrder(customOrder.ixim, CardType.IXIM);
-    const adendeiCards = getCardsInCustomOrder(customOrder.adendeis, [
-      CardType.ADENDEI,
-      CardType.ADENDEI_TITAN,
-      CardType.ADENDEI_GUARDIAN,
-      CardType.ADENDEI_CATRIN,
-      CardType.ADENDEI_RESURRECTO,
-      CardType.ADENDEI_KOSMICO,
-      CardType.ADENDEI_EQUINO,
-      CardType.ADENDEI_ABISMAL,
-      CardType.ADENDEI_INFECTADO,
-      CardType.RAVA
-    ]);
-    const otherCards = getCardsInCustomOrder(customOrder.others, [] as CardType[]);
-    
-    // Si hay cartas nuevas que no están en customOrder, agregarlas al final
-    const allDeckCardDetails = deckCardOrder
-      .filter(cardId => deckCards[cardId])
-      .map(cardId => allCards.find(card => card.id === cardId))
-      .filter(card => card !== undefined) as CardDetails[];
-    
-    // Verificar si hay cartas no organizadas y agregarlas al orden correspondiente
-    const unorganizedCards = allDeckCardDetails.filter(card => {
-      const isInCustomOrder = 
-        customOrder.protectors.includes(card.id) ||
-        customOrder.bio.includes(card.id) ||
-        customOrder.rot.includes(card.id) ||
-        customOrder.ixim.includes(card.id) ||
-        customOrder.adendeis.includes(card.id) ||
-        customOrder.others.includes(card.id);
-      return !isInCustomOrder;
-    });
-    
-    if (unorganizedCards.length > 0) {
-      setCustomOrder(prev => {
-        const newOrder = { ...prev };
-        
-        unorganizedCards.forEach(card => {
-          switch (card.cardType) {
-            case CardType.PROTECTOR:
-              if (!newOrder.protectors.includes(card.id)) {
-                newOrder.protectors = [...newOrder.protectors, card.id];
-              }
-              break;
-            case CardType.BIO:
-              if (!newOrder.bio.includes(card.id)) {
-                newOrder.bio = [...newOrder.bio, card.id];
-              }
-              break;
-            case CardType.ROT:
-              if (!newOrder.rot.includes(card.id)) {
-                newOrder.rot = [...newOrder.rot, card.id];
-              }
-              break;
-            case CardType.IXIM:
-              if (!newOrder.ixim.includes(card.id)) {
-                newOrder.ixim = [...newOrder.ixim, card.id];
-              }
-              break;
-            case CardType.ADENDEI:
-            case CardType.ADENDEI_TITAN:
-            case CardType.ADENDEI_GUARDIAN:
-            case CardType.ADENDEI_CATRIN:
-            case CardType.ADENDEI_KOSMICO:
-            case CardType.ADENDEI_EQUINO:
-            case CardType.ADENDEI_ABISMAL:
-            case CardType.ADENDEI_INFECTADO:
-            case CardType.RAVA:
-              if (!newOrder.adendeis.includes(card.id)) {
-                newOrder.adendeis = [...newOrder.adendeis, card.id];
-              }
-              break;
-            default:
-              if (!newOrder.others.includes(card.id)) {
-                newOrder.others = [...newOrder.others, card.id];
-              }
-              break;
-          }
-        });
-        
-        return newOrder;
-      });
-      return; // Salir temprano, el useEffect se ejecutará de nuevo con customOrder actualizado
-    }
-    
-    // Organizar cartas respetando el orden personalizado
-    const organizedProtectors = protectors.slice(0, 2);
-    const organizedBio = bioCards.slice(0, 1);
-    const organizedRot = rotCards.slice(0, 5);
-    const organizedIxim = iximCards.slice(0, 5);
-    const allAdendeis = adendeiCards.slice(0, 24);
-    
-    // Cartas adicionales que exceden los límites
-    const additionalCards = [
-      ...protectors.slice(2),
-      ...bioCards.slice(1),
-      ...rotCards.slice(5),
-      ...iximCards.slice(5),
-      ...adendeiCards.slice(24),
-      ...otherCards
-    ];
-    
-    setOrganizedDeck({
-      protector1: organizedProtectors[0] || undefined,
-      protector2: organizedProtectors[1] || undefined,
-      bio: organizedBio[0] || undefined,
-      mainAdendeis: allAdendeis,
-      rotCards: organizedRot,
-      iximCards: organizedIxim,
-      otherCards: additionalCards
-    });
-  }, [allCards, deckCards, customOrder]);
 
   // Lógica de Drag and Drop
   const sensors = useSensors(
@@ -1218,4 +1063,3 @@ export default function DeckEditor() {
     </div>
   );
 }
-
