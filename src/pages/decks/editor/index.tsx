@@ -13,6 +13,7 @@ import DeckEditorHeader from '@/components/organisms/DeckEditorHeader';
 import DeckEditorCatalog from '@/components/organisms/DeckEditorCatalog';
 import useDeckOrganizer from '@/hooks/useDeckOrganizer';
 import SortableDeckCard from '@/components/molecules/SortableDeckCard';
+import DeckCard from '@/components/molecules/DeckCard';
 import { DndContext, DragOverlay, rectIntersection } from '@dnd-kit/core';
 
 /**
@@ -82,7 +83,6 @@ export default function DeckEditorPage() {
 
   // Renderizar el organizador
   const renderDeckOrganizer = () => {
-    // Obtener la carta que se está arrastrando para el DragOverlay
     const activeCard = activeId ? 
       organizedDeck.mainAdendeis.find((_, idx) => `mainAdendei-${idx}` === activeId) ||
       organizedDeck.rotCards.find((_, idx) => `rot-${idx}` === activeId) ||
@@ -109,24 +109,11 @@ export default function DeckEditorPage() {
                 isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
               }`}>
                 {organizedDeck.protector1 ? (
-                  <div className="relative w-full h-full">
-                    <SortableDeckCard
-                      card={organizedDeck.protector1}
-                      id="protector1-0"
-                      renderDeckCard={(card) => renderDeckCard(card)}
-                    />
-                    <div className="absolute top-2 right-2 z-50">
-                      <button
-                        type="button"
-                        className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
-                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.protector1!.id); }}
-                        aria-label={`Eliminar ${organizedDeck.protector1.name} del mazo`}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
+                  <SortableDeckCard
+                    card={organizedDeck.protector1}
+                    id="protector1-0"
+                    renderDeckCard={card => <DeckCard card={card} onRemove={handleRemoveCard} />}
+                  />
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -140,24 +127,11 @@ export default function DeckEditorPage() {
                 isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
               }`}>
                 {organizedDeck.protector2 ? (
-                  <div className="relative w-full h-full">
-                    <SortableDeckCard
-                      card={organizedDeck.protector2}
-                      id="protector2-0"
-                      renderDeckCard={(card) => renderDeckCard(card)}
-                    />
-                    <div className="absolute top-2 right-2 z-50">
-                      <button
-                        type="button"
-                        className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
-                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.protector2!.id); }}
-                        aria-label={`Eliminar ${organizedDeck.protector2.name} del mazo`}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
+                  <SortableDeckCard
+                    card={organizedDeck.protector2}
+                    id="protector2-0"
+                    renderDeckCard={card => <DeckCard card={card} onRemove={handleRemoveCard} />}
+                  />
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
@@ -171,24 +145,11 @@ export default function DeckEditorPage() {
                 isDragging ? 'border-blue-300 bg-blue-50' : 'border-muted-foreground/20'
               }`}>
                 {organizedDeck.bio ? (
-                  <div className="relative w-full h-full">
-                    <SortableDeckCard
-                      card={organizedDeck.bio}
-                      id="bio-0"
-                      renderDeckCard={(card) => renderDeckCard(card)}
-                    />
-                    <div className="absolute top-2 right-2 z-50">
-                      <button
-                        type="button"
-                        className="bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg flex items-center justify-center"
-                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onClick={(e) => { e.stopPropagation(); handleRemoveCard(organizedDeck.bio!.id); }}
-                        aria-label={`Eliminar ${organizedDeck.bio.name} del mazo`}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </div>
+                  <SortableDeckCard
+                    card={organizedDeck.bio}
+                    id="bio-0"
+                    renderDeckCard={card => <DeckCard card={card} onRemove={handleRemoveCard} />}
+                  />
                 ) : (
                   <div className="text-center text-sm text-muted-foreground">
                     <div className="mb-2">
