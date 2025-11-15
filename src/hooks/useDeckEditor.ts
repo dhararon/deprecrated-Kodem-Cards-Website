@@ -306,8 +306,6 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
         iximCount += quantity;
       } else if (card.cardType === CardType.RAVA) {
         ravaCount += quantity;
-        // Rava también cuenta como Adendei para el mínimo de 15
-        adendeiCount += quantity;
       } else if (isBio(card.cardType)) {
         bioCount += quantity;
       } else if (isProtector(card.cardType)) {
