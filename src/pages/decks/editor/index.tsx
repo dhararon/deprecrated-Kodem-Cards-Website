@@ -56,10 +56,16 @@ export default function DeckEditorPage() {
     setSelectedType,
     selectedEnergy,
     setSelectedEnergy,
+    selectedRarity,
+    setSelectedRarity,
+    selectedSet,
+    setSelectedSet,
     nameError,
     setNameError,
     typeOptions,
     energyOptions,
+    rarityOptions,
+    setOptions,
   handleSaveDeck,
   handleDeleteDeck,
   handleAddCard,
@@ -515,8 +521,14 @@ export default function DeckEditorPage() {
           setSelectedType={setSelectedType}
           selectedEnergy={selectedEnergy}
           setSelectedEnergy={setSelectedEnergy}
+          selectedRarity={selectedRarity}
+          setSelectedRarity={setSelectedRarity}
+          selectedSet={selectedSet}
+          setSelectedSet={setSelectedSet}
           typeOptions={typeOptions}
           energyOptions={energyOptions}
+          rarityOptions={rarityOptions}
+          setOptions={setOptions}
           renderCardForCatalog={renderCardForCatalog}
         />
       </div>

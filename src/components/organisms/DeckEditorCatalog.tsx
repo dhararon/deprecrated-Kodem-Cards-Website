@@ -15,8 +15,14 @@ type Props = {
   setSelectedType: (v: string) => void;
   selectedEnergy: string;
   setSelectedEnergy: (v: string) => void;
+  selectedRarity: string;
+  setSelectedRarity: (v: string) => void;
+  selectedSet: string;
+  setSelectedSet: (v: string) => void;
   typeOptions: string[];
   energyOptions: string[];
+  rarityOptions: string[];
+  setOptions: string[];
   renderCardForCatalog: (card: CardDetails) => React.ReactElement;
 };
 
@@ -29,8 +35,14 @@ export const DeckEditorCatalog: React.FC<Props> = ({
   setSelectedType,
   selectedEnergy,
   setSelectedEnergy,
+  selectedRarity,
+  setSelectedRarity,
+  selectedSet,
+  setSelectedSet,
   typeOptions,
   energyOptions,
+  rarityOptions,
+  setOptions,
   renderCardForCatalog
 }) => {
   return (
@@ -56,7 +68,7 @@ export const DeckEditorCatalog: React.FC<Props> = ({
               setSelectedType(value);
             }}
           >
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-[100px]">
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -74,7 +86,7 @@ export const DeckEditorCatalog: React.FC<Props> = ({
               setSelectedEnergy(value);
             }}
           >
-            <SelectTrigger className="w-[120px]">
+            <SelectTrigger className="w-[100px]">
               <SelectValue placeholder="Energía" />
             </SelectTrigger>
             <SelectContent>
@@ -82,6 +94,42 @@ export const DeckEditorCatalog: React.FC<Props> = ({
               {energyOptions.map((energy) => (
                 <SelectItem key={energy} value={energy}>
                   {energy}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={selectedRarity}
+            onValueChange={(value) => {
+              setSelectedRarity(value);
+            }}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Rareza" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all_rarities">Rareza</SelectItem>
+              {rarityOptions.map((rarity) => (
+                <SelectItem key={rarity} value={rarity}>
+                  {rarity}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={selectedSet}
+            onValueChange={(value) => {
+              setSelectedSet(value);
+            }}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder="Set" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all_sets">Set</SelectItem>
+              {setOptions.map((set) => (
+                <SelectItem key={set} value={set}>
+                  {set}
                 </SelectItem>
               ))}
             </SelectContent>
