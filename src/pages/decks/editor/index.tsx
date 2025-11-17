@@ -13,6 +13,8 @@ import { EmptyState } from '@/components/molecules/EmptyState';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/atoms/Dialog';
 import DeckEditorHeader from '@/components/organisms/DeckEditorHeader';
 import DeckEditorCatalog from '@/components/organisms/DeckEditorCatalog';
+import DeckEditorDesktop from '@/components/organisms/DeckEditorDesktop';
+import DeckEditorMobile from '@/components/organisms/DeckEditorMobile';
 import useDeckOrganizer from '@/hooks/useDeckOrganizer';
 import SortableDeckCard from '@/components/molecules/SortableDeckCard';
 import DeckCard from '@/components/molecules/DeckCard';
@@ -88,6 +90,17 @@ export default function DeckEditorPage() {
   // Estados para controlar las secciones colapsables
   const [isRotExpanded, setIsRotExpanded] = useState(true);
   const [isIximExpanded, setIsIximExpanded] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Detectar cambios en el tamaño de la ventana
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Función para compartir el mazo
   const handleShareDeck = async () => {
@@ -394,9 +407,8 @@ export default function DeckEditorPage() {
     <div 
       key={card.id} 
       className="relative group border rounded-md overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => handleAddCard(card)}
     >
-      <div className="relative aspect-[2.5/3.5] w-full">
+      <div className="relative aspect-[2.5/3.5] w-full" onClick={() => handleAddCard(card)}>
         <Image
           src={card.imageUrl}
           alt={card.name}
@@ -405,7 +417,7 @@ export default function DeckEditorPage() {
         />
 
         {/* Preview ampliado al hacer hover */}
-        <div className="fixed z-[9999] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        <div className="fixed z-[9999] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:block"
              style={{
                top: '50%',
                left: '50%',
@@ -422,6 +434,22 @@ export default function DeckEditorPage() {
             />
           </div>
         </div>
+      </div>
+
+      {/* Botón de agregar visible solo en mobile */}
+      <div className="md:hidden absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleAddCard(card);
+          }}
+          variant="primary"
+          className="gap-2"
+          size="sm"
+        >
+          <Plus size={16} />
+          Agregar
+        </Button>
       </div>
     </div>
   );
@@ -504,10 +532,6 @@ export default function DeckEditorPage() {
 
   return (
     <div className="flex flex-col h-screen max-h-screen overflow-hidden">
-      {/* Mensaje solo para mobile */}
-      <div className="block md:hidden bg-yellow-100 text-yellow-800 text-center py-3 px-4 font-semibold border-b border-yellow-300">
-        La creación de mazos solo está disponible en escritorio
-      </div>
       {/* Cabecera (organism) */}
       <DeckEditorHeader
         navigate={navigate}
@@ -523,16 +547,10 @@ export default function DeckEditorPage() {
         handleShareDeck={handleShareDeck}
         setConfirmDeleteDialogOpen={setConfirmDeleteDialogOpen}
       />
-      {/* Contenido principal - solo visible en escritorio */}
-      <div className="hidden md:flex flex-1 overflow-hidden">
-        {/* Columna 1: Organizador de mazos */}
-        <div className="w-[60%] overflow-y-auto">
-          <div className="p-4">
-            {renderDeckOrganizer()}
-          </div>
-        </div>
-        {/* Catálogo (organism) */}
-        <DeckEditorCatalog
+      {/* Contenido principal - adaptativo (mobile/desktop) */}
+      {isMobile ? (
+        <DeckEditorMobile
+          renderDeckOrganizer={renderDeckOrganizer}
           filteredCards={filteredCards}
           isLoadingCards={isLoadingCards}
           searchTerm={searchTerm}
@@ -551,7 +569,28 @@ export default function DeckEditorPage() {
           setOptions={setOptions}
           renderCardForCatalog={renderCardForCatalog}
         />
-      </div>
+      ) : (
+        <DeckEditorDesktop
+          renderDeckOrganizer={renderDeckOrganizer}
+          filteredCards={filteredCards}
+          isLoadingCards={isLoadingCards}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedType={selectedType}
+          setSelectedType={setSelectedType}
+          selectedEnergy={selectedEnergy}
+          setSelectedEnergy={setSelectedEnergy}
+          selectedRarity={selectedRarity}
+          setSelectedRarity={setSelectedRarity}
+          selectedSet={selectedSet}
+          setSelectedSet={setSelectedSet}
+          typeOptions={typeOptions}
+          energyOptions={energyOptions}
+          rarityOptions={rarityOptions}
+          setOptions={setOptions}
+          renderCardForCatalog={renderCardForCatalog}
+        />
+      )}
       
       {/* Diálogo de confirmación para eliminar */}
       <Dialog open={confirmDeleteDialogOpen} onOpenChange={setConfirmDeleteDialogOpen}>

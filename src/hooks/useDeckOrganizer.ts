@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useSensor, useSensors, PointerSensor, KeyboardSensor } from '@dnd-kit/core';
+import { useSensor, useSensors, PointerSensor, TouchSensor, KeyboardSensor } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import type { CardDetails, CardType } from '@/types/card';
 import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
@@ -25,6 +25,9 @@ export default function useDeckOrganizer({ organizedDeck, setOrganizedDeck, setC
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5, tolerance: 5, delay: 0 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
     }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );

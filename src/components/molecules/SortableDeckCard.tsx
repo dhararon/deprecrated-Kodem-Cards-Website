@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { CardDetails } from '@/types/card';
 import { CardType } from '@/types/card';
+import { useResponsiveCardSize } from '@/hooks/useResponsiveCardSize';
 
 type Props = {
   card: CardDetails;
@@ -12,14 +13,19 @@ type Props = {
 
 export const SortableDeckCard: React.FC<Props> = ({ card, id, renderDeckCard }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, data: { card } });
+  const cardSize = useResponsiveCardSize();
+
+  const isBio = card.cardType === CardType.BIO;
+  const width = isBio ? cardSize.width * 1.91 : cardSize.width; // BIO es más ancho (300/157 ≈ 1.91)
+  const height = isBio ? cardSize.height * 0.6 : cardSize.height; // BIO es más bajo (157/220 ≈ 0.6)
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0 : 1,
     touchAction: 'none',
-    width: card.cardType === CardType.BIO ? '300px' : '157px',
-    height: '220px'
+    width: `${width}px`,
+    height: `${height}px`
   };
 
   // Crear listeners personalizados que excluyen elementos con pointer-events-auto
@@ -41,7 +47,7 @@ export const SortableDeckCard: React.FC<Props> = ({ card, id, renderDeckCard }) 
       style={style}
       {...attributes}
       {...filteredListeners}
-      className={`cursor-grab active:cursor-grabbing touch-manipulation ${card.cardType === CardType.BIO ? 'w-[300px] h-[157px] mx-auto' : 'w-[157px] h-[220px]'}`}
+      className={`cursor-grab active:cursor-grabbing touch-manipulation ${isBio ? 'mx-auto' : ''}`}
       data-id={id}
       key={card.id}
     >

@@ -24,6 +24,7 @@ type Props = {
   rarityOptions: string[];
   setOptions: string[];
   renderCardForCatalog: (card: CardDetails) => React.ReactElement;
+  isMobile?: boolean;
 };
 
 export const DeckEditorCatalog: React.FC<Props> = ({
@@ -43,10 +44,11 @@ export const DeckEditorCatalog: React.FC<Props> = ({
   energyOptions,
   rarityOptions,
   setOptions,
-  renderCardForCatalog
+  renderCardForCatalog,
+  isMobile = false
 }) => {
   return (
-    <div className="w-[40%] border-l overflow-y-auto">
+    <div className={isMobile ? "w-full overflow-y-auto" : "w-[40%] border-l overflow-y-auto"}>
       <div className="p-4">
         {/* Buscador */}
         <div className="flex mb-6">
