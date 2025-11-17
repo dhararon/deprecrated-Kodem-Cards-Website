@@ -406,9 +406,13 @@ export default function DeckEditorPage() {
   const renderCardForCatalog = (card: CardDetails) => (
     <div 
       key={card.id} 
-      className="relative group border rounded-md overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+      className="relative group border rounded-md overflow-hidden flex flex-col"
     >
-      <div className="relative aspect-[2.5/3.5] w-full" onClick={() => handleAddCard(card)}>
+      {/* Card Image */}
+      <div 
+        className="relative aspect-[2.5/3.5] w-full cursor-pointer hover:shadow-md transition-shadow hidden md:block"
+        onClick={() => handleAddCard(card)}
+      >
         <Image
           src={card.imageUrl}
           alt={card.name}
@@ -416,7 +420,7 @@ export default function DeckEditorPage() {
           style={{ width: '100%', height: '100%', position: 'absolute' }}
         />
 
-        {/* Preview ampliado al hacer hover */}
+        {/* Preview ampliado al hacer hover (solo desktop) */}
         <div className="fixed z-[9999] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:block"
              style={{
                top: '50%',
@@ -436,21 +440,28 @@ export default function DeckEditorPage() {
         </div>
       </div>
 
-      {/* Botón de agregar visible solo en mobile */}
-      <div className="md:hidden absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleAddCard(card);
-          }}
-          variant="primary"
-          className="gap-2"
-          size="sm"
-        >
-          <Plus size={16} />
-          Agregar
-        </Button>
+      {/* Card Image Mobile - Solo para mostrar, sin click */}
+      <div 
+        className="relative aspect-[2.5/3.5] w-full md:hidden"
+      >
+        <Image
+          src={card.imageUrl}
+          alt={card.name}
+          className="object-cover"
+          style={{ width: '100%', height: '100%', position: 'absolute' }}
+        />
       </div>
+
+      {/* Botón Agregar al Deck - Solo en Mobile */}
+      <Button
+        onClick={() => handleAddCard(card)}
+        variant="primary"
+        size="sm"
+        className="w-full rounded-none gap-2 md:hidden"
+      >
+        <Plus size={16} />
+        Agregar al Deck
+      </Button>
     </div>
   );
 
