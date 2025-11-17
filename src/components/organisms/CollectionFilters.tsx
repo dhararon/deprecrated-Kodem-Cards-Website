@@ -149,6 +149,37 @@ export const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                 </div>
             )}
 
+            {/* Filtros de checkbox - ahora arriba antes de los filtros de tipo/energía/rareza */}
+            <div className="space-y-2 mb-3">
+                {/* Checkbox para cartas faltantes */}
+                <div className="flex items-center space-x-2 bg-muted/30 p-2 rounded-md">
+                    <Checkbox
+                        id="showOnlyMissing"
+                        checked={showOnlyMissing}
+                        onCheckedChange={checked => handleShowOnlyMissingChange(checked === true)}
+                        className="h-5 w-5"
+                        disabled={showOnlyCollected}
+                    />
+                    <Label htmlFor="showOnlyMissing" className="text-sm cursor-pointer flex-1">
+                        Mostrar solo cartas faltantes
+                    </Label>
+                </div>
+                
+                {/* Checkbox para cartas en la colección */}
+                <div className="flex items-center space-x-2 bg-muted/30 p-2 rounded-md">
+                    <Checkbox
+                        id="showOnlyCollected"
+                        checked={showOnlyCollected}
+                        onCheckedChange={checked => handleShowOnlyCollectedChange(checked === true)}
+                        className="h-5 w-5"
+                        disabled={showOnlyMissing}
+                    />
+                    <Label htmlFor="showOnlyCollected" className="text-sm cursor-pointer flex-1">
+                        Mostrar solo cartas en la colección
+                    </Label>
+                </div>
+            </div>
+
             {/* Filtros: en columna para móvil, en fila para desktop */}
             <div className="block sm:hidden space-y-3">
                 {/* Filtro de tipo - móvil */}
@@ -258,37 +289,6 @@ export const CollectionFilters: React.FC<CollectionFiltersProps> = ({
                         }))
                     ]}
                 />
-            </div>
-            
-            {/* Filtros de checkbox */}
-            <div className="space-y-2 mt-3">
-                {/* Checkbox para cartas faltantes */}
-                <div className="flex items-center space-x-2 bg-muted/30 p-2 rounded-md">
-                    <Checkbox
-                        id="showOnlyMissing"
-                        checked={showOnlyMissing}
-                        onCheckedChange={checked => handleShowOnlyMissingChange(checked === true)}
-                        className="h-5 w-5"
-                        disabled={showOnlyCollected}
-                    />
-                    <Label htmlFor="showOnlyMissing" className="text-sm cursor-pointer flex-1">
-                        Mostrar solo cartas faltantes
-                    </Label>
-                </div>
-                
-                {/* Checkbox para cartas en la colección */}
-                <div className="flex items-center space-x-2 bg-muted/30 p-2 rounded-md">
-                    <Checkbox
-                        id="showOnlyCollected"
-                        checked={showOnlyCollected}
-                        onCheckedChange={checked => handleShowOnlyCollectedChange(checked === true)}
-                        className="h-5 w-5"
-                        disabled={showOnlyMissing}
-                    />
-                    <Label htmlFor="showOnlyCollected" className="text-sm cursor-pointer flex-1">
-                        Mostrar solo cartas en la colección
-                    </Label>
-                </div>
             </div>
         </div>
     );
