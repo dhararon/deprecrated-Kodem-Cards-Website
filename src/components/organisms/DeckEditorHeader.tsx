@@ -13,7 +13,9 @@ type Props = {
   isPublic: boolean;
   setIsPublic: (v: boolean) => void;
   isSaving: boolean;
+  isNew: boolean;
   handleSaveDeck: () => Promise<void> | void;
+  handleShareDeck: () => Promise<void> | void;
   setConfirmDeleteDialogOpen: (v: boolean) => void;
 };
 
@@ -26,7 +28,9 @@ export const DeckEditorHeader: React.FC<Props> = ({
   isPublic,
   setIsPublic,
   isSaving,
+  isNew,
   handleSaveDeck,
+  handleShareDeck,
   setConfirmDeleteDialogOpen
 }) => {
   return (
@@ -72,13 +76,15 @@ export const DeckEditorHeader: React.FC<Props> = ({
           )}
           Guardar
         </Button>
-        <Button
-          variant="outline"
-          className="flex items-center gap-1"
-          onClick={() => setConfirmDeleteDialogOpen(true)}
-        >
-          Compartir
-        </Button>
+        {!isNew && (
+          <Button
+            variant="outline"
+            className="flex items-center gap-1"
+            onClick={handleShareDeck}
+          >
+            Compartir
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ import SortableDeckCard from '@/components/molecules/SortableDeckCard';
 import DeckCard from '@/components/molecules/DeckCard';
 import { DndContext, DragOverlay, rectIntersection } from '@dnd-kit/core';
 import { isAdendeiOrRava } from '@/lib/card-utils';
+import { toast } from '@/lib/toast';
 
 /**
  * Editor de Mazos - Componente para crear y editar mazos
@@ -87,6 +88,23 @@ export default function DeckEditorPage() {
   // Estados para controlar las secciones colapsables
   const [isRotExpanded, setIsRotExpanded] = useState(true);
   const [isIximExpanded, setIsIximExpanded] = useState(true);
+
+  // Función para compartir el mazo
+  const handleShareDeck = async () => {
+    try {
+      if (!deckId) {
+        toast.error('Por favor, guarda el mazo primero');
+        return;
+      }
+
+      const deckUrl = `${window.location.origin}/decks/${deckId}`;
+      await navigator.clipboard.writeText(deckUrl);
+      toast.success('URL del mazo copiada al portapapeles');
+    } catch (error) {
+      console.error('Error al copiar URL:', error);
+      toast.error('No se pudo copiar la URL del mazo');
+    }
+  };
 
   // Renderizar el organizador
   const renderDeckOrganizer = () => {
@@ -500,7 +518,9 @@ export default function DeckEditorPage() {
         isPublic={isPublic}
         setIsPublic={setIsPublic}
         isSaving={isSaving}
+        isNew={isNew}
         handleSaveDeck={handleSaveDeck}
+        handleShareDeck={handleShareDeck}
         setConfirmDeleteDialogOpen={setConfirmDeleteDialogOpen}
       />
       {/* Contenido principal - solo visible en escritorio */}
