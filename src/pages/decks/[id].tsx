@@ -12,7 +12,8 @@ import {
     List,
     X,
     CheckCircle,
-    AlertCircle
+    AlertCircle,
+    Share2
 } from 'lucide-react';
 import { Button } from '@/components/atoms/Button';
 import { Card, CardContent } from '@/components/atoms/Card';
@@ -28,6 +29,7 @@ import DeckCardRow from '@/components/molecules/DeckCardRow';
 import DeckDetailHeader from '@/components/organisms/DeckDetailHeader';
 import DeckSelectedCard from '@/components/organisms/DeckSelectedCard';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/lib/toast';
 
 /**
  * Página para visualizar un mazo existente
@@ -243,6 +245,23 @@ const DeckDetail: React.FC = () => {
 
         navigator.clipboard.writeText(deckText);
         alert('Lista de mazo copiada al portapapeles');
+    };
+
+    // Compartir mazo - copiar URL al portapapeles
+    const handleShareDeck = async () => {
+        try {
+            if (!id) {
+                toast.error('No se pudo obtener el ID del mazo');
+                return;
+            }
+
+            const deckUrl = `${window.location.origin}/decks/${id}`;
+            await navigator.clipboard.writeText(deckUrl);
+            toast.success('URL del mazo copiada al portapapeles');
+        } catch (error) {
+            console.error('Error al copiar URL:', error);
+            toast.error('No se pudo copiar la URL del mazo');
+        }
     };
 
     // Obtener las cartas en el orden visual (prioridad: deckSlots > cardIds > cards)
@@ -1087,6 +1106,10 @@ const DeckDetail: React.FC = () => {
                 <Printer className="h-4 w-4 mr-2" />
                 Imprimir
             </Button>
+            <Button variant="outline" size="sm" className="flex-1" onClick={handleShareDeck}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Compartir
+            </Button>
             <Button variant="outline" size="sm" className="flex-1" onClick={handleDownloadDeckImage}>
                 <Download className="h-4 w-4 mr-2" />
                 Descargar
@@ -1146,6 +1169,10 @@ const DeckDetail: React.FC = () => {
                     <Button variant="outline" size="sm" onClick={handlePrintDeck}>
                         <Printer className="h-4 w-4 mr-2" />
                         Imprimir
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleShareDeck}>
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Compartir
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleDownloadDeckImage}>
                         <Download className="h-4 w-4 mr-2" />

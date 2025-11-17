@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
-import { ChevronLeft, Eye } from 'lucide-react';
+import { ChevronLeft, Eye, Share2 } from 'lucide-react';
 
 interface DeckDetailHeaderProps {
   deckName: string;
@@ -13,6 +13,7 @@ interface DeckDetailHeaderProps {
   onCopy: () => void;
   onPrint: () => void;
   onDownload: () => void;
+  onShare: () => void;
 }
 
 const DeckDetailHeader: React.FC<DeckDetailHeaderProps> = ({
@@ -24,6 +25,7 @@ const DeckDetailHeader: React.FC<DeckDetailHeaderProps> = ({
   onCopy,
   onPrint,
   onDownload,
+  onShare,
 }) => (
   <div className="flex items-center justify-between p-4 border-b border-border bg-card">
     <div className="flex items-center">
@@ -59,6 +61,10 @@ const DeckDetailHeader: React.FC<DeckDetailHeaderProps> = ({
       </Button>
       <Button variant="outline" size="sm" onClick={onPrint}>
         Imprimir
+      </Button>
+      <Button variant="outline" size="sm" onClick={onShare}>
+        <Share2 className="h-4 w-4 mr-2" />
+        Compartir
       </Button>
       <Button variant="outline" size="sm" onClick={onDownload}>
         Descargar
