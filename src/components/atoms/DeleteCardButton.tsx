@@ -25,9 +25,9 @@ export const DeleteCardButton: React.FC<Props> = ({ cardName, onDelete, isDraggi
 
   return (
     <div 
-      className={`absolute top-2 right-2 z-20 transition-opacity duration-150 pointer-events-auto ${
-        isDragging ? 'opacity-0 pointer-events-none' : 'opacity-0 hover:opacity-100 group-hover:opacity-100'
-      }`}
+      className={`absolute top-2 right-2 z-20 transition-opacity duration-150 pointer-events-auto
+        ${isDragging ? 'opacity-0 pointer-events-none' : 'opacity-100 md:opacity-0 md:hover:opacity-100 md:group-hover:opacity-100'}
+      `}
     >
       <button
         type="button"

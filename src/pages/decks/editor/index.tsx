@@ -469,47 +469,88 @@ export default function DeckEditorPage() {
   const renderCardForDeck = (card: CardDetails, quantity: number) => (
     <div 
       key={card.id} 
-      className="flex items-center border rounded-md p-2 mb-2 hover:bg-muted/30 cursor-pointer"
+      className="flex flex-col md:flex-row md:items-center border rounded-md p-2 mb-2 hover:bg-muted/30"
     >
-      <div className="relative h-16 w-12 flex-shrink-0 mr-3">
-        <Image
-          src={card.imageUrl}
-          alt={card.name}
-          className="object-cover rounded-sm"
-          style={{ width: '100%', height: '100%', position: 'absolute' }}
-        />
-      </div>
-      <div className="flex-grow">
-        <h4 className="font-medium text-sm">{card.name}</h4>
-        <div className="flex text-xs text-muted-foreground mt-1">
-          <span className="mr-2">{card.cardType}</span>
-          <span>{card.cardEnergy}</span>
+      {/* Desktop Layout */}
+      <div className="hidden md:flex md:items-center md:flex-grow md:cursor-pointer">
+        <div className="relative h-16 w-12 flex-shrink-0 mr-3">
+          <Image
+            src={card.imageUrl}
+            alt={card.name}
+            className="object-cover rounded-sm"
+            style={{ width: '100%', height: '100%', position: 'absolute' }}
+          />
+        </div>
+        <div className="flex-grow">
+          <h4 className="font-medium text-sm">{card.name}</h4>
+          <div className="flex text-xs text-muted-foreground mt-1">
+            <span className="mr-2">{card.cardType}</span>
+            <span>{card.cardEnergy}</span>
+          </div>
+        </div>
+        <div className="flex items-center space-x-1">
+          <Button
+            variant="outline"
+            size="md"
+            className="h-7 w-7"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemoveCard(card.id);
+            }}
+            style={{ pointerEvents: 'auto' }}
+          >
+            <Minus size={14} />
+          </Button>
+          <span className="w-6 text-center font-medium">1</span>
+          <Button
+            variant="outline"
+            size="md"
+            className="h-7 w-7"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddCard(card);
+            }}
+            disabled={true}
+            style={{ pointerEvents: 'auto' }}
+          >
+            <Plus size={14} />
+          </Button>
         </div>
       </div>
-      <div className="flex items-center space-x-1">
+
+      {/* Mobile Layout */}
+      <div className="flex md:hidden flex-col w-full">
+        <div className="flex items-center mb-2">
+          <div className="relative h-16 w-12 flex-shrink-0 mr-3">
+            <Image
+              src={card.imageUrl}
+              alt={card.name}
+              className="object-cover rounded-sm"
+              style={{ width: '100%', height: '100%', position: 'absolute' }}
+            />
+          </div>
+          <div className="flex-grow">
+            <h4 className="font-medium text-sm">{card.name}</h4>
+            <div className="flex text-xs text-muted-foreground mt-1">
+              <span className="mr-2">{card.cardType}</span>
+              <span>{card.cardEnergy}</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Delete Button - Mobile Only */}
         <Button
-          variant="outline"
-          size="md"
-          className="h-7 w-7"
           onClick={(e) => {
             e.stopPropagation();
             handleRemoveCard(card.id);
           }}
+          variant="danger"
+          size="sm"
+          className="w-full gap-2"
+          style={{ pointerEvents: 'auto' }}
         >
-          <Minus size={14} />
-        </Button>
-        <span className="w-6 text-center font-medium">1</span>
-        <Button
-          variant="outline"
-          size="md"
-          className="h-7 w-7"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleAddCard(card);
-          }}
-          disabled={true}
-        >
-          <Plus size={14} />
+          <Trash2 size={16} />
+          Quitar del Deck
         </Button>
       </div>
     </div>
