@@ -29,28 +29,11 @@ const BottomBar = () => {
       name: 'Mazos',
       path: '/decks',
       icon: (active: boolean) => <Layers className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
-    },
-    {
-      name: 'Explorar',
-      path: '/decks/feed',
-      icon: (active: boolean) => <Globe className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
-    },
-    {
-      name: 'Menú',
-      path: '#',
-      icon: (active: boolean) => menuOpen 
-        ? <X className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
-        : <Menu className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
     }
   ];
 
   // Enlaces para el menú desplegable
   const menuItems = [
-    {
-      name: 'Wishlist',
-      path: '/wishlists',
-      icon: <Heart className="h-5 w-5 mr-3" />
-    },
     {
       name: 'Perfil',
       path: '/profile',
@@ -60,10 +43,10 @@ const BottomBar = () => {
 
   // Agregar sección de administración si el usuario es admin
   if (isAdmin) {
-    menuItems.push({
-      name: 'Admin',
+    navItems.push({
+      name: 'Gestionar cartas',
       path: '/admin/cards',
-      icon: <ShieldAlert className="h-5 w-5 mr-3" />
+      icon: (active: boolean) => <ShieldAlert className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
     });
   }
 
