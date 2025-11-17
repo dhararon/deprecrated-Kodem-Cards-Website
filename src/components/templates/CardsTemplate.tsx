@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { PlusIcon, MagnifyingGlassIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 import { CardTable } from '@/components/organisms/CardTable';
+import { CardTableMobileFirst } from '@/components/organisms/CardTableMobileFirst';
 import { CardFilters } from '@/components/organisms/CardFilters';
 import { CardFormModal } from '@/components/organisms/CardFormModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/atoms/Card';
@@ -100,6 +101,16 @@ export const CardsTemplate: React.FC<CardsTemplateProps> = ({
   onStandardLegalFilterChange,
   onClearFilters,
 }) => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="container mx-auto p-4">
       <Card>
@@ -149,12 +160,21 @@ export const CardsTemplate: React.FC<CardsTemplateProps> = ({
             />
           )}
           
-          <CardTable
-            cards={cards}
-            isLoading={isLoading}
-            onEditCard={onEditCard}
-            onDeleteCard={onDeletePrompt}
-          />
+          {isMobile ? (
+            <CardTableMobileFirst
+              cards={cards}
+              isLoading={isLoading}
+              onEditCard={onEditCard}
+              onDeleteCard={onDeletePrompt}
+            />
+          ) : (
+            <CardTable
+              cards={cards}
+              isLoading={isLoading}
+              onEditCard={onEditCard}
+              onDeleteCard={onDeletePrompt}
+            />
+          )}
         </CardContent>
       </Card>
       
@@ -188,4 +208,4 @@ export const CardsTemplate: React.FC<CardsTemplateProps> = ({
       </Dialog>
     </div>
   );
-}; 
+};
