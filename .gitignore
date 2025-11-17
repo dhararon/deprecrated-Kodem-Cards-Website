@@ -32,7 +32,6 @@ dist-ssr
 .env.production
 .firebase/
 .storybook//
-firebase/firestore-rules/
 .firebaserc
 service_account.json
 serviceAccountKey.json
