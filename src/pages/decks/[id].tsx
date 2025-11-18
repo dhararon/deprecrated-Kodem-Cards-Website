@@ -108,7 +108,7 @@ const DeckDetail: React.FC = () => {
                 // Las reglas de Firestore ya manejan los permisos:
                 // - Mazos públicos: accesibles para todos
                 // - Mazos privados: solo para el propietario
-                const deckData = await getDeckWithCards(id);
+                const deckData = await getDeckWithCards(id, false);
                 if (!deckData) {
                     setError('No se pudo encontrar el mazo. Puede ser privado o no existir.');
                     setIsLoading(false);
@@ -143,16 +143,31 @@ const DeckDetail: React.FC = () => {
 
     // Forzar recarga al volver de la edición (cuando la pestaña se vuelve visible)
     useEffect(() => {
-        const handleVisibility = () => {
+        const handleVisibility = async () => {
             if (document.visibilityState === 'visible') {
-                setDeckLoaded(false);
+                // Cuando la pestaña se vuelve visible, forzar una recarga sin caché
+                console.log('Pestaña visible, recargando deck sin caché...');
+                try {
+                    const freshDeckData = await getDeckWithCards(id, true); // skipCache = true
+                    if (freshDeckData) {
+                        setDeck(freshDeckData);
+                        if (freshDeckData.cards.length > 0) {
+                            setSelectedCard(freshDeckData.cards[0]);
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error al recargar el mazo:', err);
+                }
             }
         };
-        document.addEventListener('visibilitychange', handleVisibility);
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibility);
-        };
-    }, []);
+        
+        if (id) {
+            document.addEventListener('visibilitychange', handleVisibility);
+            return () => {
+                document.removeEventListener('visibilitychange', handleVisibility);
+            };
+        }
+    }, [id]);
 
     // Sincronizar selectedCard con el deck cargado
     useEffect(() => {

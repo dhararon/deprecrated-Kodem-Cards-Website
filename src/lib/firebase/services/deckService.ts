@@ -159,8 +159,26 @@ export const deleteDeck = async (deckId: string): Promise<void> => {
 /**
  * Obtiene un mazo por su ID
  */
-export const getDeckById = async (deckId: string): Promise<Deck | null> => {
+export const getDeckById = async (deckId: string, skipCache: boolean = false): Promise<Deck | null> => {
     const cacheKey = `deck:${deckId}`;
+
+    // Si skipCache es true, siempre obtener datos frescos de Firestore
+    if (skipCache) {
+        try {
+            const deckRef = doc(db, COLLECTION_NAME, deckId);
+            const deckSnap = await getDoc(deckRef);
+
+            if (deckSnap.exists()) {
+                return convertDocToDeck(deckSnap);
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error al obtener el mazo:', error);
+            logError(error);
+            throw error;
+        }
+    }
 
     return cacheService.getOrFetch(cacheKey, async () => {
         try {
@@ -183,9 +201,9 @@ export const getDeckById = async (deckId: string): Promise<Deck | null> => {
 /**
  * Obtiene un mazo por su ID con los detalles completos de las cartas
  */
-export const getDeckWithCards = async (deckId: string): Promise<DeckWithCards | null> => {
+export const getDeckWithCards = async (deckId: string, skipCache: boolean = false): Promise<DeckWithCards | null> => {
     try {
-        const deck = await getDeckById(deckId);
+        const deck = await getDeckById(deckId, skipCache);
 
         if (!deck) {
             return null;
