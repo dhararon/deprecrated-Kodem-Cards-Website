@@ -35,7 +35,8 @@ export enum CardType {
     BIO = "bio",
     IXIM = "ixim",
     RAVA = "rava",
-    TOKEN = "token"
+    TOKEN = "token",
+    ESPECTRO="espectro"
 }
 
 // Elementos de cartas

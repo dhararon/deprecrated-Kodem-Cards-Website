@@ -3,15 +3,15 @@
  */
 
 /**
- * Verifica si un cardType es Adendei o Rava
- * Todas las cartas que contengan 'adendei' o 'rava' en el nombre se consideran Adendei
+ * Verifica si un cardType es Adendei, Rava o Espectro
+ * Todas las cartas que contengan 'adendei', 'rava' o 'espectro' en el nombre se consideran Adendei
  * @param cardType - El tipo de carta a validar
- * @returns true si es Adendei o Rava, false en caso contrario
+ * @returns true si es Adendei, Rava o Espectro, false en caso contrario
  */
 export const isAdendeiOrRava = (cardType: string): boolean => {
   if (!cardType) return false;
   const lowerType = cardType.toLowerCase();
-  return lowerType.includes('adendei') || lowerType.includes('rava');
+  return lowerType.includes('adendei') || lowerType.includes('rava') || lowerType.includes('espectro');
 };
 
 /**
@@ -63,4 +63,14 @@ export const isAdendeiOnly = (cardType: string): boolean => {
   if (!cardType) return false;
   const lowerType = cardType.toLowerCase();
   return lowerType.includes('adendei');
+};
+
+/**
+ * Verifica si un cardType es Espectro
+ * @param cardType - El tipo de carta a validar
+ * @returns true si es Espectro, false en caso contrario
+ */
+export const isEspectro = (cardType: string): boolean => {
+  if (!cardType) return false;
+  return cardType.toLowerCase() === 'espectro';
 };

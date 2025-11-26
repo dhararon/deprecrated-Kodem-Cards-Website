@@ -9,7 +9,7 @@ import {
   checkDeckNameExists
 } from '@/lib/firebase/services/deckService';
 import { queryCards } from '@/lib/firebase/services/cardService';
-import { isAdendeiOrRava, isAdendeiOnly, isRot, isIxim, isBio, isProtector } from '@/lib/card-utils';
+import { isAdendeiOrRava, isAdendeiOnly, isRot, isIxim, isBio, isProtector, isEspectro } from '@/lib/card-utils';
 
 type UserLike = { id: string; name?: string; avatarUrl?: string } | null;
 
@@ -206,7 +206,8 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
       CardType.ADENDEI_EQUINO,
       CardType.ADENDEI_ABISMAL,
       CardType.ADENDEI_INFECTADO,
-      CardType.RAVA
+      CardType.RAVA,
+      CardType.ESPECTRO
     ]);
     const otherCards = getCardsInCustomOrder(customOrder.others, [] as CardType[]);
 
@@ -242,6 +243,20 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
               break;
             case CardType.IXIM:
               if (!newOrder.ixim.includes(card.id)) newOrder.ixim = [...newOrder.ixim, card.id];
+              break;
+            case CardType.ESPECTRO:
+            case CardType.RAVA:
+            case CardType.ADENDEI:
+            case CardType.ADENDEI_TITAN:
+            case CardType.ADENDEI_GUARDIAN:
+            case CardType.ADENDEI_CATRIN:
+            case CardType.ADENDEI_RESURRECTO:
+            case CardType.ADENDEI_KOSMICO:
+            case CardType.ADENDEI_EQUINO:
+            case CardType.ADENDEI_ABISMAL:
+            case CardType.ADENDEI_INFECTADO:
+            case CardType.ADENDEI_GUARDIAN_CATRIN:
+              if (!newOrder.adendeis.includes(card.id)) newOrder.adendeis = [...newOrder.adendeis, card.id];
               break;
             default:
               if (!newOrder.others.includes(card.id)) newOrder.others = [...newOrder.others, card.id];

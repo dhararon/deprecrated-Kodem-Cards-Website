@@ -266,12 +266,12 @@ export default function DeckEditorPage() {
             )}
           </div>
 
-          {/* Filas 4-8: Adendeis y Rava (5 filas de 3 columnas = 15 slots mínimos) */}
+          {/* Filas 4-8: Adendeis, Rava y Espectro (5 filas de 3 columnas = 15 slots mínimos) */}
           <div>
-            <h3 className="font-medium text-sm mb-2">Adendeis y Rava (mínimo 15)</h3>
+            <h3 className="font-medium text-sm mb-2">Adendeis, Rava y Espectro (mínimo 15)</h3>
             {/* Calcular el número de filas necesarias basado en las cartas existentes */}
             {(() => {
-              // Mezclar Adendeis y Rava en el slot principal
+              // Mezclar Adendeis, Rava y Espectro en el slot principal
               const adendeiAndRava = organizedDeck.mainAdendeis.filter(card =>
                 card && isAdendeiOrRava(card.cardType)
               );
