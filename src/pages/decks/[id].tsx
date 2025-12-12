@@ -108,6 +108,7 @@ const DeckDetail: React.FC = () => {
                 // Las reglas de Firestore ya manejan los permisos:
                 // - Mazos públicos: accesibles para todos
                 // - Mazos privados: solo para el propietario
+                console.log('[DeckDetail] Loading deck with cache enabled');
                 const deckData = await getDeckWithCards(id, false);
                 if (!deckData) {
                     setError('No se pudo encontrar el mazo. Puede ser privado o no existir.');
@@ -144,11 +145,11 @@ const DeckDetail: React.FC = () => {
     // Forzar recarga al volver de la edición (cuando la pestaña se vuelve visible)
     useEffect(() => {
         const handleVisibility = async () => {
-            if (document.visibilityState === 'visible') {
-                // Cuando la pestaña se vuelve visible, forzar una recarga sin caché
-                console.log('Pestaña visible, recargando deck sin caché...');
+            if (document.visibilityState === 'visible' && deck) {
+                // Cuando la pestaña se vuelve visible, SIEMPRE forzar una recarga sin caché
+                console.log('Pestaña visible, recargando deck SIN caché...');
                 try {
-                    const freshDeckData = await getDeckWithCards(id, true); // skipCache = true
+                    const freshDeckData = await getDeckWithCards(id, true); // SIEMPRE skipCache = true
                     if (freshDeckData) {
                         setDeck(freshDeckData);
                         if (freshDeckData.cards.length > 0) {

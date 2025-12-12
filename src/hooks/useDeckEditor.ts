@@ -441,7 +441,14 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
       let newDeckId;
       if (deckId && !isNew) {
         try {
-          await updateDeck(deckId, { name: deckData.name, deckSlots: deckData.deckSlots, isPublic: deckData.isPublic, description: deckData.description });
+          // IMPORTANTE: Actualizar también cardIds para mantener sincronización
+          await updateDeck(deckId, { 
+            name: deckData.name, 
+            deckSlots: deckData.deckSlots, 
+            cardIds: deckData.cardIds, // ← AGREGAR ESTA LÍNEA
+            isPublic: deckData.isPublic, 
+            description: deckData.description 
+          });
           newDeckId = deckId;
           toast.success('Mazo actualizado correctamente');
         } catch (err) {

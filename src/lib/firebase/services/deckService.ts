@@ -125,6 +125,14 @@ export const updateDeck = async (deckId: string, deckData: Partial<Omit<Deck, 'i
 
         // Invalidar caché del mazo específico
         cacheService.delete(`deck:${deckId}`);
+        
+        // Si se actualizaron los cardIds, también invalidar cache de cartas
+        if (deckData.cardIds) {
+            console.log('[updateDeck] cardIds updated, invalidating card cache');
+            cacheService.invalidatePattern('card:*');
+        }
+        
+        console.log('[updateDeck] Cache invalidated for deck:', deckId);
     } catch (error) {
         console.error('Error al actualizar el mazo:', error);
         logError(error);
@@ -203,14 +211,20 @@ export const getDeckById = async (deckId: string, skipCache: boolean = false): P
  */
 export const getDeckWithCards = async (deckId: string, skipCache: boolean = false): Promise<DeckWithCards | null> => {
     try {
+        // Si skipCache es true, invalidar cache específico del deck
+        if (skipCache) {
+            console.log('[getDeckWithCards] Invalidating cache for deck:', deckId);
+            cacheService.delete(`deck:${deckId}`);
+        }
+
         const deck = await getDeckById(deckId, skipCache);
 
         if (!deck) {
             return null;
         }
 
-        // Obtener detalles de las cartas
-        const cards = await getCardsByIds(deck.cardIds);
+        // Obtener detalles de las cartas (pasar skipCache para consistencia)
+        const cards = await getCardsByIds(deck.cardIds, skipCache);
 
         return {
             ...deck,

@@ -301,14 +301,16 @@ export const getCardById = async (cardId: string): Promise<CardDetails | null> =
 };
 
 // Obtener múltiples cartas por sus IDs
-export const getCardsByIds = async (cardIds: string[]): Promise<CardDetails[]> => {
+export const getCardsByIds = async (cardIds: string[], skipCache: boolean = false): Promise<CardDetails[]> => {
     try {
+        console.log(`[getCardsByIds] Loading ${cardIds.length} cards, skipCache:`, skipCache);
+        
         // Si no hay IDs, devolvemos un array vacío
         if (!cardIds || !cardIds.length) {
             return [];
         }
 
-        // Verificar si algunas cartas están en caché
+        // Verificar si algunas cartas están en caché (solo si no se especifica skipCache)
         const cachedCards: Record<string, CardDetails> = {};
         const idsToFetch: string[] = [];
 
@@ -316,13 +318,18 @@ export const getCardsByIds = async (cardIds: string[]): Promise<CardDetails[]> =
             // Si el ID es undefined o null, ignorarlo
             if (!id) continue;
 
-            const cacheKey = `card:${id}`;
-            const cachedCard = cacheService.get<CardDetails>(cacheKey);
-
-            if (cachedCard) {
-                cachedCards[id] = cachedCard;
-            } else {
+            if (skipCache) {
+                // Si skipCache es true, obtener todas las cartas frescas
                 idsToFetch.push(id);
+            } else {
+                const cacheKey = `card:${id}`;
+                const cachedCard = cacheService.get<CardDetails>(cacheKey);
+
+                if (cachedCard) {
+                    cachedCards[id] = cachedCard;
+                } else {
+                    idsToFetch.push(id);
+                }
             }
         }
 
@@ -344,12 +351,14 @@ export const getCardsByIds = async (cardIds: string[]): Promise<CardDetails[]> =
             const q = query(cardsCol, where("__name__", "in", batchIds));
             const querySnapshot = await getDocs(q);
 
-            // Procesar resultados y guardar en caché
+            // Procesar resultados y guardar en caché solo si no se especifica skipCache
             querySnapshot.docs.forEach(doc => {
                 const card = convertDocToCardDetails(doc);
 
-                // Guardar en caché para futuros usos
-                cacheService.set(`card:${card.id}`, card, CACHE_TTL.CARD_DETAILS);
+                // Guardar en caché para futuros usos (solo si no se especifica skipCache)
+                if (!skipCache) {
+                    cacheService.set(`card:${card.id}`, card, CACHE_TTL.CARD_DETAILS);
+                }
 
                 batchedResults.push(card);
             });
@@ -625,9 +634,15 @@ export const updateCard = async (cardId: string, cardData: Partial<Omit<Card, 'i
         // Actualizar el documento
         await updateDoc(cardRef, cleanedData);
         
-        // Invalidar caché si existe
+        // Invalidar caché relacionada
         const cacheKey = `card:${cardId}`;
         cacheService.delete(cacheKey);
+        
+        // También invalidar caché de consultas que podrían contener esta carta
+        cacheService.invalidatePattern('getAllCards');
+        cacheService.invalidatePattern('queryCards:*');
+        
+        console.log("[updateCard] Cache invalidated for card:", cardId);
         
     } catch (error) {
         console.error("[updateCard] Error al actualizar la carta:", error);
