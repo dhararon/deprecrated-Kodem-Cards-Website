@@ -2,6 +2,7 @@ import {
     collection,
     getDocs,
     query,
+    where,
     orderBy,
     limit as firestoreLimit
 } from 'firebase/firestore';

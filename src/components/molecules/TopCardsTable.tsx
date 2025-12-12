@@ -64,16 +64,17 @@ export function TopCardsTable({
                                 {/* Card image */}
                                 {showImages && (
                                     <div className="flex-shrink-0">
-                                        <Image
-                                            src={card.imageUrl}
-                                            alt={card.name}
-                                            className="w-12 h-16 object-cover rounded border"
-                                            fallback={
-                                                <div className="w-12 h-16 bg-gray-200 rounded border flex items-center justify-center">
-                                                    <span className="text-xs text-gray-500">N/A</span>
-                                                </div>
-                                            }
-                                        />
+                                        {card.imageUrl ? (
+                                            <Image
+                                                src={card.imageUrl}
+                                                alt={card.name}
+                                                className="w-12 h-16 object-cover rounded border"
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-16 bg-gray-200 rounded border flex items-center justify-center">
+                                                <span className="text-xs text-gray-500">N/A</span>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                                 
