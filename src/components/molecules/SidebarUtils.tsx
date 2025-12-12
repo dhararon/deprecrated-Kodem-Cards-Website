@@ -44,44 +44,51 @@ export const sidebarIcons = {
     analytics: <ChartIcon className="h-4 w-4" />
 };
 
-export const createDefaultSections = (badgeCount?: number): SidebarSection[] => [
-    {
-        title: 'Colecciones',
-        links: [
-            {
-                text: 'Mi Colección',
-                href: '/collection',
-                icon: sidebarIcons.library,
-                badge: badgeCount
-            },
-            {
-                text: 'Cartas Proxy',
-                href: '/cards/selector',
-                icon: sidebarIcons.new
-            }
-        ]
-    },
-    {
-        "title": "Mazos",
-        "links": [
-            {
-                "text": "Mis Mazos",
-                "href": "/decks",
-                "icon": sidebarIcons.decks
-            }
-        ]
-    },
-    {
-        title: 'Analytics',
-        links: [
-            {
-                text: 'Estadísticas',
-                href: '/analytics',
-                icon: sidebarIcons.analytics
-            }
-        ]
-    },
-    {
+export const createDefaultSections = (badgeCount?: number, isAdmin: boolean = false): SidebarSection[] => {
+    const sections: SidebarSection[] = [
+        {
+            title: 'Colecciones',
+            links: [
+                {
+                    text: 'Mi Colección',
+                    href: '/collection',
+                    icon: sidebarIcons.library,
+                    badge: badgeCount
+                },
+                {
+                    text: 'Cartas Proxy',
+                    href: '/cards/selector',
+                    icon: sidebarIcons.new
+                }
+            ]
+        },
+        {
+            "title": "Mazos",
+            "links": [
+                {
+                    "text": "Mis Mazos",
+                    "href": "/decks",
+                    "icon": sidebarIcons.decks
+                }
+            ]
+        }
+    ];
+
+    // Solo agregar Analytics para admins
+    if (isAdmin) {
+        sections.push({
+            title: 'Analytics',
+            links: [
+                {
+                    text: 'Estadísticas',
+                    href: '/analytics',
+                    icon: sidebarIcons.analytics
+                }
+            ]
+        });
+    }
+
+    sections.push({
         title: 'Información',
         links: [
             {
@@ -90,5 +97,7 @@ export const createDefaultSections = (badgeCount?: number): SidebarSection[] => 
                 icon: sidebarIcons.heart
             }
         ]
-    }
-]; 
+    });
+
+    return sections;
+};

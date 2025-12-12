@@ -30,7 +30,7 @@ export function Topbar() {
 
 	// Obtener secciones personalizadas según el rol del usuario
 	const getSections = useCallback(() => {
-		const defaultSections = createDefaultSections();
+		const defaultSections = createDefaultSections(undefined, isAdmin);
 
 		// Añadir enlaces de administración si el usuario es admin
 		if (isAdmin) {

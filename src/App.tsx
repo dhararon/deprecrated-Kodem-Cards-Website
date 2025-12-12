@@ -172,9 +172,15 @@ function App() {
                 </Route>
 
                 <Route path="/analytics">
-                  <AuthenticatedRoute>
-                    <Analytics />
-                  </AuthenticatedRoute>
+                  <ProtectedRoute requiredRoles={['admin']}>
+                    <PrivateLayout>
+                      <WithProviders>
+                        <Suspense fallback={<LoadingFallback />}>
+                          <Analytics />
+                        </Suspense>
+                      </WithProviders>
+                    </PrivateLayout>
+                  </ProtectedRoute>
                 </Route>
 
                 <Route path="/profile">

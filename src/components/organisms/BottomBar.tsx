@@ -18,7 +18,7 @@ const BottomBar = () => {
   // Clase para iconos
   const iconBaseClass = "transition-transform duration-150";
 
-  // Enlaces de navegación principales (solo 3)
+  // Enlaces de navegación principales
   const navItems = [
     {
       name: 'Colección',
@@ -29,13 +29,17 @@ const BottomBar = () => {
       name: 'Mazos',
       path: '/decks',
       icon: (active: boolean) => <Layers className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
-    },
-    {
+    }
+  ];
+
+  // Solo agregar Analytics para admins
+  if (isAdmin) {
+    navItems.push({
       name: 'Analytics',
       path: '/analytics',
       icon: (active: boolean) => <BarChart3 className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
-    }
-  ];
+    });
+  }
 
   // Enlaces para el menú desplegable
   const menuItems = [
