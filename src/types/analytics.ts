@@ -40,11 +40,23 @@ export interface TopStarterCards {
     totalDecksAnalyzed: number;
 }
 
+export interface TopCardsByType {
+    cards: TopCard[];
+    totalDecksAnalyzed: number;
+}
+
 export interface AnalyticsData {
     deckStats: DeckStats;
     cardDistribution: CardDistribution;
     energyDistribution: EnergyDistribution;
     topCards: TopCard[];
     topStarterCards: TopStarterCards;
+    topProtectorCards: TopCardsByType;
+    topBioCards: TopCardsByType;
+    topRotCards: TopCardsByType;
+    topIximCards: TopCardsByType;
+    topRavaCards: TopCardsByType;
+    topEspectroCards: TopCardsByType;
+    topAdendeiCards: TopCardsByType;
     lastUpdated: string;
 }

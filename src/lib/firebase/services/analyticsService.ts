@@ -14,7 +14,8 @@ import {
     CardDistribution, 
     EnergyDistribution, 
     TopCard,
-    TopStarterCards
+    TopStarterCards,
+    TopCardsByType
 } from '@/types/analytics';
 import { Deck, DeckWithCards } from '@/types/deck';
 import { CardDetails, CardEnergy } from '@/types/card';
@@ -53,6 +54,11 @@ function convertFirestoreDocToDeck(docSnapshot: any): Deck {
  * Crea un objeto de analytics vacío para cuando no hay datos
  */
 function createEmptyAnalyticsData(): AnalyticsData {
+    const emptyTopCards: TopCardsByType = {
+        cards: [],
+        totalDecksAnalyzed: 0
+    };
+
     return {
         deckStats: {
             totalDecks: 0,
@@ -71,6 +77,13 @@ function createEmptyAnalyticsData(): AnalyticsData {
             cards: [],
             totalDecksAnalyzed: 0
         },
+        topProtectorCards: emptyTopCards,
+        topBioCards: emptyTopCards,
+        topRotCards: emptyTopCards,
+        topIximCards: emptyTopCards,
+        topRavaCards: emptyTopCards,
+        topEspectroCards: emptyTopCards,
+        topAdendeiCards: emptyTopCards,
         lastUpdated: new Date().toISOString()
     };
 }
@@ -144,6 +157,15 @@ export const getAnalyticsData = async (): Promise<AnalyticsData> => {
             
             // Calcular top cartas de inicio
             const topStarterCards = calculateTopStarterCards(decks, cardDetailsMap);
+            
+            // Calcular top cartas por tipo
+            const topProtectorCards = calculateTopCardsByType(decks, cardDetailsMap, 'protector');
+            const topBioCards = calculateTopCardsByType(decks, cardDetailsMap, 'bio');
+            const topRotCards = calculateTopCardsByType(decks, cardDetailsMap, 'rot');
+            const topIximCards = calculateTopCardsByType(decks, cardDetailsMap, 'ixim');
+            const topRavaCards = calculateTopCardsByType(decks, cardDetailsMap, 'rava');
+            const topEspectroCards = calculateTopCardsByType(decks, cardDetailsMap, 'espectro');
+            const topAdendeiCards = calculateTopCardsByType(decks, cardDetailsMap, 'adendei');
 
             const analyticsData: AnalyticsData = {
                 deckStats,
@@ -151,6 +173,13 @@ export const getAnalyticsData = async (): Promise<AnalyticsData> => {
                 energyDistribution,
                 topCards,
                 topStarterCards,
+                topProtectorCards,
+                topBioCards,
+                topRotCards,
+                topIximCards,
+                topRavaCards,
+                topEspectroCards,
+                topAdendeiCards,
                 lastUpdated: new Date().toISOString()
             };
 
@@ -214,13 +243,23 @@ function calculateEnergyDistribution(decks: Deck[], cardDetailsMap: Map<string, 
     const energyCount = new Map<string, number>();
     let totalCards = 0;
 
+    // Lista de tipos de cartas que NO tienen energy
+    const cardsWithoutEnergy = ['protector', 'bio', 'rot', 'ixim', 'espectro'];
+
     // Contar todas las cartas por energía
     decks.forEach(deck => {
         deck.cardIds.forEach(cardId => {
             const card = cardDetailsMap.get(cardId);
-            if (card && card.energy) {
-                const currentCount = energyCount.get(card.energy) || 0;
-                energyCount.set(card.energy, currentCount + 1);
+            if (card) {
+                // Si es una carta que no debería tener energy, saltarla
+                if (cardsWithoutEnergy.includes(card.type || '')) {
+                    return;
+                }
+                
+                // Para cartas que deberían tener energy
+                const energy = card.energy || 'Sin Energía'; // Fallback para cartas sin energy definida
+                const currentCount = energyCount.get(energy) || 0;
+                energyCount.set(energy, currentCount + 1);
                 totalCards++;
             }
         });
@@ -246,12 +285,19 @@ function calculateTopCards(decks: Deck[], cardDetailsMap: Map<string, CardDetail
     const cardCount = new Map<string, number>();
     let totalCardInstances = 0;
 
-    // Contar todas las instancias de cartas
+    // Lista de tipos de cartas que NO deben aparecer en el top general
+    const excludedCardTypes = ['protector', 'bio', 'rot', 'ixim', 'espectro'];
+
+    // Contar todas las instancias de cartas (excluyendo tipos específicos)
     decks.forEach(deck => {
         deck.cardIds.forEach(cardId => {
-            const currentCount = cardCount.get(cardId) || 0;
-            cardCount.set(cardId, currentCount + 1);
-            totalCardInstances++;
+            const card = cardDetailsMap.get(cardId);
+            // Solo contar cartas que no sean de tipos específicos
+            if (card && !excludedCardTypes.includes(card.type || '')) {
+                const currentCount = cardCount.get(cardId) || 0;
+                cardCount.set(cardId, currentCount + 1);
+                totalCardInstances++;
+            }
         });
     });
 
@@ -270,7 +316,7 @@ function calculateTopCards(decks: Deck[], cardDetailsMap: Map<string, CardDetail
             };
         })
         .sort((a, b) => b.count - a.count)
-        .slice(0, 10); // Top 10
+        .slice(0, Math.min(10, cardCount.size)); // Top dinámico hasta 10
 
     return topCardsArray;
 }
@@ -326,10 +372,59 @@ function calculateTopStarterCards(decks: Deck[], cardDetailsMap: Map<string, Car
             };
         })
         .sort((a, b) => b.count - a.count)
-        .slice(0, 10); // Top 10
+        .slice(0, Math.min(10, starterCardCount.size)); // Top dinámico hasta 10
 
     return {
         cards: topStarterCardsArray,
+        totalDecksAnalyzed: decksAnalyzed
+    };
+}
+
+/**
+ * Calcula los top cards más utilizados de un tipo específico
+ */
+function calculateTopCardsByType(decks: Deck[], cardDetailsMap: Map<string, CardDetails>, cardType: string): TopCardsByType {
+    const cardCount = new Map<string, number>();
+    let totalCardInstances = 0;
+    let decksAnalyzed = 0;
+
+    // Contar todas las instancias de cartas del tipo específico
+    decks.forEach(deck => {
+        let hasCardOfType = false;
+        deck.cardIds.forEach(cardId => {
+            const card = cardDetailsMap.get(cardId);
+            if (card && card.type === cardType) {
+                const currentCount = cardCount.get(cardId) || 0;
+                cardCount.set(cardId, currentCount + 1);
+                totalCardInstances++;
+                hasCardOfType = true;
+            }
+        });
+        
+        if (hasCardOfType) {
+            decksAnalyzed++;
+        }
+    });
+
+    // Convertir a array y ordenar por uso
+    const topCardsArray: TopCard[] = Array.from(cardCount.entries())
+        .map(([cardId, count]) => {
+            const card = cardDetailsMap.get(cardId);
+            return {
+                cardId,
+                name: card?.name || 'Carta desconocida',
+                imageUrl: card?.imageUrl || '',
+                count,
+                percentage: totalCardInstances > 0 ? Math.round((count / totalCardInstances) * 100 * 10) / 10 : 0,
+                energy: card?.energy,
+                type: card?.type
+            };
+        })
+        .sort((a, b) => b.count - a.count)
+        .slice(0, Math.min(10, cardCount.size)); // Top dinámico hasta 10
+
+    return {
+        cards: topCardsArray,
         totalDecksAnalyzed: decksAnalyzed
     };
 }

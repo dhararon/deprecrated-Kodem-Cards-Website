@@ -237,17 +237,75 @@ export default function Analytics() {
                     <div className="grid gap-6 lg:grid-cols-2">
                         {/* Top 10 cartas más utilizadas */}
                         <TopCardsTable
-                            title="Top 10 Cartas Más Utilizadas"
-                            description="Las cartas que aparecen en más decks"
+                            title={`Top ${analyticsData.topCards.length} Cartas Más Utilizadas`}
+                            description="Las cartas que aparecen en más decks (excluyendo Protector, BIO, ROT, IXIM, Espectro)"
                             cards={analyticsData.topCards}
                         />
 
                         {/* Top 10 cartas de inicio */}
                         <TopCardsTable
-                            title="Top 10 Cartas de Inicio"
+                            title={`Top ${analyticsData.topStarterCards.cards.length} Cartas de Inicio`}
                             description={`Primeras 3 cartas más comunes (${analyticsData.topStarterCards.totalDecksAnalyzed} decks analizados)`}
                             cards={analyticsData.topStarterCards.cards}
                         />
+                    </div>
+
+                    {/* Top cards por tipo - Grid de 3 columnas */}
+                    <div>
+                        <h2 className="text-2xl font-bold tracking-tight mb-6">
+                            Top por Tipo de Carta
+                        </h2>
+                        
+                        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+                            {/* Top Protector */}
+                            <TopCardsTable
+                                title={`Top ${analyticsData.topProtectorCards.cards.length} Protector`}
+                                description={`Protectores más utilizados (${analyticsData.topProtectorCards.totalDecksAnalyzed} decks)`}
+                                cards={analyticsData.topProtectorCards.cards}
+                            />
+
+                            {/* Top BIO */}
+                            <TopCardsTable
+                                title={`Top ${analyticsData.topBioCards.cards.length} BIO`}
+                                description={`BIOs más utilizados (${analyticsData.topBioCards.totalDecksAnalyzed} decks)`}
+                                cards={analyticsData.topBioCards.cards}
+                            />
+
+                            {/* Top ROT */}
+                            <TopCardsTable
+                                title={`Top ${analyticsData.topRotCards.cards.length} ROT`}
+                                description={`ROTs más utilizados (${analyticsData.topRotCards.totalDecksAnalyzed} decks)`}
+                                cards={analyticsData.topRotCards.cards}
+                            />
+
+                            {/* Top IXIM */}
+                            <TopCardsTable
+                                title={`Top ${analyticsData.topIximCards.cards.length} IXIM`}
+                                description={`IXIMs más utilizados (${analyticsData.topIximCards.totalDecksAnalyzed} decks)`}
+                                cards={analyticsData.topIximCards.cards}
+                            />
+
+                            {/* Top RAVA */}
+                            <TopCardsTable
+                                title={`Top ${analyticsData.topRavaCards.cards.length} RAVA`}
+                                description={`RAVAs más utilizados (${analyticsData.topRavaCards.totalDecksAnalyzed} decks)`}
+                                cards={analyticsData.topRavaCards.cards}
+                            />
+
+                            {/* Top Espectro */}
+                            <TopCardsTable
+                                title={`Top ${analyticsData.topEspectroCards.cards.length} Espectro`}
+                                description={`Espectros más utilizados (${analyticsData.topEspectroCards.totalDecksAnalyzed} decks)`}
+                                cards={analyticsData.topEspectroCards.cards}
+                            />
+
+                            {/* Top Adendei */}
+                            <TopCardsTable
+                                title={`Top ${analyticsData.topAdendeiCards.cards.length} Adendei`}
+                                description={`Adendeis más utilizados (${analyticsData.topAdendeiCards.totalDecksAnalyzed} decks)`}
+                                cards={analyticsData.topAdendeiCards.cards}
+                            />
+                        </div>
                     </div>
 
                     {/* Información adicional */}
