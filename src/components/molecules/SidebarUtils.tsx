@@ -10,6 +10,7 @@ import {
     Library as LibraryIcon,
     Heart as HeartIcon,
     Trophy as TrophyIcon,
+    BarChart3 as ChartIcon,
 } from 'lucide-react';
 
 // Tipos exportados
@@ -39,7 +40,8 @@ export const sidebarIcons = {
     library: <LibraryIcon className="h-4 w-4" />,
     heart: <HeartIcon className="h-4 w-4" />,
     feed: <RocketIcon className="h-4 w-4" />,
-    tournament: <TrophyIcon className="h-4 w-4" />
+    tournament: <TrophyIcon className="h-4 w-4" />,
+    analytics: <ChartIcon className="h-4 w-4" />
 };
 
 export const createDefaultSections = (badgeCount?: number): SidebarSection[] => [
@@ -68,8 +70,17 @@ export const createDefaultSections = (badgeCount?: number): SidebarSection[] => 
                 "icon": sidebarIcons.decks
             }
         ]
-    }
-    ,
+    },
+    {
+        title: 'Analytics',
+        links: [
+            {
+                text: 'Estadísticas',
+                href: '/analytics',
+                icon: sidebarIcons.analytics
+            }
+        ]
+    },
     {
         title: 'Información',
         links: [

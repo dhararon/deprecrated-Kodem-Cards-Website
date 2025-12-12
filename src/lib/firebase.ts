@@ -78,9 +78,19 @@ export const verifyAuthClaims = async () => {
         const tokenResult = await getIdTokenResult(currentUser, true);
 
         console.log('Claims verificados exitosamente:', tokenResult.claims);
-        console.log('Firebase Auth Time:', new Date(Number(tokenResult.authTime) * 1000).toISOString());
-        console.log('Firebase Token Issued:', new Date(Number(tokenResult.issuedAtTime) * 1000).toISOString());
-        console.log('Firebase Token Expires:', new Date(Number(tokenResult.expirationTime) * 1000).toISOString());
+        
+        // Convertir fechas de manera segura
+        try {
+            const authTime = tokenResult.authTime ? new Date(Number(tokenResult.authTime) * 1000).toISOString() : 'No disponible';
+            const issuedAtTime = tokenResult.issuedAtTime ? new Date(Number(tokenResult.issuedAtTime) * 1000).toISOString() : 'No disponible';
+            const expirationTime = tokenResult.expirationTime ? new Date(Number(tokenResult.expirationTime) * 1000).toISOString() : 'No disponible';
+            
+            console.log('Firebase Auth Time:', authTime);
+            console.log('Firebase Token Issued:', issuedAtTime);
+            console.log('Firebase Token Expires:', expirationTime);
+        } catch (dateError) {
+            console.warn('Error al convertir fechas del token:', dateError);
+        }
 
         // Guardar claims en localStorage
         localStorage.setItem('auth_claims', JSON.stringify(tokenResult.claims));

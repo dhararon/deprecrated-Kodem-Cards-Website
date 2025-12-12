@@ -33,16 +33,8 @@ service cloud.firestore {
               get(/databases/$(database)/documents/system/config).data.useEmulator == true);
     }
     
-    function isOwner(resourceField) {
-      return isAuthenticated() && request.auth.uid == resource.data[resourceField];
-    }
-    
     function willBeOwner(resourceField) {
       return isAuthenticated() && request.auth.uid == request.resource.data[resourceField];
-    }
-    
-    function isPublic() {
-      return resource.data.isPublic == true;
     }
     
     function isAnonymous() {
@@ -75,13 +67,19 @@ service cloud.firestore {
     
     // Reglas para colección 'decks'
     match /decks/{deckId} {
-      // Permitir lectura a mazos públicos para cualquier usuario (autenticado o no)
+      // Permitir lectura a mazos públicos para cualquier usuario autenticado
       // Solo permitir lectura de mazos privados al propietario
-      allow read: if isPublic() || (isAuthenticated() && isOwner("userUid"));
+      allow read: if isAuthenticated() && (
+        (resource.data.isPublic == true) || 
+        (resource.data.userUid == request.auth.uid)
+      );
+      
+      // Permitir a administradores leer todos los mazos (incluyendo queries)
+      allow read: if isAdmin();
       
       // Permitir al usuario crear, actualizar y eliminar sus propios mazos
       allow create: if willBeOwner("userUid") && !isAnonymous();
-      allow update, delete: if isOwner("userUid") && !isAnonymous();
+      allow update, delete: if isAuthenticated() && (resource.data.userUid == request.auth.uid) && !isAnonymous();
                             
       // Permitir a administradores gestionar todos los mazos
       allow write: if isAdmin();

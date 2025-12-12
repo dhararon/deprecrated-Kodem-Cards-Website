@@ -34,6 +34,9 @@ const DeckEditor = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/de
 const DeckDetail = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks/[id]'));
 const DecksFeed = lazy(() => import(/* webpackChunkName: "decks" */ '@/pages/decks/feed'));
 
+// Página de analytics
+const Analytics = lazy(() => import(/* webpackChunkName: "analytics" */ '@/pages/analytics'));
+
 // Páginas de administración
 const CardsManager = lazy(() => import(/* webpackChunkName: "admin" */ '@/pages/cards/index'));
 
@@ -166,6 +169,12 @@ function App() {
                       <DeckDetail />
                     </Suspense>
                   )}
+                </Route>
+
+                <Route path="/analytics">
+                  <AuthenticatedRoute>
+                    <Analytics />
+                  </AuthenticatedRoute>
                 </Route>
 
                 <Route path="/profile">

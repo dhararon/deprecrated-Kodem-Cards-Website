@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
-import { Home, User, ShieldAlert, Heart, Layers, Globe, Menu, X } from 'lucide-react';
+import { Home, User, ShieldAlert, Heart, Layers, Globe, Menu, X, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -29,6 +29,11 @@ const BottomBar = () => {
       name: 'Mazos',
       path: '/decks',
       icon: (active: boolean) => <Layers className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
+    },
+    {
+      name: 'Analytics',
+      path: '/analytics',
+      icon: (active: boolean) => <BarChart3 className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
     }
   ];
 
@@ -43,10 +48,10 @@ const BottomBar = () => {
 
   // Agregar sección de administración si el usuario es admin
   if (isAdmin) {
-    navItems.push({
+    menuItems.push({
       name: 'Gestionar cartas',
       path: '/admin/cards',
-      icon: (active: boolean) => <ShieldAlert className={`${iconBaseClass} ${active ? 'h-6 w-6 stroke-[2.5]' : 'h-5 w-5 stroke-2'}`} />
+      icon: <ShieldAlert className="h-5 w-5 mr-3" />
     });
   }
 

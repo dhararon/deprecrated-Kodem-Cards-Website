@@ -32,4 +32,5 @@ export type {
 export * from './cardService';
 export * from './collectionService';
 export * from './storageService';
-export * from './deckService'; 
+export * from './deckService';
+export * from './analyticsService'; 
