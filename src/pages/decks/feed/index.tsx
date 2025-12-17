@@ -83,9 +83,19 @@ const DecksFeed: React.FC = () => {
             case 'recent':
                 // Ordenar por fecha de creación (más reciente primero)
                 return filteredDecks.sort((a, b) => {
-                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-                    return dateB - dateA;
+                    try {
+                        // Convertir a fecha de forma segura
+                        const dateA = a.createdAt 
+                            ? new Date(a.createdAt).getTime() 
+                            : 0;
+                        const dateB = b.createdAt 
+                            ? new Date(b.createdAt).getTime() 
+                            : 0;
+                        return dateB - dateA;
+                    } catch (err) {
+                        console.warn('Error al comparar fechas:', a.createdAt, b.createdAt);
+                        return 0;
+                    }
                 });
             default:
                 return filteredDecks;
@@ -101,28 +111,48 @@ const DecksFeed: React.FC = () => {
     const formatRelativeTime = (timestamp: string | Date | { toDate: () => Date } | undefined) => {
         if (!timestamp) return 'Fecha desconocida';
         
-        const date = typeof timestamp === 'object' && 'toDate' in timestamp 
-            ? timestamp.toDate() 
-            : typeof timestamp === 'string' 
-                ? new Date(timestamp) 
-                : timestamp;
-        
-        const now = new Date();
-        const diffMs = now.getTime() - date.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
-        
-        if (diffMins < 1) return 'ahora';
-        if (diffMins < 60) return `hace ${diffMins} min`;
-        if (diffHours < 24) return `hace ${diffHours} h`;
-        if (diffDays < 30) return `hace ${diffDays} d`;
-        
-        return date.toLocaleDateString('es-ES', { 
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        });
+        try {
+            let date: Date;
+            
+            // Manejar diferentes formatos de timestamp
+            if (typeof timestamp === 'object' && 'toDate' in timestamp) {
+                // Timestamp de Firestore
+                date = timestamp.toDate();
+            } else if (typeof timestamp === 'string') {
+                // String ISO
+                date = new Date(timestamp);
+            } else if (timestamp instanceof Date) {
+                // Date nativo
+                date = timestamp;
+            } else {
+                return 'Fecha desconocida';
+            }
+            
+            // Validar que sea una fecha válida
+            if (isNaN(date.getTime())) {
+                return 'Fecha desconocida';
+            }
+            
+            const now = new Date();
+            const diffMs = now.getTime() - date.getTime();
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 1) return 'ahora';
+            if (diffMins < 60) return `hace ${diffMins} min`;
+            if (diffHours < 24) return `hace ${diffHours} h`;
+            if (diffDays < 30) return `hace ${diffDays} d`;
+            
+            return date.toLocaleDateString('es-ES', { 
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        } catch (error) {
+            console.warn('Error formateando fecha:', timestamp, error);
+            return 'Fecha desconocida';
+        }
     };
 
     // Manejar refresco del feed

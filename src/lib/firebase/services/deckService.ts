@@ -40,16 +40,30 @@ const convertDocToDeck = (docSnapshot: unknown): Deck => {
 
     const data = (docSnapshot as { data: () => Record<string, unknown> }).data();
 
-    // Convertir Timestamps a strings ISO
-    let createdAt = data.createdAt;
-    let updatedAt = data.updatedAt;
+    // Convertir Timestamps a strings ISO de forma robusta
+    let createdAt: any = data.createdAt;
+    let updatedAt: any = data.updatedAt;
 
+    // Convertir createdAt
     if (createdAt instanceof Timestamp) {
         createdAt = createdAt.toDate().toISOString();
+    } else if (typeof createdAt === 'object' && createdAt?._seconds) {
+        createdAt = new Date(createdAt._seconds * 1000).toISOString();
+    } else if (typeof createdAt === 'string') {
+        // Ya es string, no hacer nada
+    } else {
+        createdAt = new Date().toISOString();
     }
 
+    // Convertir updatedAt
     if (updatedAt instanceof Timestamp) {
         updatedAt = updatedAt.toDate().toISOString();
+    } else if (typeof updatedAt === 'object' && updatedAt?._seconds) {
+        updatedAt = new Date(updatedAt._seconds * 1000).toISOString();
+    } else if (typeof updatedAt === 'string') {
+        // Ya es string, no hacer nada
+    } else {
+        updatedAt = new Date().toISOString();
     }
 
     return {

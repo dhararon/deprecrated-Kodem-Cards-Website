@@ -33,6 +33,38 @@ const CACHE_TTL = 30 * 60 * 1000;
  */
 function convertFirestoreDocToDeck(docSnapshot: any): Deck {
     const data = docSnapshot.data();
+    
+    // Función helper para convertir timestamps de forma segura
+    const convertTimestamp = (timestamp: any): string => {
+        if (!timestamp) {
+            return new Date().toISOString();
+        }
+        
+        try {
+            // Si es un Timestamp de Firestore
+            if (typeof timestamp.toDate === 'function') {
+                return timestamp.toDate().toISOString();
+            }
+            // Si es un string ISO
+            if (typeof timestamp === 'string') {
+                return timestamp;
+            }
+            // Si es un objeto con propiedades de Timestamp
+            if (typeof timestamp === 'object' && '_seconds' in timestamp) {
+                return new Date(timestamp._seconds * 1000).toISOString();
+            }
+            // Si es un Date
+            if (timestamp instanceof Date) {
+                return timestamp.toISOString();
+            }
+            // Fallback
+            return new Date().toISOString();
+        } catch (error) {
+            console.warn('Error converting timestamp:', timestamp, error);
+            return new Date().toISOString();
+        }
+    };
+    
     return {
         id: docSnapshot.id,
         name: data.name || 'Mazo sin nombre',
@@ -45,8 +77,8 @@ function convertFirestoreDocToDeck(docSnapshot: any): Deck {
         description: data.description || '',
         likes: data.likes || 0,
         views: data.views || 0,
-        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString()
+        createdAt: convertTimestamp(data.createdAt),
+        updatedAt: convertTimestamp(data.updatedAt)
     };
 }
 
