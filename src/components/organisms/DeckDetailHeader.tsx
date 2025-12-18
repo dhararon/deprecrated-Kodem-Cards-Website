@@ -3,11 +3,13 @@ import { Link } from 'wouter';
 import { Button } from '@/components/atoms/Button';
 import { Badge } from '@/components/atoms/Badge';
 import { ChevronLeft, Eye, Share2 } from 'lucide-react';
+import { DeckStatus } from '@/types/deck';
 
 interface DeckDetailHeaderProps {
   deckName: string;
   cardCount: number;
-  isPublic: boolean;
+  deckStatus?: DeckStatus;
+  isPublic?: boolean; // Deprecated: use deckStatus instead
   onToggleView: () => void;
   viewMode: 'grid' | 'list';
   onCopy: () => void;
@@ -19,6 +21,7 @@ interface DeckDetailHeaderProps {
 const DeckDetailHeader: React.FC<DeckDetailHeaderProps> = ({
   deckName,
   cardCount,
+  deckStatus,
   isPublic,
   onToggleView,
   viewMode,
@@ -26,7 +29,10 @@ const DeckDetailHeader: React.FC<DeckDetailHeaderProps> = ({
   onPrint,
   onDownload,
   onShare,
-}) => (
+}) => {
+  const status = deckStatus || (isPublic ? 'public' : 'private');
+  
+  return (
   <div className="flex items-center justify-between p-4 border-b border-border bg-card">
     <div className="flex items-center">
       <Link href="/decks">
@@ -38,17 +44,32 @@ const DeckDetailHeader: React.FC<DeckDetailHeaderProps> = ({
         <h1 className="text-xl font-bold">{deckName}</h1>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>{cardCount} cartas</span>
-          {isPublic ? (
-            <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-              <Eye className="h-3 w-3 mr-1" />
-              Público
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
-              <Eye className="h-3 w-3 mr-1" />
-              Privado
-            </Badge>
-          )}
+          {(() => {
+            switch (status) {
+              case 'public':
+                return (
+                  <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                    <Eye className="h-3 w-3 mr-1" />
+                    Público
+                  </Badge>
+                );
+              case 'private':
+                return (
+                  <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+                    <Eye className="h-3 w-3 mr-1" />
+                    Privado
+                  </Badge>
+                );
+              case 'draft':
+                return (
+                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                    📝 Draft
+                  </Badge>
+                );
+              default:
+                return null;
+            }
+          })()}
         </div>
       </div>
     </div>
@@ -71,6 +92,7 @@ const DeckDetailHeader: React.FC<DeckDetailHeaderProps> = ({
       </Button>
     </div>
   </div>
-);
+  );
+};
 
 export default DeckDetailHeader;

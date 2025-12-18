@@ -2,7 +2,8 @@ import React from 'react';
 import { Button } from '@/components/atoms/Button';
 import { Input } from '@/components/atoms/Input';
 import { Spinner } from '@/components/atoms/Spinner';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { DeckStatus } from '@/types/deck';
 
 type Props = {
   navigate: (path: string) => void;
@@ -10,8 +11,8 @@ type Props = {
   setDeckName: (v: string) => void;
   nameError: string;
   setNameError: (v: string) => void;
-  isPublic: boolean;
-  setIsPublic: (v: boolean) => void;
+  deckStatus: DeckStatus;
+  setDeckStatus: (v: DeckStatus) => void;
   isSaving: boolean;
   isNew: boolean;
   handleSaveDeck: () => Promise<void> | void;
@@ -25,14 +26,40 @@ export const DeckEditorHeader: React.FC<Props> = ({
   setDeckName,
   nameError,
   setNameError,
-  isPublic,
-  setIsPublic,
+  deckStatus,
+  setDeckStatus,
   isSaving,
   isNew,
   handleSaveDeck,
   handleShareDeck,
   setConfirmDeleteDialogOpen
 }) => {
+  const getStatusColor = (status: DeckStatus) => {
+    switch (status) {
+      case 'public':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      case 'private':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      case 'draft':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+      default:
+        return '';
+    }
+  };
+
+  const getStatusLabel = (status: DeckStatus) => {
+    switch (status) {
+      case 'public':
+        return 'Público';
+      case 'private':
+        return 'Privado';
+      case 'draft':
+        return 'Draft';
+      default:
+        return 'Privado';
+    }
+  };
+
   return (
     <div className="hidden md:flex border-b px-4 py-3 items-center justify-between">
       <div className="flex items-center space-x-4">
@@ -56,14 +83,39 @@ export const DeckEditorHeader: React.FC<Props> = ({
         />
       </div>
       <div className="flex items-center space-x-2">
-        <Button 
-          variant="outline" 
-          size="sm"
-          className={`flex items-center gap-1 ${isPublic ? '' : 'bg-red-50'}`}
-          onClick={() => setIsPublic(!isPublic)}
-        >
-          {isPublic ? 'Público' : 'Privado'}
-        </Button>
+        <div className="relative group">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className={`flex items-center gap-1 ${getStatusColor(deckStatus)}`}
+          >
+            {getStatusLabel(deckStatus)}
+            <ChevronDown size={16} />
+          </Button>
+          <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-950 border border-border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+            <button
+              onClick={() => setDeckStatus('public')}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 first:rounded-t-md border-b border-border last:border-b-0"
+            >
+              <span className="font-medium text-green-700 dark:text-green-400">🌍 Público</span>
+              <p className="text-xs text-muted-foreground">Visible para todos</p>
+            </button>
+            <button
+              onClick={() => setDeckStatus('private')}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 border-b border-border last:border-b-0"
+            >
+              <span className="font-medium text-red-700 dark:text-red-400">🔒 Privado</span>
+              <p className="text-xs text-muted-foreground">Solo para ti</p>
+            </button>
+            <button
+              onClick={() => setDeckStatus('draft')}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800 last:rounded-b-md"
+            >
+              <span className="font-medium text-yellow-700 dark:text-yellow-400">📝 Draft</span>
+              <p className="text-xs text-muted-foreground">Sin requisitos mínimos</p>
+            </button>
+          </div>
+        </div>
         <Button 
           onClick={handleSaveDeck}
           disabled={isSaving}

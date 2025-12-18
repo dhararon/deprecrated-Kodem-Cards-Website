@@ -192,17 +192,33 @@ const Decks: React.FC = () => {
                                                 {deck.cardIds.length} cartas • {formatDate(deck.updatedAt)}
                                             </p>
                                         </div>
-                                        {deck.isPublic ? (
-                                            <div className="flex items-center text-sm text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded">
-                                                <Eye className="h-3 w-3 mr-1" />
-                                                Público
-                                            </div>
-                                        ) : (
-                                            <div className="flex items-center text-sm text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 px-2 py-1 rounded">
-                                                <EyeOff className="h-3 w-3 mr-1" />
-                                                Privado
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const status = deck.status || (deck.isPublic ? 'public' : 'private');
+                                            switch (status) {
+                                                case 'public':
+                                                    return (
+                                                        <div className="flex items-center text-sm text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded">
+                                                            <Eye className="h-3 w-3 mr-1" />
+                                                            Público
+                                                        </div>
+                                                    );
+                                                case 'private':
+                                                    return (
+                                                        <div className="flex items-center text-sm text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20 px-2 py-1 rounded">
+                                                            <EyeOff className="h-3 w-3 mr-1" />
+                                                            Privado
+                                                        </div>
+                                                    );
+                                                case 'draft':
+                                                    return (
+                                                        <div className="flex items-center text-sm text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 px-2 py-1 rounded">
+                                                            📝 Draft
+                                                        </div>
+                                                    );
+                                                default:
+                                                    return null;
+                                            }
+                                        })()}
                                     </div>
                                 </div>
                             </CardContent>

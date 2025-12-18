@@ -124,7 +124,8 @@ const DeckDetail: React.FC = () => {
                 }
                 
                 // Incrementar contador de vistas si es público
-                if (deckData.isPublic) {
+                const status = deckData.status || (deckData.isPublic ? 'public' : 'private');
+                if (status === 'public') {
                     try {
                         await incrementDeckViews(id);
                     } catch (err) {
@@ -1150,17 +1151,33 @@ const DeckDetail: React.FC = () => {
                         <h1 className="text-xl font-bold">{deck?.name || ''}</h1>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <span>{getDeckCardCount()} cartas</span>
-                            {deck?.isPublic ? (
-                                <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                                    <Eye className="h-3 w-3 mr-1" />
-                                    Público
-                                </Badge>
-                            ) : (
-                                <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
-                                    <Eye className="h-3 w-3 mr-1" />
-                                    Privado
-                                </Badge>
-                            )}
+                            {(() => {
+                                const status = deck?.status || (deck?.isPublic ? 'public' : 'private');
+                                switch (status) {
+                                    case 'public':
+                                        return (
+                                            <Badge variant="outline" className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                                <Eye className="h-3 w-3 mr-1" />
+                                                Público
+                                            </Badge>
+                                        );
+                                    case 'private':
+                                        return (
+                                            <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+                                                <Eye className="h-3 w-3 mr-1" />
+                                                Privado
+                                            </Badge>
+                                        );
+                                    case 'draft':
+                                        return (
+                                            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                                                📝 Draft
+                                            </Badge>
+                                        );
+                                    default:
+                                        return null;
+                                }
+                            })()}
                         </div>
                     </div>
                 </div>

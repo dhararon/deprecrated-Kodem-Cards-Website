@@ -73,7 +73,7 @@ function convertFirestoreDocToDeck(docSnapshot: any): Deck {
         userAvatar: data.userAvatar,
         cardIds: data.cardIds || [],
         deckSlots: data.deckSlots || [],
-        isPublic: data.isPublic || false,
+        status: (data.status as 'public' | 'private' | 'draft') || (data.isPublic ? 'public' : 'private'),
         description: data.description || '',
         likes: data.likes || 0,
         views: data.views || 0,
@@ -150,7 +150,7 @@ export const getAnalyticsData = async (): Promise<AnalyticsData> => {
                     const decksCol = collection(db, COLLECTION_NAME);
                     const publicDecksQuery = query(
                         decksCol, 
-                        where('isPublic', '==', true),
+                        where('status', '==', 'public'),
                         orderBy('createdAt', 'desc')
                     );
                     const publicDecksSnapshot = await getDocs(publicDecksQuery);
@@ -231,7 +231,7 @@ export const getAnalyticsData = async (): Promise<AnalyticsData> => {
  */
 function calculateDeckStats(decks: Deck[]): DeckStats {
     const totalDecks = decks.length;
-    const publicDecks = decks.filter(deck => deck.isPublic).length;
+    const publicDecks = decks.filter(deck => deck.status === 'public' || deck.isPublic).length;
     const privateDecks = totalDecks - publicDecks;
 
     return {

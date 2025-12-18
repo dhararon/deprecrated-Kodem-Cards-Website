@@ -46,7 +46,8 @@ export function truncateText(text: string, maxLength: number) {
 
 // Definir una interfaz para el tipo de datos de deck
 export interface DeckData {
-  isPublic?: boolean;
+  status?: 'public' | 'private' | 'draft';
+  isPublic?: boolean; // Deprecated: use status instead
   userId?: string;
   [key: string]: unknown; // Para otras propiedades que pueda tener el deck
 }
@@ -56,7 +57,8 @@ export function canViewDeck(deckData: DeckData | null | undefined, userId?: stri
   if (!deckData) return false;
 
   // Si el deck es público, cualquiera puede verlo
-  if (deckData.isPublic) return true;
+  const status = deckData.status || (deckData.isPublic ? 'public' : 'private');
+  if (status === 'public') return true;
 
   // Si el usuario es el propietario del deck, puede verlo
   if (userId && deckData.userId === userId) return true;

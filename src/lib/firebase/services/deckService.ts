@@ -75,7 +75,7 @@ const convertDocToDeck = (docSnapshot: unknown): Deck => {
         cardIds: (data.cardIds as string[]) || [],
         // Incluir deckSlots si existen (posiciones y estructura del mazo)
         deckSlots: (data.deckSlots as DeckCardSlot[]) || [],
-        isPublic: (data.isPublic as boolean) || false,
+        status: (data.status as 'public' | 'private' | 'draft') || (data.isPublic ? 'public' : 'private'),
         description: (data.description as string) || '',
         likes: (data.likes as number) || 0,
         views: (data.views as number) || 0,
@@ -297,9 +297,12 @@ export const queryDecks = async (filters: DeckFilters): Promise<Deck[]> => {
             constraints.push(where("userUid", "==", filters.userUid));
         }
 
-        // Filtrar por visibilidad pública
-        if (filters.isPublic !== undefined) {
-            constraints.push(where("isPublic", "==", filters.isPublic));
+        // Filtrar por estado
+        if (filters.status !== undefined) {
+            constraints.push(where("status", "==", filters.status));
+        } else if (filters.isPublic !== undefined) {
+            // Legacy support: isPublic true = status public, isPublic false = status private
+            constraints.push(where("status", "==", filters.isPublic ? 'public' : 'private'));
         }
 
         // Ordenar por fecha de actualización descendente
@@ -341,7 +344,7 @@ export const getPublicDecks = async (limit: number = 20): Promise<Deck[]> => {
 
     return cacheService.getOrFetch(cacheKey, async () => {
         return queryDecks({
-            isPublic: true,
+            status: 'public',
             limit
         });
     }, CACHE_TTL.PUBLIC_DECKS);
@@ -444,7 +447,7 @@ export const getAllPublicDecks = async (): Promise<Deck[]> => {
         const decksRef = collection(db, 'decks');
         const q = query(
             decksRef,
-            where('isPublic', '==', true),
+            where('status', '==', 'public'),
             orderBy('createdAt', 'desc'),
             firestoreLimit(50) // Limitamos a 50 mazos para no sobrecargar
         );
@@ -460,7 +463,7 @@ export const getAllPublicDecks = async (): Promise<Deck[]> => {
                 userName: data.userName,
                 userAvatar: data.userAvatar,
                 cardIds: data.cardIds || [],
-                isPublic: data.isPublic,
+                status: data.status || 'public',
                 createdAt: data.createdAt,
                 updatedAt: data.updatedAt,
                 likes: data.likes || 0

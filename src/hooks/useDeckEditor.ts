@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { CardDetails, CardType, CardEnergy, CardRarity, CardSet } from '@/types/card';
-import { Deck, DeckCardSlot } from '@/types/deck';
+import { Deck, DeckCardSlot, DeckStatus } from '@/types/deck';
 import {
   getDeckById,
   createDeck,
@@ -25,7 +25,7 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
   const [deck, setDeck] = useState<Deck | null>(null);
   const [deckName, setDeckName] = useState('Nuevo Mazo');
   const [deckDescription, setDeckDescription] = useState('');
-  const [isPublic, setIsPublic] = useState(false);
+  const [deckStatus, setDeckStatus] = useState<DeckStatus>('draft');
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
@@ -126,7 +126,7 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
         setDeck(existing);
         setDeckName(existing.name);
         setDeckDescription(existing.description || '');
-        setIsPublic(existing.isPublic);
+        setDeckStatus(existing.status || 'private');
 
         if (existing.deckSlots && existing.deckSlots.length > 0 && allCards.length > 0) {
           const cardCounts: Record<string, number> = {};
@@ -388,10 +388,20 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
       return;
     }
 
-    const deckValidation = validateCompleteDeck(deckCards);
-    if (!deckValidation.isValid) {
-      deckValidation.errors.forEach(err => toast.error(err));
-      return;
+    // Validación depende del estado del deck
+    if (deckStatus !== 'draft') {
+      // Para public/private, validar requisitos mínimos
+      const deckValidation = validateCompleteDeck(deckCards);
+      if (!deckValidation.isValid) {
+        deckValidation.errors.forEach(err => toast.error(err));
+        return;
+      }
+    } else {
+      // Para draft, solo mostrar un warning si no cumple requisitos
+      const deckValidation = validateCompleteDeck(deckCards);
+      if (!deckValidation.isValid && deckValidation.errors.length > 0) {
+        toast.warning(`Draft guardado sin todos los requisitos: ${deckValidation.errors[0]}`);
+      }
     }
 
     try {
@@ -432,7 +442,7 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
         userUid: user!.id,
         userName: user!.name || 'Usuario',
         userAvatar: user!.avatarUrl || undefined,
-        isPublic,
+        status: deckStatus,
         description: deckDescription.trim() || "",
         cardIds,
         deckSlots
@@ -446,7 +456,7 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
             name: deckData.name, 
             deckSlots: deckData.deckSlots, 
             cardIds: deckData.cardIds, // ← AGREGAR ESTA LÍNEA
-            isPublic: deckData.isPublic, 
+            status: deckData.status, 
             description: deckData.description 
           });
           newDeckId = deckId;
@@ -600,8 +610,8 @@ export default function useDeckEditor(user: UserLike, deckId: string, isNew: boo
     setDeckName,
     deckDescription,
     setDeckDescription,
-    isPublic,
-    setIsPublic,
+    deckStatus,
+    setDeckStatus,
     isLoading,
     isSaving,
     confirmDeleteDialogOpen,

@@ -38,8 +38,8 @@ export default function DeckEditorPage() {
   const {
     deckName,
     setDeckName,
-    isPublic,
-    setIsPublic,
+    deckStatus,
+    setDeckStatus,
     isLoading,
     isSaving,
     confirmDeleteDialogOpen,
@@ -591,8 +591,8 @@ export default function DeckEditorPage() {
         setDeckName={setDeckName}
         nameError={nameError}
         setNameError={setNameError}
-        isPublic={isPublic}
-        setIsPublic={setIsPublic}
+        deckStatus={deckStatus}
+        setDeckStatus={setDeckStatus}
         isSaving={isSaving}
         isNew={isNew}
         handleSaveDeck={handleSaveDeck}
@@ -649,15 +649,27 @@ export default function DeckEditorPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>¿Estás seguro de que quieres eliminar este mazo?</DialogTitle>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setConfirmDeleteDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button variant="danger" onClick={handleDeleteDeck}>
-                Eliminar
-              </Button>
-            </DialogFooter>
           </DialogHeader>
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3 mb-4">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              ⚠️ Esta acción no se puede deshacer.
+            </p>
+          </div>
+          <DialogFooter className="flex gap-3 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setConfirmDeleteDialogOpen(false)}
+              className="px-4 py-2"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleDeleteDeck}
+              className="!bg-red-600 !text-white !hover:bg-red-700 px-4 py-2"
+            >
+              Eliminar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
